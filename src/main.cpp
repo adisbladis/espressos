@@ -1,10 +1,15 @@
+#include "LittleFS.h"
 #include <Adafruit_MAX31865.h>
+#include <ArduinoOTA.h>
 #include <PID_v1.h>
+#include <WiFi.h>
 #include <dimmable_light.h>
 
 // Thermal readings
 #define RREF 430.0 // Value of Rref resistor (PT100 == 430.0, PT1000 == 4300.0)
-#define RNOMINAL  100.0 // "Nominal" 0-degrees resistance of the sensor (PT100 == 100.0, PT1000 == 1000.0)
+#define RNOMINAL                                                               \
+  100.0 // "Nominal" 0-degrees resistance of the sensor (PT100 == 100.0, PT1000
+        // == 1000.0)
 
 struct TempReading {
   double temp;
@@ -40,115 +45,107 @@ struct TempReading {
 };
 
 class BoilerPID {
-  private:
-    double outputPin;
-    Adafruit_MAX31865 thermo;
-    double Setpoint, Input, Output;
-    double Kp = 2, Ki = 60, Kd = 15;
-    int WindowSize = 50;
-    unsigned long windowStartTime;
-    PID pid;
+private:
+  double outputPin;
+  Adafruit_MAX31865 thermo;
+  double Setpoint, Input, Output;
+  double Kp = 2, Ki = 60, Kd = 15;
+  int WindowSize = 50;
+  unsigned long windowStartTime;
+  PID pid;
 
-  public:
-    BoilerPID(double relayPin, double max31865SPIPin, SPIClass *theSPI = &SPI): pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT), thermo(max31865SPIPin, theSPI) {
-      outputPin = relayPin;
-    };
+public:
+  BoilerPID(double relayPin, double max31865SPIPin, SPIClass *theSPI = &SPI)
+      : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT),
+        thermo(max31865SPIPin, theSPI) {
+    outputPin = relayPin;
+  };
 
-    void setup() {
-      pinMode(outputPin, OUTPUT);
+  void setup() {
+    pinMode(outputPin, OUTPUT);
 
-      thermo.begin(MAX31865_2WIRE);
+    thermo.begin(MAX31865_2WIRE);
 
-      windowStartTime = millis();
-      pid.SetOutputLimits(0, WindowSize); // PID output range
+    windowStartTime = millis();
+    pid.SetOutputLimits(0, WindowSize); // PID output range
+    pid.SetMode(AUTOMATIC);
+  }
+
+  void SetSetPoint(double setPoint) { Setpoint = setPoint; }
+
+  double GetSetPoint() { return Setpoint; }
+
+  struct TempReading getTemp() {
+    struct TempReading result;
+
+    uint16_t rtd = thermo.readRTD();
+    result.temp = thermo.temperature(RNOMINAL, RREF);
+
+    // Check if any errors occured
+    result.fault = thermo.readFault();
+    thermo.clearFault();
+
+    return result;
+  }
+
+  void SetTunings(double Kp, double Ki, double Kd) {
+    pid.SetTunings(Kp, Ki, Kd);
+  }
+
+  TempReading tick() {
+    struct TempReading temp = getTemp();
+
+    // If a hardware error occured while checking temps disable the boiler
+    if (temp.fault) {
+      pid.SetMode(MANUAL);
+      digitalWrite(outputPin, LOW);
+      return temp;
+    }
+
+    // If a previous error occured we might have disabled the boiler
+    if (pid.GetMode() != AUTOMATIC) {
       pid.SetMode(AUTOMATIC);
     }
 
-    void SetSetPoint(double setPoint) {
-      Setpoint = setPoint;
+    Input = temp.temp;
+    pid.Compute();
+
+    if (millis() - windowStartTime >= WindowSize) {
+      windowStartTime += WindowSize;
+    }
+    if (Output > 0 && Output < millis() - windowStartTime) {
+      digitalWrite(outputPin, HIGH);
+    } else {
+      digitalWrite(outputPin, LOW);
     }
 
-    double GetSetPoint() {
-      return Setpoint;
-    }
-
-    struct TempReading getTemp() {
-      struct TempReading result;
-
-      uint16_t rtd = thermo.readRTD();
-      result.temp = thermo.temperature(RNOMINAL, RREF);
-
-      // Check if any errors occured
-      result.fault = thermo.readFault();
-      thermo.clearFault();
-
-      return result;
-    }
-
-    void SetTunings(double Kp, double Ki, double Kd) {
-      pid.SetTunings(Kp, Ki, Kd);
-    }
-
-    TempReading tick() {
-      struct TempReading temp = getTemp();
-
-      // If a hardware error occured while checking temps disable the boiler
-      if (temp.fault) {
-        pid.SetMode(MANUAL);
-        digitalWrite(outputPin, LOW);
-        return temp;
-      }
-
-      // If a previous error occured we might have disabled the boiler
-      if (pid.GetMode() != AUTOMATIC) {
-        pid.SetMode(AUTOMATIC);
-      }
-
-      Input = temp.temp;
-      pid.Compute();
-
-      if (millis() - windowStartTime >= WindowSize) {
-        windowStartTime += WindowSize;
-      }
-      if (Output > 0 && Output < millis() - windowStartTime) {
-        digitalWrite(outputPin, HIGH);
-      } else {
-        digitalWrite(outputPin, LOW);
-      }
-
-      return temp;
-    }
+    return temp;
+  }
 };
 
 class PressureSensor {
-  private:
-    int inputPin;
-    float sensorBar;
-    float floor, ceil;
+private:
+  int inputPin;
+  float sensorBar;
+  float floor, ceil;
 
-  public:
-    PressureSensor(int inputPin, float sensorBar, float sensorRange = 0.8) {
-      this->inputPin = inputPin;
-      this->sensorBar = sensorBar;
+public:
+  PressureSensor(int inputPin, float sensorBar, float sensorRange = 0.8) {
+    this->inputPin = inputPin;
+    this->sensorBar = sensorBar;
 
-      // Calculate the usable range of values from the ADC
-      // The default value 0.9 means that we "lose" 20% of ADC range
-      // as the sensor has a voltage range from 0.5v to 4.5v with a VCC of 5v.
-      floor = (1024 - (1024 * sensorRange)) / 2;
-      ceil = 1024 - floor;
-    }
+    // Calculate the usable range of values from the ADC
+    // The default value 0.9 means that we "lose" 20% of ADC range
+    // as the sensor has a voltage range from 0.5v to 4.5v with a VCC of 5v.
+    floor = (1024 - (1024 * sensorRange)) / 2;
+    ceil = 1024 - floor;
+  }
 
-    int ReadRaw() {
-      return analogRead(inputPin);
-    }
+  int ReadRaw() { return analogRead(inputPin); }
 
-    float Bar(int raw) {
-      return (raw - floor) * sensorBar / ceil;
-    }
+  float Bar(int raw) { return (raw - floor) * sensorBar / ceil; }
 
-    float Read() {
-      return Bar(ReadRaw());
-    }
+  float Read() { return Bar(ReadRaw()); }
 };
 
 BoilerPID boiler = BoilerPID(0, 13, &SPI1);
@@ -161,12 +158,52 @@ DimmableLight light(dimPin);
 
 void setup() {
   Serial.begin(115200);
+  while (!Serial) {
+  }
 
   boiler.setup();
   boiler.SetSetPoint(40);
 
   DimmableLight::setSyncPin(zcPin);
   DimmableLight::begin();
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin("kombu", "giftedwhale");
+
+  { LittleFS.begin(); }
+
+  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+  }
+
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // Set up OTA
+  {
+    ArduinoOTA.setPort(2040);
+
+    ArduinoOTA.onStart([]() { Serial.println("Start"); });
+    ArduinoOTA.onEnd([]() { Serial.println("\nEnd"); });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR)
+        Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR)
+        Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR)
+        Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR)
+        Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR)
+        Serial.println("End Failed");
+    });
+
+    ArduinoOTA.begin();
+  }
 }
 
 void loop() {
@@ -191,5 +228,10 @@ void loop() {
 
   {
     light.setBrightness(255); // Full on
+  }
+
+  {
+    // Serial.println("Handling OTA");
+    ArduinoOTA.handle();
   }
 }
