@@ -1,38 +1,14 @@
 #include "LittleFS.h"
+#include "boiler.h"
+#include "pressure.h"
 #include <Adafruit_MAX31865.h>
 #include <ArduinoOTA.h>
 #include <PID_v1.h>
 #include <WiFi.h>
 #include <dimmable_light.h>
-#include "boiler.h"
-
-class PressureSensor {
-private:
-  int inputPin;
-  float sensorBar;
-  float floor, ceil;
-
-public:
-  PressureSensor(int inputPin, float sensorBar, float sensorRange = 0.8) {
-    this->inputPin = inputPin;
-    this->sensorBar = sensorBar;
-
-    // Calculate the usable range of values from the ADC
-    // The default value 0.9 means that we "lose" 20% of ADC range
-    // as the sensor has a voltage range from 0.5v to 4.5v with a VCC of 5v.
-    floor = (1024 - (1024 * sensorRange)) / 2;
-    ceil = 1024 - floor;
-  }
-
-  int ReadRaw() { return analogRead(inputPin); }
-
-  float Bar(int raw) { return (raw - floor) * sensorBar / ceil; }
-
-  float Read() { return Bar(ReadRaw()); }
-};
 
 BoilerPID boiler = BoilerPID(0, 13, &SPI1);
-PressureSensor brewPressure = PressureSensor(26, 20.6843);
+PressureSensor brewPressure = PressureSensor(26, 20.6843, 0.8);
 
 // Pump output
 const int zcPin = 4;
