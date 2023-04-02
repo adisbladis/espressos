@@ -6,6 +6,7 @@
 #include <PID_v1.h>
 #include <WiFi.h>
 #include <dimmable_light.h>
+#include <aWOT.h>
 
 BoilerPID boiler = BoilerPID(0, 13, &SPI1);
 PressureSensor brewPressure = PressureSensor(26, 20.6843, 0.8);
@@ -14,6 +15,14 @@ PressureSensor brewPressure = PressureSensor(26, 20.6843, 0.8);
 const int zcPin = 4;
 const int dimPin = 5;
 DimmableLight light(dimPin);
+
+// Web server
+WiFiServer server(80);
+Application app;
+
+void index(Request &req, Response &res) {
+  res.print("Hello World!");
+}
 
 void setup() {
   Serial.begin(115200);
@@ -27,16 +36,9 @@ void setup() {
   DimmableLight::begin();
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin("kombu", "giftedwhale");
+  WiFi.begin(SSID_NAME, SSID_PASWORD);
 
   { LittleFS.begin(); }
-
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-  }
-
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 
   // Set up OTA
   {
@@ -63,6 +65,10 @@ void setup() {
 
     ArduinoOTA.begin();
   }
+
+  // Handle web
+  app.get("/", &index);
+  server.begin();
 }
 
 void loop() {
@@ -92,5 +98,14 @@ void loop() {
   {
     // Serial.println("Handling OTA");
     ArduinoOTA.handle();
+  }
+
+  {
+    WiFiClient client = server.available();
+
+    if (client.connected()) {
+      app.process(&client);
+      client.stop();
+    }
   }
 }

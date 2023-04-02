@@ -49,6 +49,8 @@ void BoilerPID::SetTunings(double Kp, double Ki, double Kd) {
 }
 
 TempReading BoilerPID::tick() {
+  unsigned long start = millis();
+
   struct TempReading temp = getTemp();
 
   // If a hardware error occured while checking temps disable the boiler
@@ -74,6 +76,8 @@ TempReading BoilerPID::tick() {
   } else {
     digitalWrite(outputPin, LOW);
   }
+
+  Serial.println(millis() - start);
 
   return temp;
 }
