@@ -5,8 +5,8 @@
 #include <ArduinoOTA.h>
 #include <PID_v1.h>
 #include <WiFi.h>
-#include <dimmable_light.h>
 #include <aWOT.h>
+#include <dimmable_light.h>
 
 BoilerPID boiler = BoilerPID(0, 13, &SPI1);
 PressureSensor brewPressure = PressureSensor(26, 20.6843, 0.8);
@@ -20,14 +20,10 @@ DimmableLight light(dimPin);
 WiFiServer server(80);
 Application app;
 
-void index(Request &req, Response &res) {
-  res.print("Hello World!");
-}
+void index(Request &req, Response &res) { res.print("Hello World!"); }
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {
-  }
 
   boiler.setup();
   boiler.SetSetPoint(40);
@@ -73,22 +69,24 @@ void setup() {
 
 void loop() {
   {
-    TempReading temp = boiler.tick();
+    if (boiler.tick()) {
+      TempReading temp = boiler.getTemp();
 
-    if (temp.fault) {
-      Serial.print("ERROR 0x");
-      Serial.println(temp.fault, HEX);
-      Serial.println(temp.errorMessage());
-    }
+      if (temp.fault) {
+        Serial.print("ERROR 0x");
+        Serial.println(temp.fault, HEX);
+        Serial.println(temp.errorMessage());
+      }
 
-    Serial.print("Temp: ");
-    Serial.println(temp.temp);
+      Serial.print("Temp: ");
+      Serial.println(temp.temp);
+    };
   }
 
   {
     float pressure = brewPressure.Read();
-    Serial.print("Pressure: ");
-    Serial.println(pressure);
+    // Serial.print("Pressure: ");
+    // Serial.println(pressure);
   }
 
   {

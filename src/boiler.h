@@ -42,9 +42,10 @@ private:
   Adafruit_MAX31865 thermo;
   double Setpoint, Input, Output;
   double Kp = 2, Ki = 60, Kd = 15;
-  int WindowSize = 50;
+  int WindowSize = 100;
   unsigned long windowStartTime;
   PID pid;
+  TempReading temp;
 
 public:
   BoilerPID(double relayPin, double max31865SPIPin, SPIClass *theSPI);
@@ -58,5 +59,5 @@ public:
 
   void SetTunings(double Kp, double Ki, double Kd);
 
-  TempReading tick();
+  bool tick();
 };

@@ -12,7 +12,7 @@
 
 BoilerPID::BoilerPID(double relayPin, double max31865SPIPin,
                      SPIClass *theSPI = &SPI)
-    : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT),
+    : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE),
       thermo(max31865SPIPin, theSPI) {
   outputPin = relayPin;
 };
@@ -23,6 +23,7 @@ void BoilerPID::setup() {
   thermo.begin(MAX31865_2WIRE);
 
   windowStartTime = millis();
+
   pid.SetOutputLimits(0, WindowSize); // PID output range
   pid.SetMode(AUTOMATIC);
 }
@@ -32,52 +33,51 @@ void BoilerPID::SetSetPoint(double setPoint) { Setpoint = setPoint; }
 double BoilerPID::GetSetPoint() { return Setpoint; }
 
 struct TempReading BoilerPID::getTemp() {
-  struct TempReading result;
-
-  uint16_t rtd = thermo.readRTD();
-  result.temp = thermo.temperature(RNOMINAL, RREF);
-
-  // Check if any errors occured
-  result.fault = thermo.readFault();
-  thermo.clearFault();
-
-  return result;
+  return temp;
 }
 
 void BoilerPID::SetTunings(double Kp, double Ki, double Kd) {
   pid.SetTunings(Kp, Ki, Kd);
 }
 
-TempReading BoilerPID::tick() {
-  unsigned long start = millis();
+bool BoilerPID::tick() {
+  uint16_t rtd;
+  bool cond = thermo.readRTDAsync(rtd);
 
-  struct TempReading temp = getTemp();
+  if (cond) {
+    temp.fault = thermo.readFault();
+    temp.temp = thermo.temperatureAsync(rtd, RNOMINAL, RREF);
 
-  // If a hardware error occured while checking temps disable the boiler
-  if (temp.fault) {
-    pid.SetMode(MANUAL);
-    digitalWrite(outputPin, LOW);
-    return temp;
+    thermo.clearFault();
+
+    // If a hardware error occured while checking temps disable the boiler
+    if (temp.fault) {
+      pid.SetMode(MANUAL);
+      digitalWrite(outputPin, LOW);
+      return cond;
+    }
+
+    // If a previous error occured we might have disabled the boiler
+    if (pid.GetMode() != AUTOMATIC) {
+      pid.SetMode(AUTOMATIC);
+    }
+
+    Input = temp.temp;
   }
 
-  // If a previous error occured we might have disabled the boiler
-  if (pid.GetMode() != AUTOMATIC) {
-    pid.SetMode(AUTOMATIC);
-  }
-
-  Input = temp.temp;
   pid.Compute();
 
-  if (millis() - windowStartTime >= WindowSize) {
+  auto now = millis();
+
+  if (now - windowStartTime >= WindowSize) {
     windowStartTime += WindowSize;
   }
-  if (Output > 0 && Output < millis() - windowStartTime) {
+
+  if (Output < now - windowStartTime) {
     digitalWrite(outputPin, HIGH);
   } else {
     digitalWrite(outputPin, LOW);
   }
 
-  Serial.println(millis() - start);
-
-  return temp;
+  return cond;
 }
