@@ -8,13 +8,13 @@
 #include <aWOT.h>
 #include <dimmable_light.h>
 
-BoilerPID boiler = BoilerPID(0, 13, &SPI1);
-PressureSensor brewPressure = PressureSensor(26, 20.6843, 0.8);
+BoilerPID boiler =
+    BoilerPID(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
+PressureSensor brewPressure = PressureSensor(
+    PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR, PRESSURE_SENSOR_RANGE);
 
 // Pump output
-const int zcPin = 4;
-const int dimPin = 5;
-DimmableLight light(dimPin);
+DimmableLight light(PUMP_DIMMER_OUT);
 
 // Web server
 WiFiServer server(80);
@@ -28,7 +28,7 @@ void setup() {
   boiler.setup();
   boiler.SetSetPoint(40);
 
-  DimmableLight::setSyncPin(zcPin);
+  DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
   DimmableLight::begin();
 
   WiFi.mode(WIFI_STA);
