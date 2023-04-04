@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+message PowerOn { }
+message PowerOff { }
+
+message StartBrew { }
+message StopBrew { }
+
+message StartSteam { }
+message StopSteam { }
+
+message SetSteamSetPoint { }
+message SetBoilerSetPoint { }
+
+message Command {
+  // A unique client-generated request identifier.
+  // This will be embedded into a command response coming from the server
+  // so the client can route the response appropriately.
+  string request_id = 1;
+
+  oneof command_oneof {
+    PowerOn power_on = 2;
+    PowerOff power_off = 3;
+
+    StartBrew start_brew = 4;
+    StopBrew stop_brew = 5;
+
+    StartSteam start_steam = 6;
+    StopSteam stop_steam = 7;
+
+    SetSteamSetPoint set_steam_set_point = 8;
+    SetBoilerSetPoint set_boiler_set_point = 9;
+  }
+};

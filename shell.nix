@@ -64,8 +64,13 @@ pkgs.mkShell {
   packages = [
     pkgs.platformio
     pkgs.clang-tools # clang-format
+    pkgs.nodejs
 
     pkgs.protobuf
     embeddedproto
   ];
+
+  shellHook = ''
+    export PATH=${builtins.toString ./web/node_modules/.bin}:"$PATH"
+  '';
 }

@@ -1,12 +1,14 @@
 #include "LittleFS.h"
 #include "boiler.h"
 #include "pressure.h"
+#include "websocket.h"
 #include <Adafruit_MAX31865.h>
 #include <ArduinoOTA.h>
 #include <PID_v1.h>
 #include <WiFi.h>
-#include <aWOT.h>
 #include <dimmable_light.h>
+
+#include "api.h"
 
 BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
 PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
@@ -15,9 +17,7 @@ PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
 // Pump output
 DimmableLight light(PUMP_DIMMER_OUT);
 
-// Web server
-WiFiServer server(HTTP_PORT);
-Application app;
+static APIServer apiServer = APIServer(HTTP_PORT);
 
 void setup() {
   Serial.begin(115200);
@@ -59,18 +59,7 @@ void setup() {
     ArduinoOTA.begin();
   }
 
-  // Handle web
-  {
-    app.get("/SetSteamSetPoint", [](Request &req, Response &res) {});
-
-    app.get("/SetBoilerSetPoint", [](Request &req, Response &res) {
-      boiler.SetSetPoint(50);
-
-      res.print("Hello World!");
-    });
-  }
-
-  server.begin();
+  apiServer.begin();
 }
 
 void loop() {
@@ -84,8 +73,8 @@ void loop() {
         Serial.println(temp.errorMessage());
       }
 
-      Serial.print("Temp: ");
-      Serial.println(temp.temp);
+      // Serial.print("Temp: ");
+      // Serial.println(temp.temp);
     };
   }
 
@@ -99,17 +88,7 @@ void loop() {
     light.setBrightness(255); // Full on
   }
 
-  {
-    // Serial.println("Handling OTA");
-    ArduinoOTA.handle();
-  }
+  { ArduinoOTA.handle(); }
 
-  {
-    WiFiClient client = server.available();
-
-    if (client.connected()) {
-      app.process(&client);
-      client.stop();
-    }
-  }
+  { apiServer.loop(); }
 }
