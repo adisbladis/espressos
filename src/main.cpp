@@ -8,19 +8,16 @@
 #include <aWOT.h>
 #include <dimmable_light.h>
 
-BoilerPID boiler =
-    BoilerPID(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
-PressureSensor brewPressure = PressureSensor(
-    PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR, PRESSURE_SENSOR_RANGE);
+BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
+PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
+                            PRESSURE_SENSOR_RANGE);
 
 // Pump output
 DimmableLight light(PUMP_DIMMER_OUT);
 
 // Web server
-WiFiServer server(80);
+WiFiServer server(HTTP_PORT);
 Application app;
-
-void index(Request &req, Response &res) { res.print("Hello World!"); }
 
 void setup() {
   Serial.begin(115200);
@@ -63,7 +60,16 @@ void setup() {
   }
 
   // Handle web
-  app.get("/", &index);
+  {
+    app.get("/SetSteamSetPoint", [](Request &req, Response &res) {});
+
+    app.get("/SetBoilerSetPoint", [](Request &req, Response &res) {
+      boiler.SetSetPoint(50);
+
+      res.print("Hello World!");
+    });
+  }
+
   server.begin();
 }
 

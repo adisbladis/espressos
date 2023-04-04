@@ -41,7 +41,7 @@ private:
   double outputPin;
   Adafruit_MAX31865 thermo;
   double Setpoint, Input, Output;
-  double Kp = 2, Ki = 60, Kd = 15;
+  double Kp = BOILER_PID_P, Ki = BOILER_PID_I, Kd = BOILER_PID_D;
   int WindowSize = 100;
   unsigned long windowStartTime;
   PID pid;
