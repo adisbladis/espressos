@@ -1,4 +1,4 @@
-#include "pressure.h"
+#include "pressure.hpp"
 #include <Arduino.h>
 
 PressureSensor::PressureSensor(int inputPin, float sensorBar,

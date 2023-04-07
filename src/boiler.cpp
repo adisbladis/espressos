@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <PID_v1.h>
 
-#include "boiler.h"
+#include "boiler.hpp"
 
 // Thermal readings
 #define RREF 430.0 // Value of Rref resistor (PT100 == 430.0, PT1000 == 4300.0)

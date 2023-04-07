@@ -1,6 +1,6 @@
 #pragma once
 #include "proto/api.h"
-#include "websocket.h"
+#include "websocket.hpp"
 #include <ReadBufferFixedSize.h>
 
 // 1024 is an arbitrary buffer size

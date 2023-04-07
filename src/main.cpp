@@ -1,14 +1,14 @@
 #include "LittleFS.h"
-#include "boiler.h"
-#include "pressure.h"
-#include "websocket.h"
+#include "boiler.hpp"
+#include "pressure.hpp"
+#include "websocket.hpp"
 #include <Adafruit_MAX31865.h>
 #include <ArduinoOTA.h>
 #include <PID_v1.h>
 #include <WiFi.h>
 #include <dimmable_light.h>
 
-#include "api.h"
+#include "api.hpp"
 
 BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
 PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
@@ -27,6 +27,7 @@ void setup() {
 
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
   DimmableLight::begin();
+  light.setBrightness(255); // Full on
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID_NAME, SSID_PASWORD);
@@ -82,10 +83,6 @@ void loop() {
     float pressure = brewPressure.Read();
     // Serial.print("Pressure: ");
     // Serial.println(pressure);
-  }
-
-  {
-    light.setBrightness(255); // Full on
   }
 
   { ArduinoOTA.handle(); }
