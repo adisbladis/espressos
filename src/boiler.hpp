@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cachedpin.hpp"
 #include <Adafruit_MAX31865.h>
 #include <PID_v1.h>
 
@@ -12,6 +13,8 @@ struct TempReading {
     if (!fault) {
       return message;
     }
+
+    message = "RTD Error 0x" + String(fault, HEX) + ": ";
 
     if (fault & MAX31865_FAULT_HIGHTHRESH) {
       message += "RTD High Threshold\n";
@@ -38,7 +41,7 @@ struct TempReading {
 
 class BoilerPID {
 private:
-  double outputPin;
+  CachedOutputPin outputPin;
   Adafruit_MAX31865 thermo;
   double Setpoint, Input, Output;
   double Kp = BOILER_PID_P, Ki = BOILER_PID_I, Kd = BOILER_PID_D;

@@ -1,38 +1,40 @@
 #include "LittleFS.h"
-#include "boiler.hpp"
-#include "pressure.hpp"
-#include "websocket.hpp"
-#include <Adafruit_MAX31865.h>
 #include <ArduinoOTA.h>
-#include <PID_v1.h>
 #include <WiFi.h>
 #include <dimmable_light.h>
 
 #include "api.hpp"
+#include "boiler.hpp"
+#include "cachedpin.hpp"
+#include "fsm/fsmlist.hpp"
+#include "pressure.hpp"
+#include "websocket.hpp"
 
-BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
-PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
-                            PRESSURE_SENSOR_RANGE);
-
-// Pump output
-DimmableLight light(PUMP_DIMMER_OUT);
+// Hardware IO
+static BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN,
+                        BOILER_SPI_CLASS);
+static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
+                                   PRESSURE_SENSOR_RANGE);
+static DimmableLight pump(PUMP_DIMMER_OUT);
+static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 
 static APIServer apiServer = APIServer(HTTP_PORT);
 
 void setup() {
   Serial.begin(115200);
 
+  fsm_list::start();
+
   boiler.setup();
-  boiler.SetSetPoint(40);
+  solenoid.setup();
 
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
   DimmableLight::begin();
-  light.setBrightness(255); // Full on
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID_NAME, SSID_PASWORD);
 
-  { LittleFS.begin(); }
+  LittleFS.begin();
 
   // Set up OTA
   {
@@ -64,28 +66,48 @@ void setup() {
 }
 
 void loop() {
+  // Only open solenoid if we're brewing
+  if (MachineState::is_in_state<Brewing>()) {
+    solenoid.digitalWrite(HIGH);
+  } else {
+    solenoid.digitalWrite(LOW);
+  }
+
+  // Only run pump if we're brewing or pumping
+  if (MachineState::is_in_state<Brewing>() ||
+      MachineState::is_in_state<Pumping>()) {
+    pump.setBrightness(255);
+  } else {
+    pump.setBrightness(0);
+  }
+
+  // Set boiler setpoint based on mode
+  if (MachineState::is_in_state<Off>() || MachineState::is_in_state<Panic>()) {
+    boiler.SetSetPoint(0);
+  } else if (MachineState::is_in_state<Steaming>()) {
+    boiler.SetSetPoint(90); // TODO: From config
+  } else {
+    boiler.SetSetPoint(40); // TODO: From config
+  }
+
+  // Send callbacks at 1s intervals normally, 100ms intervals while brewing
+  if (MachineState::is_in_state<Brewing>()) {
+    apiServer.setStateUpdateInterval(STATE_UPDATE_INTERVAL_BREW);
+  } else {
+    apiServer.setStateUpdateInterval(STATE_UPDATE_INTERVAL);
+  }
+
+  // Run control loops
   {
     if (boiler.tick()) {
       TempReading temp = boiler.getTemp();
-
-      if (temp.fault) {
-        Serial.print("ERROR 0x");
-        Serial.println(temp.fault, HEX);
-        Serial.println(temp.errorMessage());
-      }
-
-      // Serial.print("Temp: ");
-      // Serial.println(temp.temp);
+      apiServer.setBoilerTemp(temp);
     };
-  }
 
-  {
     float pressure = brewPressure.Read();
-    // Serial.print("Pressure: ");
-    // Serial.println(pressure);
+    apiServer.setPressure(pressure);
   }
 
-  { ArduinoOTA.handle(); }
-
-  { apiServer.loop(); }
+  ArduinoOTA.handle();
+  apiServer.loop();
 }

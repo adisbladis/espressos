@@ -1,22 +1,24 @@
 syntax = "proto3";
 
+/* Commands sent by the client */
+
 message PowerOn { }
 message PowerOff { }
 
 message StartBrew { }
 message StopBrew { }
 
+message StartPump { }
+message StopPump { }
+
 message StartSteam { }
 message StopSteam { }
-
-message SetSteamSetPoint { }
-message SetBoilerSetPoint { }
 
 message Command {
   // A unique client-generated request identifier.
   // This will be embedded into a command response coming from the server
   // so the client can route the response appropriately.
-  string request_id = 1;
+  bytes request_id = 1;
 
   oneof command_oneof {
     PowerOn power_on = 2;
@@ -25,10 +27,38 @@ message Command {
     StartBrew start_brew = 4;
     StopBrew stop_brew = 5;
 
-    StartSteam start_steam = 6;
-    StopSteam stop_steam = 7;
+    StartPump start_pump = 6;
+    StopPump stop_pump = 7;
 
-    SetSteamSetPoint set_steam_set_point = 8;
-    SetBoilerSetPoint set_boiler_set_point = 9;
+    StartSteam start_steam = 8;
+    StopSteam stop_steam = 9;
   }
 };
+
+/* Events sent by the server */
+
+// An envelope for an arbitrary sensor that returns a float with an optional error
+message FloatSensorReading {
+  oneof value_or_error {
+    double value = 1;
+    string error = 2;
+  }
+};
+
+message StateUpdate {
+  bool is_on = 1;
+  bool is_brewing = 2;
+  bool is_pumping = 3;
+  bool is_steaming = 4;
+  FloatSensorReading boilerTemp = 5;
+  FloatSensorReading pressure = 6;
+}
+
+message Event {
+  // If this event was in response to a request id it will contain one, otherwise empty
+  bytes request_id = 1;
+
+  oneof event_oneof {
+    StateUpdate state_update = 2;
+  }
+}

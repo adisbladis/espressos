@@ -6,24 +6,40 @@ import {
   PowerOff,
   StartBrew,
   StopBrew,
+  StartPump,
+  StopPump,
   StartSteam,
   StopSteam,
-  SetSteamSetPoint,
-  SetBoilerSetPoint,
+  Event,
 } from './api';
 
+const mkRequestId = (): Uint8Array => new Uint8Array(uuidv4(null, []))
+
 export class APIClient {
-  readonly socket: WebSocket
+  readonly socket: WebSocket;
+  private handlers: Map<string, Array<(event: Event) => void>>;
 
   constructor(url: string) {
     this.socket = new WebSocket(url);
+    this.handlers = new Map();
 
     this.socket.onopen = (event) => {
-      console.log("connected to server", event);
+      console.log("connected to server", this);
     }
 
-    this.socket.onmessage = (event) => {
-      console.log("got message ", event.data);
+    this.socket.onmessage = async (event) => {
+      const msg = Event.decode(new Uint8Array(await event.data.arrayBuffer()));
+
+      for (const key of ["*", msg.eventOneof.$case]) {
+        const handlersArr: Array<(event: Event) => void> = this.handlers.get(key)
+        if (!handlersArr) {
+          continue
+        }
+
+        for (const cb of handlersArr) {
+          cb(msg)
+        }
+      }
     }
 
     this.socket.onclose = (event) => {
@@ -33,6 +49,19 @@ export class APIClient {
 
   close(): void {
     this.socket.close()
+  }
+
+  onEvent(kind: string, cb: (event: Event) => void): void {
+    let handlersArr: Array<(event: Event) => void>
+
+    if (this.handlers.has(kind)) {
+      handlersArr = this.handlers.get(kind)
+    } else {
+      handlersArr = new Array()
+      this.handlers.set(kind, handlersArr)
+    }
+
+    handlersArr.push(cb)
   }
 
   private async sendCommand(msg: Command): Promise<void> {
@@ -46,57 +75,57 @@ export class APIClient {
 
   async powerOn(): Promise<void> {
     await this.sendCommand({
-      requestId: uuidv4(),
-      powerOn: <PowerOn>{},
+      requestId: mkRequestId(),
+      commandOneof: { $case: "powerOn", powerOn: <PowerOn>{} },
     })
   }
 
   async powerOff(): Promise<void> {
     await this.sendCommand({
-      requestId: uuidv4(),
-      powerOn: <PowerOff>{},
+      requestId: mkRequestId(),
+      commandOneof: { $case: "powerOff", powerOff: <PowerOff>{} },
     })
   }
 
   async startBrew(): Promise<void> {
     await this.sendCommand({
-      requestId: uuidv4(),
-      startBrew: <StartBrew>{},
+      requestId: mkRequestId(),
+      commandOneof: { $case: "startBrew", startBrew: <StartBrew>{} },
     })
   }
 
   async stopBrew(): Promise<void> {
     await this.sendCommand({
-      requestId: uuidv4(),
-      stopBrew: <StopBrew>{},
+      requestId: mkRequestId(),
+      commandOneof: { $case: "stopBrew", stopBrew: <StopBrew>{} },
+    })
+  }
+
+  async startPump(): Promise<void> {
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: { $case: "startPump", startPump: <StartPump>{} },
+    })
+  }
+
+  async stopPump(): Promise<void> {
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: { $case: "stopPump", stopPump: <StopPump>{} },
     })
   }
 
   async startSteam(): Promise<void> {
     await this.sendCommand({
-      requestId: uuidv4(),
-      startSteam: <StartSteam>{},
+      requestId: mkRequestId(),
+      commandOneof: { $case: "startSteam", startSteam: <StartSteam>{} },
     })
   }
 
   async stopSteam(): Promise<void>{
     await this.sendCommand({
-      requestId: uuidv4(),
-      stopSteam: <StopSteam>{},
-    })
-  }
-
-  async setSteamSetPoint(): Promise<void>{
-    await this.sendCommand({
-      requestId: uuidv4(),
-      setSteamSetPoint: <SetSteamSetPoint>{},
-    })
-  }
-
-  async setBoilerSetPoint(): Promise<void>{
-    await this.sendCommand({
-      requestId: uuidv4(),
-      setBoilerSetPoint: <SetBoilerSetPoint>{},
+      requestId: mkRequestId(),
+      commandOneof: { $case: "stopSteam", stopSteam: <StopSteam>{} },
     })
   }
 

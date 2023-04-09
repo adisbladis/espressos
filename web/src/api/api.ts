@@ -15,16 +15,16 @@ export interface StartBrew {
 export interface StopBrew {
 }
 
+export interface StartPump {
+}
+
+export interface StopPump {
+}
+
 export interface StartSteam {
 }
 
 export interface StopSteam {
-}
-
-export interface SetSteamSetPoint {
-}
-
-export interface SetBoilerSetPoint {
 }
 
 export interface Command {
@@ -33,15 +33,36 @@ export interface Command {
    * This will be embedded into a command response coming from the server
    * so the client can route the response appropriately.
    */
-  requestId: string;
-  powerOn?: PowerOn | undefined;
-  powerOff?: PowerOff | undefined;
-  startBrew?: StartBrew | undefined;
-  stopBrew?: StopBrew | undefined;
-  startSteam?: StartSteam | undefined;
-  stopSteam?: StopSteam | undefined;
-  setSteamSetPoint?: SetSteamSetPoint | undefined;
-  setBoilerSetPoint?: SetBoilerSetPoint | undefined;
+  requestId: Uint8Array;
+  commandOneof?:
+    | { $case: "powerOn"; powerOn: PowerOn }
+    | { $case: "powerOff"; powerOff: PowerOff }
+    | { $case: "startBrew"; startBrew: StartBrew }
+    | { $case: "stopBrew"; stopBrew: StopBrew }
+    | { $case: "startPump"; startPump: StartPump }
+    | { $case: "stopPump"; stopPump: StopPump }
+    | { $case: "startSteam"; startSteam: StartSteam }
+    | { $case: "stopSteam"; stopSteam: StopSteam };
+}
+
+/** An envelope for an arbitrary sensor that returns a float with an optional error */
+export interface FloatSensorReading {
+  valueOrError?: { $case: "value"; value: number } | { $case: "error"; error: string };
+}
+
+export interface StateUpdate {
+  isOn: boolean;
+  isBrewing: boolean;
+  isPumping: boolean;
+  isSteaming: boolean;
+  boilerTemp: FloatSensorReading | undefined;
+  pressure: FloatSensorReading | undefined;
+}
+
+export interface Event {
+  /** If this event was in response to a request id it will contain one, otherwise empty */
+  requestId: Uint8Array;
+  eventOneof?: { $case: "stateUpdate"; stateUpdate: StateUpdate };
 }
 
 function createBasePowerOn(): PowerOn {
@@ -220,6 +241,94 @@ export const StopBrew = {
   },
 };
 
+function createBaseStartPump(): StartPump {
+  return {};
+}
+
+export const StartPump = {
+  encode(_: StartPump, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StartPump {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStartPump();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): StartPump {
+    return {};
+  },
+
+  toJSON(_: StartPump): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StartPump>, I>>(base?: I): StartPump {
+    return StartPump.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<StartPump>, I>>(_: I): StartPump {
+    const message = createBaseStartPump();
+    return message;
+  },
+};
+
+function createBaseStopPump(): StopPump {
+  return {};
+}
+
+export const StopPump = {
+  encode(_: StopPump, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StopPump {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStopPump();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): StopPump {
+    return {};
+  },
+
+  toJSON(_: StopPump): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StopPump>, I>>(base?: I): StopPump {
+    return StopPump.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<StopPump>, I>>(_: I): StopPump {
+    const message = createBaseStopPump();
+    return message;
+  },
+};
+
 function createBaseStartSteam(): StartSteam {
   return {};
 }
@@ -308,136 +417,40 @@ export const StopSteam = {
   },
 };
 
-function createBaseSetSteamSetPoint(): SetSteamSetPoint {
-  return {};
-}
-
-export const SetSteamSetPoint = {
-  encode(_: SetSteamSetPoint, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SetSteamSetPoint {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSetSteamSetPoint();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) == 4 || tag == 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): SetSteamSetPoint {
-    return {};
-  },
-
-  toJSON(_: SetSteamSetPoint): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SetSteamSetPoint>, I>>(base?: I): SetSteamSetPoint {
-    return SetSteamSetPoint.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<SetSteamSetPoint>, I>>(_: I): SetSteamSetPoint {
-    const message = createBaseSetSteamSetPoint();
-    return message;
-  },
-};
-
-function createBaseSetBoilerSetPoint(): SetBoilerSetPoint {
-  return {};
-}
-
-export const SetBoilerSetPoint = {
-  encode(_: SetBoilerSetPoint, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SetBoilerSetPoint {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSetBoilerSetPoint();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) == 4 || tag == 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): SetBoilerSetPoint {
-    return {};
-  },
-
-  toJSON(_: SetBoilerSetPoint): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SetBoilerSetPoint>, I>>(base?: I): SetBoilerSetPoint {
-    return SetBoilerSetPoint.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<SetBoilerSetPoint>, I>>(_: I): SetBoilerSetPoint {
-    const message = createBaseSetBoilerSetPoint();
-    return message;
-  },
-};
-
 function createBaseCommand(): Command {
-  return {
-    requestId: "",
-    powerOn: undefined,
-    powerOff: undefined,
-    startBrew: undefined,
-    stopBrew: undefined,
-    startSteam: undefined,
-    stopSteam: undefined,
-    setSteamSetPoint: undefined,
-    setBoilerSetPoint: undefined,
-  };
+  return { requestId: new Uint8Array(), commandOneof: undefined };
 }
 
 export const Command = {
   encode(message: Command, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.requestId !== "") {
-      writer.uint32(10).string(message.requestId);
+    if (message.requestId.length !== 0) {
+      writer.uint32(10).bytes(message.requestId);
     }
-    if (message.powerOn !== undefined) {
-      PowerOn.encode(message.powerOn, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.powerOff !== undefined) {
-      PowerOff.encode(message.powerOff, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.startBrew !== undefined) {
-      StartBrew.encode(message.startBrew, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.stopBrew !== undefined) {
-      StopBrew.encode(message.stopBrew, writer.uint32(42).fork()).ldelim();
-    }
-    if (message.startSteam !== undefined) {
-      StartSteam.encode(message.startSteam, writer.uint32(50).fork()).ldelim();
-    }
-    if (message.stopSteam !== undefined) {
-      StopSteam.encode(message.stopSteam, writer.uint32(58).fork()).ldelim();
-    }
-    if (message.setSteamSetPoint !== undefined) {
-      SetSteamSetPoint.encode(message.setSteamSetPoint, writer.uint32(66).fork()).ldelim();
-    }
-    if (message.setBoilerSetPoint !== undefined) {
-      SetBoilerSetPoint.encode(message.setBoilerSetPoint, writer.uint32(74).fork()).ldelim();
+    switch (message.commandOneof?.$case) {
+      case "powerOn":
+        PowerOn.encode(message.commandOneof.powerOn, writer.uint32(18).fork()).ldelim();
+        break;
+      case "powerOff":
+        PowerOff.encode(message.commandOneof.powerOff, writer.uint32(26).fork()).ldelim();
+        break;
+      case "startBrew":
+        StartBrew.encode(message.commandOneof.startBrew, writer.uint32(34).fork()).ldelim();
+        break;
+      case "stopBrew":
+        StopBrew.encode(message.commandOneof.stopBrew, writer.uint32(42).fork()).ldelim();
+        break;
+      case "startPump":
+        StartPump.encode(message.commandOneof.startPump, writer.uint32(50).fork()).ldelim();
+        break;
+      case "stopPump":
+        StopPump.encode(message.commandOneof.stopPump, writer.uint32(58).fork()).ldelim();
+        break;
+      case "startSteam":
+        StartSteam.encode(message.commandOneof.startSteam, writer.uint32(66).fork()).ldelim();
+        break;
+      case "stopSteam":
+        StopSteam.encode(message.commandOneof.stopSteam, writer.uint32(74).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -454,63 +467,63 @@ export const Command = {
             break;
           }
 
-          message.requestId = reader.string();
+          message.requestId = reader.bytes();
           continue;
         case 2:
           if (tag != 18) {
             break;
           }
 
-          message.powerOn = PowerOn.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "powerOn", powerOn: PowerOn.decode(reader, reader.uint32()) };
           continue;
         case 3:
           if (tag != 26) {
             break;
           }
 
-          message.powerOff = PowerOff.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "powerOff", powerOff: PowerOff.decode(reader, reader.uint32()) };
           continue;
         case 4:
           if (tag != 34) {
             break;
           }
 
-          message.startBrew = StartBrew.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "startBrew", startBrew: StartBrew.decode(reader, reader.uint32()) };
           continue;
         case 5:
           if (tag != 42) {
             break;
           }
 
-          message.stopBrew = StopBrew.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "stopBrew", stopBrew: StopBrew.decode(reader, reader.uint32()) };
           continue;
         case 6:
           if (tag != 50) {
             break;
           }
 
-          message.startSteam = StartSteam.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "startPump", startPump: StartPump.decode(reader, reader.uint32()) };
           continue;
         case 7:
           if (tag != 58) {
             break;
           }
 
-          message.stopSteam = StopSteam.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "stopPump", stopPump: StopPump.decode(reader, reader.uint32()) };
           continue;
         case 8:
           if (tag != 66) {
             break;
           }
 
-          message.setSteamSetPoint = SetSteamSetPoint.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "startSteam", startSteam: StartSteam.decode(reader, reader.uint32()) };
           continue;
         case 9:
           if (tag != 74) {
             break;
           }
 
-          message.setBoilerSetPoint = SetBoilerSetPoint.decode(reader, reader.uint32());
+          message.commandOneof = { $case: "stopSteam", stopSteam: StopSteam.decode(reader, reader.uint32()) };
           continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
@@ -523,37 +536,48 @@ export const Command = {
 
   fromJSON(object: any): Command {
     return {
-      requestId: isSet(object.requestId) ? String(object.requestId) : "",
-      powerOn: isSet(object.powerOn) ? PowerOn.fromJSON(object.powerOn) : undefined,
-      powerOff: isSet(object.powerOff) ? PowerOff.fromJSON(object.powerOff) : undefined,
-      startBrew: isSet(object.startBrew) ? StartBrew.fromJSON(object.startBrew) : undefined,
-      stopBrew: isSet(object.stopBrew) ? StopBrew.fromJSON(object.stopBrew) : undefined,
-      startSteam: isSet(object.startSteam) ? StartSteam.fromJSON(object.startSteam) : undefined,
-      stopSteam: isSet(object.stopSteam) ? StopSteam.fromJSON(object.stopSteam) : undefined,
-      setSteamSetPoint: isSet(object.setSteamSetPoint) ? SetSteamSetPoint.fromJSON(object.setSteamSetPoint) : undefined,
-      setBoilerSetPoint: isSet(object.setBoilerSetPoint)
-        ? SetBoilerSetPoint.fromJSON(object.setBoilerSetPoint)
+      requestId: isSet(object.requestId) ? bytesFromBase64(object.requestId) : new Uint8Array(),
+      commandOneof: isSet(object.powerOn)
+        ? { $case: "powerOn", powerOn: PowerOn.fromJSON(object.powerOn) }
+        : isSet(object.powerOff)
+        ? { $case: "powerOff", powerOff: PowerOff.fromJSON(object.powerOff) }
+        : isSet(object.startBrew)
+        ? { $case: "startBrew", startBrew: StartBrew.fromJSON(object.startBrew) }
+        : isSet(object.stopBrew)
+        ? { $case: "stopBrew", stopBrew: StopBrew.fromJSON(object.stopBrew) }
+        : isSet(object.startPump)
+        ? { $case: "startPump", startPump: StartPump.fromJSON(object.startPump) }
+        : isSet(object.stopPump)
+        ? { $case: "stopPump", stopPump: StopPump.fromJSON(object.stopPump) }
+        : isSet(object.startSteam)
+        ? { $case: "startSteam", startSteam: StartSteam.fromJSON(object.startSteam) }
+        : isSet(object.stopSteam)
+        ? { $case: "stopSteam", stopSteam: StopSteam.fromJSON(object.stopSteam) }
         : undefined,
     };
   },
 
   toJSON(message: Command): unknown {
     const obj: any = {};
-    message.requestId !== undefined && (obj.requestId = message.requestId);
-    message.powerOn !== undefined && (obj.powerOn = message.powerOn ? PowerOn.toJSON(message.powerOn) : undefined);
-    message.powerOff !== undefined && (obj.powerOff = message.powerOff ? PowerOff.toJSON(message.powerOff) : undefined);
-    message.startBrew !== undefined &&
-      (obj.startBrew = message.startBrew ? StartBrew.toJSON(message.startBrew) : undefined);
-    message.stopBrew !== undefined && (obj.stopBrew = message.stopBrew ? StopBrew.toJSON(message.stopBrew) : undefined);
-    message.startSteam !== undefined &&
-      (obj.startSteam = message.startSteam ? StartSteam.toJSON(message.startSteam) : undefined);
-    message.stopSteam !== undefined &&
-      (obj.stopSteam = message.stopSteam ? StopSteam.toJSON(message.stopSteam) : undefined);
-    message.setSteamSetPoint !== undefined &&
-      (obj.setSteamSetPoint = message.setSteamSetPoint ? SetSteamSetPoint.toJSON(message.setSteamSetPoint) : undefined);
-    message.setBoilerSetPoint !== undefined && (obj.setBoilerSetPoint = message.setBoilerSetPoint
-      ? SetBoilerSetPoint.toJSON(message.setBoilerSetPoint)
+    message.requestId !== undefined &&
+      (obj.requestId = base64FromBytes(message.requestId !== undefined ? message.requestId : new Uint8Array()));
+    message.commandOneof?.$case === "powerOn" &&
+      (obj.powerOn = message.commandOneof?.powerOn ? PowerOn.toJSON(message.commandOneof?.powerOn) : undefined);
+    message.commandOneof?.$case === "powerOff" &&
+      (obj.powerOff = message.commandOneof?.powerOff ? PowerOff.toJSON(message.commandOneof?.powerOff) : undefined);
+    message.commandOneof?.$case === "startBrew" &&
+      (obj.startBrew = message.commandOneof?.startBrew ? StartBrew.toJSON(message.commandOneof?.startBrew) : undefined);
+    message.commandOneof?.$case === "stopBrew" &&
+      (obj.stopBrew = message.commandOneof?.stopBrew ? StopBrew.toJSON(message.commandOneof?.stopBrew) : undefined);
+    message.commandOneof?.$case === "startPump" &&
+      (obj.startPump = message.commandOneof?.startPump ? StartPump.toJSON(message.commandOneof?.startPump) : undefined);
+    message.commandOneof?.$case === "stopPump" &&
+      (obj.stopPump = message.commandOneof?.stopPump ? StopPump.toJSON(message.commandOneof?.stopPump) : undefined);
+    message.commandOneof?.$case === "startSteam" && (obj.startSteam = message.commandOneof?.startSteam
+      ? StartSteam.toJSON(message.commandOneof?.startSteam)
       : undefined);
+    message.commandOneof?.$case === "stopSteam" &&
+      (obj.stopSteam = message.commandOneof?.stopSteam ? StopSteam.toJSON(message.commandOneof?.stopSteam) : undefined);
     return obj;
   },
 
@@ -563,39 +587,430 @@ export const Command = {
 
   fromPartial<I extends Exact<DeepPartial<Command>, I>>(object: I): Command {
     const message = createBaseCommand();
-    message.requestId = object.requestId ?? "";
-    message.powerOn = (object.powerOn !== undefined && object.powerOn !== null)
-      ? PowerOn.fromPartial(object.powerOn)
+    message.requestId = object.requestId ?? new Uint8Array();
+    if (
+      object.commandOneof?.$case === "powerOn" &&
+      object.commandOneof?.powerOn !== undefined &&
+      object.commandOneof?.powerOn !== null
+    ) {
+      message.commandOneof = { $case: "powerOn", powerOn: PowerOn.fromPartial(object.commandOneof.powerOn) };
+    }
+    if (
+      object.commandOneof?.$case === "powerOff" &&
+      object.commandOneof?.powerOff !== undefined &&
+      object.commandOneof?.powerOff !== null
+    ) {
+      message.commandOneof = { $case: "powerOff", powerOff: PowerOff.fromPartial(object.commandOneof.powerOff) };
+    }
+    if (
+      object.commandOneof?.$case === "startBrew" &&
+      object.commandOneof?.startBrew !== undefined &&
+      object.commandOneof?.startBrew !== null
+    ) {
+      message.commandOneof = { $case: "startBrew", startBrew: StartBrew.fromPartial(object.commandOneof.startBrew) };
+    }
+    if (
+      object.commandOneof?.$case === "stopBrew" &&
+      object.commandOneof?.stopBrew !== undefined &&
+      object.commandOneof?.stopBrew !== null
+    ) {
+      message.commandOneof = { $case: "stopBrew", stopBrew: StopBrew.fromPartial(object.commandOneof.stopBrew) };
+    }
+    if (
+      object.commandOneof?.$case === "startPump" &&
+      object.commandOneof?.startPump !== undefined &&
+      object.commandOneof?.startPump !== null
+    ) {
+      message.commandOneof = { $case: "startPump", startPump: StartPump.fromPartial(object.commandOneof.startPump) };
+    }
+    if (
+      object.commandOneof?.$case === "stopPump" &&
+      object.commandOneof?.stopPump !== undefined &&
+      object.commandOneof?.stopPump !== null
+    ) {
+      message.commandOneof = { $case: "stopPump", stopPump: StopPump.fromPartial(object.commandOneof.stopPump) };
+    }
+    if (
+      object.commandOneof?.$case === "startSteam" &&
+      object.commandOneof?.startSteam !== undefined &&
+      object.commandOneof?.startSteam !== null
+    ) {
+      message.commandOneof = {
+        $case: "startSteam",
+        startSteam: StartSteam.fromPartial(object.commandOneof.startSteam),
+      };
+    }
+    if (
+      object.commandOneof?.$case === "stopSteam" &&
+      object.commandOneof?.stopSteam !== undefined &&
+      object.commandOneof?.stopSteam !== null
+    ) {
+      message.commandOneof = { $case: "stopSteam", stopSteam: StopSteam.fromPartial(object.commandOneof.stopSteam) };
+    }
+    return message;
+  },
+};
+
+function createBaseFloatSensorReading(): FloatSensorReading {
+  return { valueOrError: undefined };
+}
+
+export const FloatSensorReading = {
+  encode(message: FloatSensorReading, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    switch (message.valueOrError?.$case) {
+      case "value":
+        writer.uint32(9).double(message.valueOrError.value);
+        break;
+      case "error":
+        writer.uint32(18).string(message.valueOrError.error);
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FloatSensorReading {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFloatSensorReading();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 9) {
+            break;
+          }
+
+          message.valueOrError = { $case: "value", value: reader.double() };
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.valueOrError = { $case: "error", error: reader.string() };
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FloatSensorReading {
+    return {
+      valueOrError: isSet(object.value)
+        ? { $case: "value", value: Number(object.value) }
+        : isSet(object.error)
+        ? { $case: "error", error: String(object.error) }
+        : undefined,
+    };
+  },
+
+  toJSON(message: FloatSensorReading): unknown {
+    const obj: any = {};
+    message.valueOrError?.$case === "value" && (obj.value = message.valueOrError?.value);
+    message.valueOrError?.$case === "error" && (obj.error = message.valueOrError?.error);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FloatSensorReading>, I>>(base?: I): FloatSensorReading {
+    return FloatSensorReading.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<FloatSensorReading>, I>>(object: I): FloatSensorReading {
+    const message = createBaseFloatSensorReading();
+    if (
+      object.valueOrError?.$case === "value" &&
+      object.valueOrError?.value !== undefined &&
+      object.valueOrError?.value !== null
+    ) {
+      message.valueOrError = { $case: "value", value: object.valueOrError.value };
+    }
+    if (
+      object.valueOrError?.$case === "error" &&
+      object.valueOrError?.error !== undefined &&
+      object.valueOrError?.error !== null
+    ) {
+      message.valueOrError = { $case: "error", error: object.valueOrError.error };
+    }
+    return message;
+  },
+};
+
+function createBaseStateUpdate(): StateUpdate {
+  return {
+    isOn: false,
+    isBrewing: false,
+    isPumping: false,
+    isSteaming: false,
+    boilerTemp: undefined,
+    pressure: undefined,
+  };
+}
+
+export const StateUpdate = {
+  encode(message: StateUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.isOn === true) {
+      writer.uint32(8).bool(message.isOn);
+    }
+    if (message.isBrewing === true) {
+      writer.uint32(16).bool(message.isBrewing);
+    }
+    if (message.isPumping === true) {
+      writer.uint32(24).bool(message.isPumping);
+    }
+    if (message.isSteaming === true) {
+      writer.uint32(32).bool(message.isSteaming);
+    }
+    if (message.boilerTemp !== undefined) {
+      FloatSensorReading.encode(message.boilerTemp, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.pressure !== undefined) {
+      FloatSensorReading.encode(message.pressure, writer.uint32(50).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StateUpdate {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStateUpdate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.isOn = reader.bool();
+          continue;
+        case 2:
+          if (tag != 16) {
+            break;
+          }
+
+          message.isBrewing = reader.bool();
+          continue;
+        case 3:
+          if (tag != 24) {
+            break;
+          }
+
+          message.isPumping = reader.bool();
+          continue;
+        case 4:
+          if (tag != 32) {
+            break;
+          }
+
+          message.isSteaming = reader.bool();
+          continue;
+        case 5:
+          if (tag != 42) {
+            break;
+          }
+
+          message.boilerTemp = FloatSensorReading.decode(reader, reader.uint32());
+          continue;
+        case 6:
+          if (tag != 50) {
+            break;
+          }
+
+          message.pressure = FloatSensorReading.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StateUpdate {
+    return {
+      isOn: isSet(object.isOn) ? Boolean(object.isOn) : false,
+      isBrewing: isSet(object.isBrewing) ? Boolean(object.isBrewing) : false,
+      isPumping: isSet(object.isPumping) ? Boolean(object.isPumping) : false,
+      isSteaming: isSet(object.isSteaming) ? Boolean(object.isSteaming) : false,
+      boilerTemp: isSet(object.boilerTemp) ? FloatSensorReading.fromJSON(object.boilerTemp) : undefined,
+      pressure: isSet(object.pressure) ? FloatSensorReading.fromJSON(object.pressure) : undefined,
+    };
+  },
+
+  toJSON(message: StateUpdate): unknown {
+    const obj: any = {};
+    message.isOn !== undefined && (obj.isOn = message.isOn);
+    message.isBrewing !== undefined && (obj.isBrewing = message.isBrewing);
+    message.isPumping !== undefined && (obj.isPumping = message.isPumping);
+    message.isSteaming !== undefined && (obj.isSteaming = message.isSteaming);
+    message.boilerTemp !== undefined &&
+      (obj.boilerTemp = message.boilerTemp ? FloatSensorReading.toJSON(message.boilerTemp) : undefined);
+    message.pressure !== undefined &&
+      (obj.pressure = message.pressure ? FloatSensorReading.toJSON(message.pressure) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StateUpdate>, I>>(base?: I): StateUpdate {
+    return StateUpdate.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<StateUpdate>, I>>(object: I): StateUpdate {
+    const message = createBaseStateUpdate();
+    message.isOn = object.isOn ?? false;
+    message.isBrewing = object.isBrewing ?? false;
+    message.isPumping = object.isPumping ?? false;
+    message.isSteaming = object.isSteaming ?? false;
+    message.boilerTemp = (object.boilerTemp !== undefined && object.boilerTemp !== null)
+      ? FloatSensorReading.fromPartial(object.boilerTemp)
       : undefined;
-    message.powerOff = (object.powerOff !== undefined && object.powerOff !== null)
-      ? PowerOff.fromPartial(object.powerOff)
-      : undefined;
-    message.startBrew = (object.startBrew !== undefined && object.startBrew !== null)
-      ? StartBrew.fromPartial(object.startBrew)
-      : undefined;
-    message.stopBrew = (object.stopBrew !== undefined && object.stopBrew !== null)
-      ? StopBrew.fromPartial(object.stopBrew)
-      : undefined;
-    message.startSteam = (object.startSteam !== undefined && object.startSteam !== null)
-      ? StartSteam.fromPartial(object.startSteam)
-      : undefined;
-    message.stopSteam = (object.stopSteam !== undefined && object.stopSteam !== null)
-      ? StopSteam.fromPartial(object.stopSteam)
-      : undefined;
-    message.setSteamSetPoint = (object.setSteamSetPoint !== undefined && object.setSteamSetPoint !== null)
-      ? SetSteamSetPoint.fromPartial(object.setSteamSetPoint)
-      : undefined;
-    message.setBoilerSetPoint = (object.setBoilerSetPoint !== undefined && object.setBoilerSetPoint !== null)
-      ? SetBoilerSetPoint.fromPartial(object.setBoilerSetPoint)
+    message.pressure = (object.pressure !== undefined && object.pressure !== null)
+      ? FloatSensorReading.fromPartial(object.pressure)
       : undefined;
     return message;
   },
 };
 
+function createBaseEvent(): Event {
+  return { requestId: new Uint8Array(), eventOneof: undefined };
+}
+
+export const Event = {
+  encode(message: Event, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.requestId.length !== 0) {
+      writer.uint32(10).bytes(message.requestId);
+    }
+    switch (message.eventOneof?.$case) {
+      case "stateUpdate":
+        StateUpdate.encode(message.eventOneof.stateUpdate, writer.uint32(18).fork()).ldelim();
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Event {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.requestId = reader.bytes();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.eventOneof = { $case: "stateUpdate", stateUpdate: StateUpdate.decode(reader, reader.uint32()) };
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Event {
+    return {
+      requestId: isSet(object.requestId) ? bytesFromBase64(object.requestId) : new Uint8Array(),
+      eventOneof: isSet(object.stateUpdate)
+        ? { $case: "stateUpdate", stateUpdate: StateUpdate.fromJSON(object.stateUpdate) }
+        : undefined,
+    };
+  },
+
+  toJSON(message: Event): unknown {
+    const obj: any = {};
+    message.requestId !== undefined &&
+      (obj.requestId = base64FromBytes(message.requestId !== undefined ? message.requestId : new Uint8Array()));
+    message.eventOneof?.$case === "stateUpdate" && (obj.stateUpdate = message.eventOneof?.stateUpdate
+      ? StateUpdate.toJSON(message.eventOneof?.stateUpdate)
+      : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Event>, I>>(base?: I): Event {
+    return Event.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Event>, I>>(object: I): Event {
+    const message = createBaseEvent();
+    message.requestId = object.requestId ?? new Uint8Array();
+    if (
+      object.eventOneof?.$case === "stateUpdate" &&
+      object.eventOneof?.stateUpdate !== undefined &&
+      object.eventOneof?.stateUpdate !== null
+    ) {
+      message.eventOneof = {
+        $case: "stateUpdate",
+        stateUpdate: StateUpdate.fromPartial(object.eventOneof.stateUpdate),
+      };
+    }
+    return message;
+  },
+};
+
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var tsProtoGlobalThis: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if (tsProtoGlobalThis.Buffer) {
+    return Uint8Array.from(tsProtoGlobalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = tsProtoGlobalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if (tsProtoGlobalThis.Buffer) {
+    return tsProtoGlobalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(String.fromCharCode(byte));
+    });
+    return tsProtoGlobalThis.btoa(bin.join(""));
+  }
+}
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 

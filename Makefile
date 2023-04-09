@@ -1,4 +1,9 @@
-.PHONY: generate
+.PHONY: all build generate
+
+all: generate build
+
+build:
+	pio run
 
 generate:
-	protoc -I api --eams_out=src/proto api/api.proto
+	protoc -I api --eams_out=src/proto api/*.proto

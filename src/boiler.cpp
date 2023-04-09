@@ -3,6 +3,7 @@
 #include <PID_v1.h>
 
 #include "boiler.hpp"
+#include "cachedpin.hpp"
 
 // Thermal readings
 #define RREF 430.0 // Value of Rref resistor (PT100 == 430.0, PT1000 == 4300.0)
@@ -13,12 +14,10 @@
 BoilerPID::BoilerPID(double relayPin, double max31865SPIPin,
                      SPIClass *theSPI = &SPI)
     : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE),
-      thermo(max31865SPIPin, theSPI) {
-  outputPin = relayPin;
-};
+      thermo(max31865SPIPin, theSPI), outputPin(relayPin){};
 
 void BoilerPID::setup() {
-  pinMode(outputPin, OUTPUT);
+  outputPin.setup();
 
   thermo.begin(MAX31865_2WIRE);
 
@@ -53,7 +52,7 @@ bool BoilerPID::tick() {
     // If a hardware error occured while checking temps disable the boiler
     if (temp.fault) {
       pid.SetMode(MANUAL);
-      digitalWrite(outputPin, LOW);
+      outputPin.digitalWrite(LOW);
       return cond;
     }
 
@@ -74,9 +73,9 @@ bool BoilerPID::tick() {
   }
 
   if (Output < now - windowStartTime) {
-    digitalWrite(outputPin, HIGH);
+    outputPin.digitalWrite(HIGH);
   } else {
-    digitalWrite(outputPin, LOW);
+    outputPin.digitalWrite(LOW);
   }
 
   return cond;
