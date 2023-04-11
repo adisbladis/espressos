@@ -11,11 +11,23 @@ import {
   state,
   setState,
 } from './state'
+import {
+  setConfig,
+} from './config'
 
 const client = new APIClient("ws://10.1.1.137");
 
-client.onEvent("stateUpdate", (event: Event) => {
-  setState(event.eventOneof.stateUpdate)
+client.onEvent("*", (event: Event) => {
+  switch (event.eventOneof.$case) {
+    case "stateUpdate":
+      setState(event.eventOneof.stateUpdate)
+      break
+    case "config":
+      setConfig(event.eventOneof.config)
+      break
+    default:
+      console.log(`Unhandled event case: ${event.eventOneof["$case"]}`)
+  }
 })
 
 const App: Component = () => {

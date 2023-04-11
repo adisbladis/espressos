@@ -1,11 +1,12 @@
-#include "LittleFS.h"
 #include <ArduinoOTA.h>
+#include <LittleFS.h>
 #include <WiFi.h>
 #include <dimmable_light.h>
 
 #include "api.hpp"
 #include "boiler.hpp"
 #include "cachedpin.hpp"
+#include "config.hpp"
 #include "fsm/fsmlist.hpp"
 #include "pressure.hpp"
 #include "websocket.hpp"
@@ -18,7 +19,8 @@ static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
 static DimmableLight pump(PUMP_DIMMER_OUT);
 static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 
-static APIServer apiServer = APIServer(HTTP_PORT);
+static PersistedConfig *pConfig = new PersistedConfig();
+static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
 
 void setup() {
   Serial.begin(115200);
@@ -35,6 +37,8 @@ void setup() {
   WiFi.begin(SSID_NAME, SSID_PASWORD);
 
   LittleFS.begin();
+
+  pConfig->setup();
 
   // Set up OTA
   {
@@ -66,6 +70,8 @@ void setup() {
 }
 
 void loop() {
+  auto config = pConfig->getConfig();
+
   // Only open solenoid if we're brewing
   if (MachineState::is_in_state<Brewing>()) {
     solenoid.digitalWrite(HIGH);
@@ -85,9 +91,9 @@ void loop() {
   if (MachineState::is_in_state<Off>() || MachineState::is_in_state<Panic>()) {
     boiler.SetSetPoint(0);
   } else if (MachineState::is_in_state<Steaming>()) {
-    boiler.SetSetPoint(90); // TODO: From config
+    boiler.SetSetPoint(config.get_steamSetPoint());
   } else {
-    boiler.SetSetPoint(40); // TODO: From config
+    boiler.SetSetPoint(config.get_setpoint());
   }
 
   // Send callbacks at 1s intervals normally, 100ms intervals while brewing

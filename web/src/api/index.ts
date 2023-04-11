@@ -76,7 +76,7 @@ export class APIClient {
   async powerOn(): Promise<void> {
     await this.sendCommand({
       requestId: mkRequestId(),
-      commandOneof: { $case: "powerOn", powerOn: <PowerOn>{} },
+       commandOneof: { $case: "powerOn", powerOn: <PowerOn>{} },
     })
   }
 

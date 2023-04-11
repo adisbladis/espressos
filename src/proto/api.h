@@ -1,33 +1,3 @@
-/*
- *  Copyright (C) 2020-2023 Embedded AMS B.V. - All Rights Reserved
- *
- *  This file is part of Embedded Proto.
- *
- *  Embedded Proto is open source software: you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License as published
- *  by the Free Software Foundation, version 3 of the license.
- *
- *  Embedded Proto  is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Embedded Proto. If not, see <https://www.gnu.org/licenses/>.
- *
- *  For commercial and closed source application please visit:
- *  <https://EmbeddedProto.com/license/>.
- *
- *  Embedded AMS B.V.
- *  Info:
- *    info at EmbeddedProto dot com
- *
- *  Postal address:
- *    Johan Huizingalaan 763a
- *    1066 VH, Amsterdam
- *    the Netherlands
- */
-
 // This file is generated. Please do not edit!
 #ifndef API_H
 #define API_H
@@ -45,6 +15,7 @@
 #include <limits>
 
 // Include external proto definitions
+#include "config.h"
 
 template <uint32_t FloatSensorReading_error_LENGTH>
 class FloatSensorReading final : public ::EmbeddedProto::MessageInterface {
@@ -1664,6 +1635,10 @@ public:
       set_stop_steam(rhs.get_stop_steam());
       break;
 
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
+      break;
+
     default:
       break;
     }
@@ -1709,6 +1684,10 @@ public:
       set_stop_steam(rhs.get_stop_steam());
       break;
 
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
+      break;
+
     default:
       break;
     }
@@ -1726,7 +1705,8 @@ public:
     START_PUMP = 6,
     STOP_PUMP = 7,
     START_STEAM = 8,
-    STOP_STEAM = 9
+    STOP_STEAM = 9,
+    CONFIG = 10
   };
 
   Command &operator=(const Command &rhs) {
@@ -1767,6 +1747,10 @@ public:
 
     case FieldNumber::STOP_STEAM:
       set_stop_steam(rhs.get_stop_steam());
+      break;
+
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
       break;
 
     default:
@@ -1814,6 +1798,10 @@ public:
 
     case FieldNumber::STOP_STEAM:
       set_stop_steam(rhs.get_stop_steam());
+      break;
+
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
       break;
 
     default:
@@ -2113,6 +2101,37 @@ public:
     return command_oneof_.stop_steam_;
   }
 
+  static constexpr char const *CONFIG_NAME = "config";
+  inline bool has_config() const {
+    return FieldNumber::CONFIG == which_command_oneof_;
+  }
+  inline void clear_config() {
+    if (FieldNumber::CONFIG == which_command_oneof_) {
+      which_command_oneof_ = FieldNumber::NOT_SET;
+      command_oneof_.config_.~Config();
+    }
+  }
+  inline void set_config(const Config &value) {
+    if (FieldNumber::CONFIG != which_command_oneof_) {
+      init_command_oneof(FieldNumber::CONFIG);
+    }
+    command_oneof_.config_ = value;
+  }
+  inline void set_config(const Config &&value) {
+    if (FieldNumber::CONFIG != which_command_oneof_) {
+      init_command_oneof(FieldNumber::CONFIG);
+    }
+    command_oneof_.config_ = value;
+  }
+  inline Config &mutable_config() {
+    if (FieldNumber::CONFIG != which_command_oneof_) {
+      init_command_oneof(FieldNumber::CONFIG);
+    }
+    return command_oneof_.config_;
+  }
+  inline const Config &get_config() const { return command_oneof_.config_; }
+  inline const Config &config() const { return command_oneof_.config_; }
+
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
@@ -2187,6 +2206,13 @@ public:
       }
       break;
 
+    case FieldNumber::CONFIG:
+      if (has_config() && (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+        return_value = command_oneof_.config_.serialize_with_id(
+            static_cast<uint32_t>(FieldNumber::CONFIG), buffer, true);
+      }
+      break;
+
     default:
       break;
     }
@@ -2221,6 +2247,7 @@ public:
       case FieldNumber::STOP_PUMP:
       case FieldNumber::START_STEAM:
       case FieldNumber::STOP_STEAM:
+      case FieldNumber::CONFIG:
         return_value = deserialize_command_oneof(id_tag, buffer, wire_type);
         break;
 
@@ -2287,6 +2314,9 @@ public:
       break;
     case FieldNumber::STOP_STEAM:
       name = STOP_STEAM_NAME;
+      break;
+    case FieldNumber::CONFIG:
+      name = CONFIG_NAME;
       break;
     default:
       name = "Invalid FieldNumber";
@@ -2376,6 +2406,7 @@ private:
     StopPump stop_pump_;
     StartSteam start_steam_;
     StopSteam stop_steam_;
+    Config config_;
   };
   command_oneof command_oneof_;
 
@@ -2420,6 +2451,10 @@ private:
       new (&command_oneof_.stop_steam_) StopSteam;
       break;
 
+    case FieldNumber::CONFIG:
+      new (&command_oneof_.config_) Config;
+      break;
+
     default:
       break;
     }
@@ -2452,6 +2487,9 @@ private:
       break;
     case FieldNumber::STOP_STEAM:
       ::EmbeddedProto::destroy_at(&command_oneof_.stop_steam_);
+      break;
+    case FieldNumber::CONFIG:
+      ::EmbeddedProto::destroy_at(&command_oneof_.config_);
       break;
     default:
       break;
@@ -2500,6 +2538,10 @@ private:
     case FieldNumber::STOP_STEAM:
       return_value =
           command_oneof_.stop_steam_.deserialize_check_type(buffer, wire_type);
+      break;
+    case FieldNumber::CONFIG:
+      return_value =
+          command_oneof_.config_.deserialize_check_type(buffer, wire_type);
       break;
     default:
       break;
@@ -2550,6 +2592,10 @@ private:
     case FieldNumber::STOP_STEAM:
       left_chars = command_oneof_.stop_steam_.to_string(
           left_chars, indent_level, STOP_STEAM_NAME, first_field);
+      break;
+    case FieldNumber::CONFIG:
+      left_chars = command_oneof_.config_.to_string(left_chars, indent_level,
+                                                    CONFIG_NAME, first_field);
       break;
     default:
       break;
@@ -2957,6 +3003,10 @@ public:
       set_state_update(rhs.get_state_update());
       break;
 
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
+      break;
+
     default:
       break;
     }
@@ -2974,6 +3024,10 @@ public:
       set_state_update(rhs.get_state_update());
       break;
 
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
+      break;
+
     default:
       break;
     }
@@ -2984,7 +3038,8 @@ public:
   enum class FieldNumber : uint32_t {
     NOT_SET = 0,
     REQUEST_ID = 1,
-    STATE_UPDATE = 2
+    STATE_UPDATE = 2,
+    CONFIG = 3
   };
 
   Event &operator=(const Event &rhs) {
@@ -2997,6 +3052,10 @@ public:
     switch (rhs.get_which_event_oneof()) {
     case FieldNumber::STATE_UPDATE:
       set_state_update(rhs.get_state_update());
+      break;
+
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
       break;
 
     default:
@@ -3016,6 +3075,10 @@ public:
     switch (rhs.get_which_event_oneof()) {
     case FieldNumber::STATE_UPDATE:
       set_state_update(rhs.get_state_update());
+      break;
+
+    case FieldNumber::CONFIG:
+      set_config(rhs.get_config());
       break;
 
     default:
@@ -3097,6 +3160,37 @@ public:
     return event_oneof_.state_update_;
   }
 
+  static constexpr char const *CONFIG_NAME = "config";
+  inline bool has_config() const {
+    return FieldNumber::CONFIG == which_event_oneof_;
+  }
+  inline void clear_config() {
+    if (FieldNumber::CONFIG == which_event_oneof_) {
+      which_event_oneof_ = FieldNumber::NOT_SET;
+      event_oneof_.config_.~Config();
+    }
+  }
+  inline void set_config(const Config &value) {
+    if (FieldNumber::CONFIG != which_event_oneof_) {
+      init_event_oneof(FieldNumber::CONFIG);
+    }
+    event_oneof_.config_ = value;
+  }
+  inline void set_config(const Config &&value) {
+    if (FieldNumber::CONFIG != which_event_oneof_) {
+      init_event_oneof(FieldNumber::CONFIG);
+    }
+    event_oneof_.config_ = value;
+  }
+  inline Config &mutable_config() {
+    if (FieldNumber::CONFIG != which_event_oneof_) {
+      init_event_oneof(FieldNumber::CONFIG);
+    }
+    return event_oneof_.config_;
+  }
+  inline const Config &get_config() const { return event_oneof_.config_; }
+  inline const Config &config() const { return event_oneof_.config_; }
+
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
@@ -3112,6 +3206,13 @@ public:
           (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
         return_value = event_oneof_.state_update_.serialize_with_id(
             static_cast<uint32_t>(FieldNumber::STATE_UPDATE), buffer, true);
+      }
+      break;
+
+    case FieldNumber::CONFIG:
+      if (has_config() && (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+        return_value = event_oneof_.config_.serialize_with_id(
+            static_cast<uint32_t>(FieldNumber::CONFIG), buffer, true);
       }
       break;
 
@@ -3142,6 +3243,7 @@ public:
         break;
 
       case FieldNumber::STATE_UPDATE:
+      case FieldNumber::CONFIG:
         return_value = deserialize_event_oneof(id_tag, buffer, wire_type);
         break;
 
@@ -3187,6 +3289,9 @@ public:
       break;
     case FieldNumber::STATE_UPDATE:
       name = STATE_UPDATE_NAME;
+      break;
+    case FieldNumber::CONFIG:
+      name = CONFIG_NAME;
       break;
     default:
       name = "Invalid FieldNumber";
@@ -3272,6 +3377,7 @@ private:
         Event_state_update_StateUpdate_boilerTemp_FloatSensorReading_error_LENGTH,
         Event_state_update_StateUpdate_pressure_FloatSensorReading_error_LENGTH>
         state_update_;
+    Config config_;
   };
   event_oneof event_oneof_;
 
@@ -3290,6 +3396,10 @@ private:
           Event_state_update_StateUpdate_pressure_FloatSensorReading_error_LENGTH>;
       break;
 
+    case FieldNumber::CONFIG:
+      new (&event_oneof_.config_) Config;
+      break;
+
     default:
       break;
     }
@@ -3301,6 +3411,9 @@ private:
     switch (which_event_oneof_) {
     case FieldNumber::STATE_UPDATE:
       ::EmbeddedProto::destroy_at(&event_oneof_.state_update_);
+      break;
+    case FieldNumber::CONFIG:
+      ::EmbeddedProto::destroy_at(&event_oneof_.config_);
       break;
     default:
       break;
@@ -3321,6 +3434,10 @@ private:
     case FieldNumber::STATE_UPDATE:
       return_value =
           event_oneof_.state_update_.deserialize_check_type(buffer, wire_type);
+      break;
+    case FieldNumber::CONFIG:
+      return_value =
+          event_oneof_.config_.deserialize_check_type(buffer, wire_type);
       break;
     default:
       break;
@@ -3343,6 +3460,10 @@ private:
     case FieldNumber::STATE_UPDATE:
       left_chars = event_oneof_.state_update_.to_string(
           left_chars, indent_level, STATE_UPDATE_NAME, first_field);
+      break;
+    case FieldNumber::CONFIG:
+      left_chars = event_oneof_.config_.to_string(left_chars, indent_level,
+                                                  CONFIG_NAME, first_field);
       break;
     default:
       break;

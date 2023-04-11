@@ -1,5 +1,6 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { Config } from "./config";
 
 export const protobufPackage = "";
 
@@ -42,7 +43,8 @@ export interface Command {
     | { $case: "startPump"; startPump: StartPump }
     | { $case: "stopPump"; stopPump: StopPump }
     | { $case: "startSteam"; startSteam: StartSteam }
-    | { $case: "stopSteam"; stopSteam: StopSteam };
+    | { $case: "stopSteam"; stopSteam: StopSteam }
+    | { $case: "config"; config: Config };
 }
 
 /** An envelope for an arbitrary sensor that returns a float with an optional error */
@@ -62,7 +64,7 @@ export interface StateUpdate {
 export interface Event {
   /** If this event was in response to a request id it will contain one, otherwise empty */
   requestId: Uint8Array;
-  eventOneof?: { $case: "stateUpdate"; stateUpdate: StateUpdate };
+  eventOneof?: { $case: "stateUpdate"; stateUpdate: StateUpdate } | { $case: "config"; config: Config };
 }
 
 function createBasePowerOn(): PowerOn {
@@ -451,6 +453,9 @@ export const Command = {
       case "stopSteam":
         StopSteam.encode(message.commandOneof.stopSteam, writer.uint32(74).fork()).ldelim();
         break;
+      case "config":
+        Config.encode(message.commandOneof.config, writer.uint32(82).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -525,6 +530,13 @@ export const Command = {
 
           message.commandOneof = { $case: "stopSteam", stopSteam: StopSteam.decode(reader, reader.uint32()) };
           continue;
+        case 10:
+          if (tag != 82) {
+            break;
+          }
+
+          message.commandOneof = { $case: "config", config: Config.decode(reader, reader.uint32()) };
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -553,6 +565,8 @@ export const Command = {
         ? { $case: "startSteam", startSteam: StartSteam.fromJSON(object.startSteam) }
         : isSet(object.stopSteam)
         ? { $case: "stopSteam", stopSteam: StopSteam.fromJSON(object.stopSteam) }
+        : isSet(object.config)
+        ? { $case: "config", config: Config.fromJSON(object.config) }
         : undefined,
     };
   },
@@ -578,6 +592,8 @@ export const Command = {
       : undefined);
     message.commandOneof?.$case === "stopSteam" &&
       (obj.stopSteam = message.commandOneof?.stopSteam ? StopSteam.toJSON(message.commandOneof?.stopSteam) : undefined);
+    message.commandOneof?.$case === "config" &&
+      (obj.config = message.commandOneof?.config ? Config.toJSON(message.commandOneof?.config) : undefined);
     return obj;
   },
 
@@ -646,6 +662,13 @@ export const Command = {
       object.commandOneof?.stopSteam !== null
     ) {
       message.commandOneof = { $case: "stopSteam", stopSteam: StopSteam.fromPartial(object.commandOneof.stopSteam) };
+    }
+    if (
+      object.commandOneof?.$case === "config" &&
+      object.commandOneof?.config !== undefined &&
+      object.commandOneof?.config !== null
+    ) {
+      message.commandOneof = { $case: "config", config: Config.fromPartial(object.commandOneof.config) };
     }
     return message;
   },
@@ -888,6 +911,9 @@ export const Event = {
       case "stateUpdate":
         StateUpdate.encode(message.eventOneof.stateUpdate, writer.uint32(18).fork()).ldelim();
         break;
+      case "config":
+        Config.encode(message.eventOneof.config, writer.uint32(26).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -913,6 +939,13 @@ export const Event = {
 
           message.eventOneof = { $case: "stateUpdate", stateUpdate: StateUpdate.decode(reader, reader.uint32()) };
           continue;
+        case 3:
+          if (tag != 26) {
+            break;
+          }
+
+          message.eventOneof = { $case: "config", config: Config.decode(reader, reader.uint32()) };
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -927,6 +960,8 @@ export const Event = {
       requestId: isSet(object.requestId) ? bytesFromBase64(object.requestId) : new Uint8Array(),
       eventOneof: isSet(object.stateUpdate)
         ? { $case: "stateUpdate", stateUpdate: StateUpdate.fromJSON(object.stateUpdate) }
+        : isSet(object.config)
+        ? { $case: "config", config: Config.fromJSON(object.config) }
         : undefined,
     };
   },
@@ -938,6 +973,8 @@ export const Event = {
     message.eventOneof?.$case === "stateUpdate" && (obj.stateUpdate = message.eventOneof?.stateUpdate
       ? StateUpdate.toJSON(message.eventOneof?.stateUpdate)
       : undefined);
+    message.eventOneof?.$case === "config" &&
+      (obj.config = message.eventOneof?.config ? Config.toJSON(message.eventOneof?.config) : undefined);
     return obj;
   },
 
@@ -957,6 +994,13 @@ export const Event = {
         $case: "stateUpdate",
         stateUpdate: StateUpdate.fromPartial(object.eventOneof.stateUpdate),
       };
+    }
+    if (
+      object.eventOneof?.$case === "config" &&
+      object.eventOneof?.config !== undefined &&
+      object.eventOneof?.config !== null
+    ) {
+      message.eventOneof = { $case: "config", config: Config.fromPartial(object.eventOneof.config) };
     }
     return message;
   },

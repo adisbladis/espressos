@@ -5,12 +5,6 @@
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 
-// Thermal readings
-#define RREF 430.0 // Value of Rref resistor (PT100 == 430.0, PT1000 == 4300.0)
-#define RNOMINAL                                                               \
-  100.0 // "Nominal" 0-degrees resistance of the sensor (PT100 == 100.0, PT1000
-        // == 1000.0)
-
 BoilerPID::BoilerPID(double relayPin, double max31865SPIPin,
                      SPIClass *theSPI = &SPI)
     : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE),
@@ -45,7 +39,7 @@ bool BoilerPID::tick() {
 
   if (cond) {
     temp.fault = thermo.readFault();
-    temp.temp = thermo.temperatureAsync(rtd, RNOMINAL, RREF);
+    temp.temp = thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF);
 
     thermo.clearFault();
 

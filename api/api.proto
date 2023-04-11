@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "config.proto";
+
 /* Commands sent by the client */
 
 message PowerOn { }
@@ -32,6 +34,8 @@ message Command {
 
     StartSteam start_steam = 8;
     StopSteam stop_steam = 9;
+
+    Config config = 10;
   }
 };
 
@@ -60,5 +64,6 @@ message Event {
 
   oneof event_oneof {
     StateUpdate state_update = 2;
+    Config config = 3;
   }
 }
