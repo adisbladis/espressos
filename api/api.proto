@@ -58,6 +58,16 @@ message StateUpdate {
   FloatSensorReading pressure = 6;
 }
 
+message LogMessage {
+  enum LogLevel{
+    ERROR = 0;
+    INFO = 1;
+    DEBUG = 2;
+  }
+  LogLevel logLevel = 1;
+  string msg = 2;
+}
+
 message Event {
   // If this event was in response to a request id it will contain one, otherwise empty
   bytes request_id = 1;
@@ -65,5 +75,6 @@ message Event {
   oneof event_oneof {
     StateUpdate state_update = 2;
     Config config = 3;
+    LogMessage log = 4;
   }
 }

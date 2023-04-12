@@ -61,10 +61,57 @@ export interface StateUpdate {
   pressure: FloatSensorReading | undefined;
 }
 
+export interface LogMessage {
+  logLevel: LogMessage_LogLevel;
+  msg: string;
+}
+
+export enum LogMessage_LogLevel {
+  ERROR = 0,
+  INFO = 1,
+  DEBUG = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function logMessage_LogLevelFromJSON(object: any): LogMessage_LogLevel {
+  switch (object) {
+    case 0:
+    case "ERROR":
+      return LogMessage_LogLevel.ERROR;
+    case 1:
+    case "INFO":
+      return LogMessage_LogLevel.INFO;
+    case 2:
+    case "DEBUG":
+      return LogMessage_LogLevel.DEBUG;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return LogMessage_LogLevel.UNRECOGNIZED;
+  }
+}
+
+export function logMessage_LogLevelToJSON(object: LogMessage_LogLevel): string {
+  switch (object) {
+    case LogMessage_LogLevel.ERROR:
+      return "ERROR";
+    case LogMessage_LogLevel.INFO:
+      return "INFO";
+    case LogMessage_LogLevel.DEBUG:
+      return "DEBUG";
+    case LogMessage_LogLevel.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface Event {
   /** If this event was in response to a request id it will contain one, otherwise empty */
   requestId: Uint8Array;
-  eventOneof?: { $case: "stateUpdate"; stateUpdate: StateUpdate } | { $case: "config"; config: Config };
+  eventOneof?: { $case: "stateUpdate"; stateUpdate: StateUpdate } | { $case: "config"; config: Config } | {
+    $case: "log";
+    log: LogMessage;
+  };
 }
 
 function createBasePowerOn(): PowerOn {
@@ -898,6 +945,77 @@ export const StateUpdate = {
   },
 };
 
+function createBaseLogMessage(): LogMessage {
+  return { logLevel: 0, msg: "" };
+}
+
+export const LogMessage = {
+  encode(message: LogMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.logLevel !== 0) {
+      writer.uint32(8).int32(message.logLevel);
+    }
+    if (message.msg !== "") {
+      writer.uint32(18).string(message.msg);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LogMessage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.logLevel = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.msg = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogMessage {
+    return {
+      logLevel: isSet(object.logLevel) ? logMessage_LogLevelFromJSON(object.logLevel) : 0,
+      msg: isSet(object.msg) ? String(object.msg) : "",
+    };
+  },
+
+  toJSON(message: LogMessage): unknown {
+    const obj: any = {};
+    message.logLevel !== undefined && (obj.logLevel = logMessage_LogLevelToJSON(message.logLevel));
+    message.msg !== undefined && (obj.msg = message.msg);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogMessage>, I>>(base?: I): LogMessage {
+    return LogMessage.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<LogMessage>, I>>(object: I): LogMessage {
+    const message = createBaseLogMessage();
+    message.logLevel = object.logLevel ?? 0;
+    message.msg = object.msg ?? "";
+    return message;
+  },
+};
+
 function createBaseEvent(): Event {
   return { requestId: new Uint8Array(), eventOneof: undefined };
 }
@@ -913,6 +1031,9 @@ export const Event = {
         break;
       case "config":
         Config.encode(message.eventOneof.config, writer.uint32(26).fork()).ldelim();
+        break;
+      case "log":
+        LogMessage.encode(message.eventOneof.log, writer.uint32(34).fork()).ldelim();
         break;
     }
     return writer;
@@ -946,6 +1067,13 @@ export const Event = {
 
           message.eventOneof = { $case: "config", config: Config.decode(reader, reader.uint32()) };
           continue;
+        case 4:
+          if (tag != 34) {
+            break;
+          }
+
+          message.eventOneof = { $case: "log", log: LogMessage.decode(reader, reader.uint32()) };
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -962,6 +1090,8 @@ export const Event = {
         ? { $case: "stateUpdate", stateUpdate: StateUpdate.fromJSON(object.stateUpdate) }
         : isSet(object.config)
         ? { $case: "config", config: Config.fromJSON(object.config) }
+        : isSet(object.log)
+        ? { $case: "log", log: LogMessage.fromJSON(object.log) }
         : undefined,
     };
   },
@@ -975,6 +1105,8 @@ export const Event = {
       : undefined);
     message.eventOneof?.$case === "config" &&
       (obj.config = message.eventOneof?.config ? Config.toJSON(message.eventOneof?.config) : undefined);
+    message.eventOneof?.$case === "log" &&
+      (obj.log = message.eventOneof?.log ? LogMessage.toJSON(message.eventOneof?.log) : undefined);
     return obj;
   },
 
@@ -1001,6 +1133,9 @@ export const Event = {
       object.eventOneof?.config !== null
     ) {
       message.eventOneof = { $case: "config", config: Config.fromPartial(object.eventOneof.config) };
+    }
+    if (object.eventOneof?.$case === "log" && object.eventOneof?.log !== undefined && object.eventOneof?.log !== null) {
+      message.eventOneof = { $case: "log", log: LogMessage.fromPartial(object.eventOneof.log) };
     }
     return message;
   },

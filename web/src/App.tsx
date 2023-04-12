@@ -5,7 +5,7 @@ import {
   APIClient,
 } from './api'
 import {
-  Event,
+  Event, LogMessage_LogLevel,
 } from './api/api'
 import {
   state,
@@ -25,8 +25,30 @@ client.onEvent("*", (event: Event) => {
     case "config":
       setConfig(event.eventOneof.config)
       break
-    default:
-      console.log(`Unhandled event case: ${event.eventOneof["$case"]}`)
+  }
+})
+
+client.onEvent("log", (event: Event) => {
+  switch (event.eventOneof.$case) {
+    case "log":
+      let { logLevel, msg } = event.eventOneof.log;
+
+      msg = "espressos: " + msg;
+
+      switch (logLevel) {
+        case LogMessage_LogLevel.ERROR:
+          console.error(msg);
+          break
+        case LogMessage_LogLevel.INFO:
+          console.error(msg);
+          break
+        case LogMessage_LogLevel.DEBUG:
+          console.debug(msg);
+          break
+        default:
+          console.error(`Unknown log level ${logLevel}`, event);
+      }
+      break
   }
 })
 

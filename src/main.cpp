@@ -8,6 +8,7 @@
 #include "cachedpin.hpp"
 #include "config.hpp"
 #include "fsm/fsmlist.hpp"
+#include "logger.hpp"
 #include "pressure.hpp"
 #include "websocket.hpp"
 
@@ -44,29 +45,43 @@ void setup() {
   {
     ArduinoOTA.setPort(2040);
 
-    ArduinoOTA.onStart([]() { Serial.println("Start"); });
-    ArduinoOTA.onEnd([]() { Serial.println("\nEnd"); });
+    ArduinoOTA.onStart([]() { logger->log(LogLevel::DEBUG, "OTA start"); });
+    ArduinoOTA.onEnd([]() { logger->log(LogLevel::DEBUG, "OTA end"); });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      // logger->log(LogLevel::DEBUG, "OTA progress: %u%%", pct);
     });
     ArduinoOTA.onError([](ota_error_t error) {
-      Serial.printf("Error[%u]: ", error);
-      if (error == OTA_AUTH_ERROR)
-        Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR)
-        Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR)
-        Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR)
-        Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR)
-        Serial.println("End Failed");
+      const char *message = "Unknown error";
+
+      switch (error) {
+      case OTA_AUTH_ERROR:
+        message = "Auth Failed";
+      case OTA_BEGIN_ERROR:
+        message = "Begin Failed";
+      case OTA_CONNECT_ERROR:
+        message = "Connect Failed";
+      case OTA_RECEIVE_ERROR:
+        message = "Receive Failed";
+      case OTA_END_ERROR:
+        message = "End Failed";
+      }
+
+      logger->log(LogLevel::ERROR, "OTA Error[%u]: %s", error, message);
     });
 
     ArduinoOTA.begin();
   }
 
+  // Start listening
   apiServer.begin();
+
+  // Set up logging
+  {
+    auto multiLogger = new MultiLogger();
+    multiLogger->add(new SerialLogger());
+    multiLogger->add(&apiServer);
+    setLogger(multiLogger);
+  }
 }
 
 void loop() {
@@ -107,10 +122,16 @@ void loop() {
   {
     if (boiler.tick()) {
       TempReading temp = boiler.getTemp();
+
+      if (temp.fault) {
+        // TODO: send panic event via fifo
+        send_event(PanicEvent());
+      }
+
       apiServer.setBoilerTemp(temp);
     };
 
-    float pressure = brewPressure.Read();
+    auto pressure = brewPressure.Read();
     apiServer.setPressure(pressure);
   }
 

@@ -8,10 +8,11 @@ struct TempReading {
   double temp;
   uint8_t fault; // Fault identifier
 
-  String errorMessage() {
+  const char *errorMessage() {
     String message;
+
     if (!fault) {
-      return message;
+      return "";
     }
 
     message = "RTD Error 0x" + String(fault, HEX) + ": ";
@@ -35,7 +36,7 @@ struct TempReading {
       message += "Under/Over voltage\n";
     }
 
-    return message;
+    return message.c_str();
   }
 };
 

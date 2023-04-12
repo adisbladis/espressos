@@ -431,6 +431,222 @@ private:
 #endif // End of MSG_TO_STRING
 };
 
+template <uint32_t LogMessage_msg_LENGTH>
+class LogMessage final : public ::EmbeddedProto::MessageInterface {
+public:
+  LogMessage() = default;
+  LogMessage(const LogMessage &rhs) {
+    set_logLevel(rhs.get_logLevel());
+    set_msg(rhs.get_msg());
+  }
+
+  LogMessage(const LogMessage &&rhs) noexcept {
+    set_logLevel(rhs.get_logLevel());
+    set_msg(rhs.get_msg());
+  }
+
+  ~LogMessage() override = default;
+
+  enum class LogLevel : uint32_t { ERROR = 0, INFO = 1, DEBUG = 2 };
+
+  enum class FieldNumber : uint32_t { NOT_SET = 0, LOGLEVEL = 1, MSG = 2 };
+
+  LogMessage &operator=(const LogMessage &rhs) {
+    set_logLevel(rhs.get_logLevel());
+    set_msg(rhs.get_msg());
+    return *this;
+  }
+
+  LogMessage &operator=(const LogMessage &&rhs) noexcept {
+    set_logLevel(rhs.get_logLevel());
+    set_msg(rhs.get_msg());
+    return *this;
+  }
+
+  static constexpr char const *LOGLEVEL_NAME = "logLevel";
+  inline void clear_logLevel() { logLevel_.clear(); }
+  inline void set_logLevel(const LogLevel &value) { logLevel_ = value; }
+  inline void set_logLevel(const LogLevel &&value) { logLevel_ = value; }
+  inline const LogLevel &get_logLevel() const { return logLevel_.get(); }
+  inline LogLevel logLevel() const { return logLevel_.get(); }
+
+  static constexpr char const *MSG_NAME = "msg";
+  inline void clear_msg() { msg_.clear(); }
+  inline ::EmbeddedProto::FieldString<LogMessage_msg_LENGTH> &mutable_msg() {
+    return msg_;
+  }
+  inline void
+  set_msg(const ::EmbeddedProto::FieldString<LogMessage_msg_LENGTH> &rhs) {
+    msg_.set(rhs);
+  }
+  inline const ::EmbeddedProto::FieldString<LogMessage_msg_LENGTH> &
+  get_msg() const {
+    return msg_;
+  }
+  inline const char *msg() const { return msg_.get_const(); }
+
+  ::EmbeddedProto::Error
+  serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
+    ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+
+    if ((static_cast<LogLevel>(0) != logLevel_.get()) &&
+        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+      return_value = logLevel_.serialize_with_id(
+          static_cast<uint32_t>(FieldNumber::LOGLEVEL), buffer, false);
+    }
+
+    if (::EmbeddedProto::Error::NO_ERRORS == return_value) {
+      return_value = msg_.serialize_with_id(
+          static_cast<uint32_t>(FieldNumber::MSG), buffer, false);
+    }
+
+    return return_value;
+  };
+
+  ::EmbeddedProto::Error
+  deserialize(::EmbeddedProto::ReadBufferInterface &buffer) override {
+    ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+    ::EmbeddedProto::WireFormatter::WireType wire_type =
+        ::EmbeddedProto::WireFormatter::WireType::VARINT;
+    uint32_t id_number = 0;
+    FieldNumber id_tag = FieldNumber::NOT_SET;
+
+    ::EmbeddedProto::Error tag_value =
+        ::EmbeddedProto::WireFormatter::DeserializeTag(buffer, wire_type,
+                                                       id_number);
+    while ((::EmbeddedProto::Error::NO_ERRORS == return_value) &&
+           (::EmbeddedProto::Error::NO_ERRORS == tag_value)) {
+      id_tag = static_cast<FieldNumber>(id_number);
+      switch (id_tag) {
+      case FieldNumber::LOGLEVEL:
+        return_value = logLevel_.deserialize_check_type(buffer, wire_type);
+        break;
+
+      case FieldNumber::MSG:
+        return_value = msg_.deserialize_check_type(buffer, wire_type);
+        break;
+
+      case FieldNumber::NOT_SET:
+        return_value = ::EmbeddedProto::Error::INVALID_FIELD_ID;
+        break;
+
+      default:
+        return_value = skip_unknown_field(buffer, wire_type);
+        break;
+      }
+
+      if (::EmbeddedProto::Error::NO_ERRORS == return_value) {
+        // Read the next tag.
+        tag_value = ::EmbeddedProto::WireFormatter::DeserializeTag(
+            buffer, wire_type, id_number);
+      }
+    }
+
+    // When an error was detect while reading the tag but no other errors where
+    // found, set it in the return value.
+    if ((::EmbeddedProto::Error::NO_ERRORS == return_value) &&
+        (::EmbeddedProto::Error::NO_ERRORS != tag_value) &&
+        (::EmbeddedProto::Error::END_OF_BUFFER !=
+         tag_value)) // The end of the buffer is not an array in this case.
+    {
+      return_value = tag_value;
+    }
+
+    return return_value;
+  };
+
+  void clear() override {
+    clear_logLevel();
+    clear_msg();
+  }
+
+  static char const *field_number_to_name(const FieldNumber fieldNumber) {
+    char const *name = nullptr;
+    switch (fieldNumber) {
+    case FieldNumber::LOGLEVEL:
+      name = LOGLEVEL_NAME;
+      break;
+    case FieldNumber::MSG:
+      name = MSG_NAME;
+      break;
+    default:
+      name = "Invalid FieldNumber";
+      break;
+    }
+    return name;
+  }
+
+#ifdef MSG_TO_STRING
+
+  ::EmbeddedProto::string_view
+  to_string(::EmbeddedProto::string_view &str) const {
+    return this->to_string(str, 0, nullptr, true);
+  }
+
+  ::EmbeddedProto::string_view
+  to_string(::EmbeddedProto::string_view &str, const uint32_t indent_level,
+            char const *name, const bool first_field) const override {
+    ::EmbeddedProto::string_view left_chars = str;
+    int32_t n_chars_used = 0;
+
+    if (!first_field) {
+      // Add a comma behind the previous field.
+      n_chars_used = snprintf(left_chars.data, left_chars.size, ",\n");
+      if (0 < n_chars_used) {
+        // Update the character pointer and characters left in the array.
+        left_chars.data += n_chars_used;
+        left_chars.size -= n_chars_used;
+      }
+    }
+
+    if (nullptr != name) {
+      if (0 == indent_level) {
+        n_chars_used =
+            snprintf(left_chars.data, left_chars.size, "\"%s\": {\n", name);
+      } else {
+        n_chars_used = snprintf(left_chars.data, left_chars.size,
+                                "%*s\"%s\": {\n", indent_level, " ", name);
+      }
+    } else {
+      if (0 == indent_level) {
+        n_chars_used = snprintf(left_chars.data, left_chars.size, "{\n");
+      } else {
+        n_chars_used = snprintf(left_chars.data, left_chars.size, "%*s{\n",
+                                indent_level, " ");
+      }
+    }
+
+    if (0 < n_chars_used) {
+      left_chars.data += n_chars_used;
+      left_chars.size -= n_chars_used;
+    }
+
+    left_chars =
+        logLevel_.to_string(left_chars, indent_level + 2, LOGLEVEL_NAME, true);
+    left_chars = msg_.to_string(left_chars, indent_level + 2, MSG_NAME, false);
+
+    if (0 == indent_level) {
+      n_chars_used = snprintf(left_chars.data, left_chars.size, "\n}");
+    } else {
+      n_chars_used = snprintf(left_chars.data, left_chars.size, "\n%*s}",
+                              indent_level, " ");
+    }
+
+    if (0 < n_chars_used) {
+      left_chars.data += n_chars_used;
+      left_chars.size -= n_chars_used;
+    }
+
+    return left_chars;
+  }
+
+#endif // End of MSG_TO_STRING
+
+private:
+  EmbeddedProto::enumeration<LogLevel> logLevel_ = static_cast<LogLevel>(0);
+  ::EmbeddedProto::FieldString<LogMessage_msg_LENGTH> msg_;
+};
+
 class PowerOff final : public ::EmbeddedProto::MessageInterface {
 public:
   PowerOff() = default;
@@ -2987,7 +3203,8 @@ template <
     uint32_t
         Event_state_update_StateUpdate_boilerTemp_FloatSensorReading_error_LENGTH,
     uint32_t
-        Event_state_update_StateUpdate_pressure_FloatSensorReading_error_LENGTH>
+        Event_state_update_StateUpdate_pressure_FloatSensorReading_error_LENGTH,
+    uint32_t Event_log_LogMessage_msg_LENGTH>
 class Event final : public ::EmbeddedProto::MessageInterface {
 public:
   Event() = default;
@@ -3005,6 +3222,10 @@ public:
 
     case FieldNumber::CONFIG:
       set_config(rhs.get_config());
+      break;
+
+    case FieldNumber::LOG:
+      set_log(rhs.get_log());
       break;
 
     default:
@@ -3028,6 +3249,10 @@ public:
       set_config(rhs.get_config());
       break;
 
+    case FieldNumber::LOG:
+      set_log(rhs.get_log());
+      break;
+
     default:
       break;
     }
@@ -3039,7 +3264,8 @@ public:
     NOT_SET = 0,
     REQUEST_ID = 1,
     STATE_UPDATE = 2,
-    CONFIG = 3
+    CONFIG = 3,
+    LOG = 4
   };
 
   Event &operator=(const Event &rhs) {
@@ -3056,6 +3282,10 @@ public:
 
     case FieldNumber::CONFIG:
       set_config(rhs.get_config());
+      break;
+
+    case FieldNumber::LOG:
+      set_log(rhs.get_log());
       break;
 
     default:
@@ -3079,6 +3309,10 @@ public:
 
     case FieldNumber::CONFIG:
       set_config(rhs.get_config());
+      break;
+
+    case FieldNumber::LOG:
+      set_log(rhs.get_log());
       break;
 
     default:
@@ -3191,6 +3425,41 @@ public:
   inline const Config &get_config() const { return event_oneof_.config_; }
   inline const Config &config() const { return event_oneof_.config_; }
 
+  static constexpr char const *LOG_NAME = "log";
+  inline bool has_log() const { return FieldNumber::LOG == which_event_oneof_; }
+  inline void clear_log() {
+    if (FieldNumber::LOG == which_event_oneof_) {
+      which_event_oneof_ = FieldNumber::NOT_SET;
+      event_oneof_.log_.~LogMessage<Event_log_LogMessage_msg_LENGTH>();
+    }
+  }
+  inline void
+  set_log(const LogMessage<Event_log_LogMessage_msg_LENGTH> &value) {
+    if (FieldNumber::LOG != which_event_oneof_) {
+      init_event_oneof(FieldNumber::LOG);
+    }
+    event_oneof_.log_ = value;
+  }
+  inline void
+  set_log(const LogMessage<Event_log_LogMessage_msg_LENGTH> &&value) {
+    if (FieldNumber::LOG != which_event_oneof_) {
+      init_event_oneof(FieldNumber::LOG);
+    }
+    event_oneof_.log_ = value;
+  }
+  inline LogMessage<Event_log_LogMessage_msg_LENGTH> &mutable_log() {
+    if (FieldNumber::LOG != which_event_oneof_) {
+      init_event_oneof(FieldNumber::LOG);
+    }
+    return event_oneof_.log_;
+  }
+  inline const LogMessage<Event_log_LogMessage_msg_LENGTH> &get_log() const {
+    return event_oneof_.log_;
+  }
+  inline const LogMessage<Event_log_LogMessage_msg_LENGTH> &log() const {
+    return event_oneof_.log_;
+  }
+
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
@@ -3213,6 +3482,13 @@ public:
       if (has_config() && (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
         return_value = event_oneof_.config_.serialize_with_id(
             static_cast<uint32_t>(FieldNumber::CONFIG), buffer, true);
+      }
+      break;
+
+    case FieldNumber::LOG:
+      if (has_log() && (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+        return_value = event_oneof_.log_.serialize_with_id(
+            static_cast<uint32_t>(FieldNumber::LOG), buffer, true);
       }
       break;
 
@@ -3244,6 +3520,7 @@ public:
 
       case FieldNumber::STATE_UPDATE:
       case FieldNumber::CONFIG:
+      case FieldNumber::LOG:
         return_value = deserialize_event_oneof(id_tag, buffer, wire_type);
         break;
 
@@ -3292,6 +3569,9 @@ public:
       break;
     case FieldNumber::CONFIG:
       name = CONFIG_NAME;
+      break;
+    case FieldNumber::LOG:
+      name = LOG_NAME;
       break;
     default:
       name = "Invalid FieldNumber";
@@ -3378,6 +3658,7 @@ private:
         Event_state_update_StateUpdate_pressure_FloatSensorReading_error_LENGTH>
         state_update_;
     Config config_;
+    LogMessage<Event_log_LogMessage_msg_LENGTH> log_;
   };
   event_oneof event_oneof_;
 
@@ -3400,6 +3681,10 @@ private:
       new (&event_oneof_.config_) Config;
       break;
 
+    case FieldNumber::LOG:
+      new (&event_oneof_.log_) LogMessage<Event_log_LogMessage_msg_LENGTH>;
+      break;
+
     default:
       break;
     }
@@ -3414,6 +3699,9 @@ private:
       break;
     case FieldNumber::CONFIG:
       ::EmbeddedProto::destroy_at(&event_oneof_.config_);
+      break;
+    case FieldNumber::LOG:
+      ::EmbeddedProto::destroy_at(&event_oneof_.log_);
       break;
     default:
       break;
@@ -3438,6 +3726,10 @@ private:
     case FieldNumber::CONFIG:
       return_value =
           event_oneof_.config_.deserialize_check_type(buffer, wire_type);
+      break;
+    case FieldNumber::LOG:
+      return_value =
+          event_oneof_.log_.deserialize_check_type(buffer, wire_type);
       break;
     default:
       break;
@@ -3464,6 +3756,10 @@ private:
     case FieldNumber::CONFIG:
       left_chars = event_oneof_.config_.to_string(left_chars, indent_level,
                                                   CONFIG_NAME, first_field);
+      break;
+    case FieldNumber::LOG:
+      left_chars = event_oneof_.log_.to_string(left_chars, indent_level,
+                                               LOG_NAME, first_field);
       break;
     default:
       break;

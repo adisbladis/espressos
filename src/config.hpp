@@ -4,6 +4,7 @@
 #include <ReadBufferFixedSize.h>
 #include <WriteBufferFixedSize.h>
 
+#include "logger.hpp"
 #include "proto/config.h"
 
 #define CONFIG_FILE "config.pb"
@@ -38,17 +39,22 @@ public:
     EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE> buf;
     auto status = config.serialize(buf);
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
-      Serial.printf("Error saving config: %d\n", status);
+      logger->log(LogLevel::ERROR, "Error saving config: %d\n", status);
     }
 
     File f = LittleFS.open(CONFIG_FILE, "w");
     if (!f) {
-      Serial.println("Could not open config file for writing");
+      logger->log(LogLevel::ERROR, "Could not open config file for writing");
       return false;
     }
 
-    f.write(buf.get_data(), buf.get_size());
+    auto n = f.write(buf.get_data(), buf.get_size());
     f.close();
+
+    if (n != buf.get_size()) {
+      logger->log(LogLevel::ERROR, "Error writing config file");
+      return false;
+    }
 
     return true;
   }
@@ -76,7 +82,7 @@ public:
       auto status = config.deserialize(buf);
       if (status != ::EmbeddedProto::Error::NO_ERRORS) {
         initialise();
-        Serial.printf("Error decoding config: %d\n", status);
+        logger->log(LogLevel::ERROR, "Error decoding config: %d\n", status);
         return;
       }
     } else {
