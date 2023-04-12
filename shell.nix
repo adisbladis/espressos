@@ -85,6 +85,6 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    export PATH=${builtins.toString ./web/node_modules/.bin}:"$PATH"
+    export PATH=${builtins.toString ./pkgs/espressos-web/node_modules/.bin}:"$PATH"
   '';
 }

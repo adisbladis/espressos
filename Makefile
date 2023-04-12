@@ -1,13 +1,9 @@
-.PHONY: all build generate format
+.PHONY: espressos web
 
-all: generate build
+all: espressos web
 
-format:
-	clang-format -i `find src -type f`
+espressos:
+	$(MAKE) -C pkgs/espressos
 
-build:
-	pio run
-
-generate:
-	protoc -I api --eams_out=src/proto api/*.proto
-	clang-format -i src/proto/*.h
+web:
+	cd pkgs/espressos-web && npm run generate && npm run build
