@@ -35,6 +35,10 @@ private:
   Event<UUID_SIZE, ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE>
       event;
 
+  bool hasClients() {
+    return this->server.connectedClients() > 0;
+  };
+
   // Broadcast the event singleton.
   //
   // This also implies relinquishing ownership of `event`.
@@ -82,9 +86,17 @@ public:
       : server(port), stateUpdateCallback(STATE_UPDATE_INTERVAL),
         pConfig(pConfig) {
 
-    stateUpdateCallback.setCallback([this]() { this->broadcastState(); });
+    stateUpdateCallback.setCallback([this]() {
+      if (this->hasClients()) {
+        this->broadcastState();
+      }
+    });
 
-    pConfig->onChange([this](Config config) { this->broadcastConfig(); });
+    pConfig->onChange([this](Config config) {
+      if (this->hasClients()) {
+        this->broadcastConfig();
+      }
+    });
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,
                           size_t length) {
@@ -184,6 +196,10 @@ public:
   }
 
   void log(LogLevel level, const char *message, ...) override {
+    if (!this->hasClients()) {
+      return;
+    }
+
     va_list args;
     va_start(args, message);
     vsnprintf(logMessageBuf, LOG_MESSAGE_SIZE, message, args);
