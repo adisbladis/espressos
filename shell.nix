@@ -73,12 +73,21 @@ let
       })
     { };
 
+
+  pythonEnv = pkgs.python3.withPackages(ps: [
+    ps.brotli
+    ps.python-magic
+    ps.ipython
+  ]);
+
 in
 pkgs.mkShell {
   packages = [
     pkgs.platformio
     pkgs.clang-tools # clang-format
     pkgs.nodejs
+
+    pythonEnv
 
     pkgs.protobuf
     embeddedproto
