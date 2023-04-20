@@ -10,6 +10,8 @@
   },
   "license": "AGPL-3.0-only",
   "devDependencies": {
+    "@types/lodash.clonedeep": "^4.5.7",
+    "@types/lodash.merge": "^4.6.7",
     "@types/uuid": "^9.0.1",
     "autoprefixer": "^10.4.13",
     "daisyui": "^2.51.5",
@@ -21,6 +23,9 @@
     "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
+    "chart.js": "^4.2.1",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.merge": "^4.6.2",
     "protobufjs": "^7.2.3",
     "solid-js": "^1.6.10",
     "uuid": "^9.0.0"

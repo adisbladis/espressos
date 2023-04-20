@@ -127,10 +127,10 @@ void loop() {
     if (boiler.tick()) {
       TempReading temp = boiler.getTemp();
 
-      if (temp.fault) {
-        // TODO: send panic event via fifo
-        send_event(PanicEvent());
-      }
+      // if (temp.fault) {
+      //   // TODO: send panic event via fifo
+      //   send_event(PanicEvent());
+      // }
 
       apiServer.setBoilerTemp(temp);
     };
