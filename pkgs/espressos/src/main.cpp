@@ -24,6 +24,10 @@ static PersistedConfig *pConfig = new PersistedConfig();
 static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
 
 void setup() {
+  // Turn on board power LED
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   Serial.begin(115200);
 
   fsm_list::start();
