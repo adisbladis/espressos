@@ -38,7 +38,7 @@ client.onEvent("log", (event: Event) => {
           console.error(msg);
           break;
         case LogMessage_LogLevel.INFO:
-          console.error(msg);
+          console.info(msg);
           break;
         case LogMessage_LogLevel.DEBUG:
           console.debug(msg);
