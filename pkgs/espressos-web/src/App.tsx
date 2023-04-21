@@ -34,7 +34,7 @@ client.onEvent("*", (event: Event) => {
 client.onEvent("log", (event: Event) => {
   switch (event.eventOneof.$case) {
     case "log":
-      let { logLevel, msg } = event.eventOneof.log;
+      let { logLevel, msg } = event.eventOneof.log; // eslint-disable-line
 
       msg = "espressos: " + msg;
 

@@ -23,7 +23,7 @@ export class APIClient {
     this.socket = new WebSocket(url);
     this.handlers = new Map();
 
-    this.socket.onopen = (event) => {
+    this.socket.onopen = () => {
       console.log("connected to server", this);
     }
 
@@ -57,7 +57,7 @@ export class APIClient {
     if (this.handlers.has(kind)) {
       handlersArr = this.handlers.get(kind)
     } else {
-      handlersArr = new Array()
+      handlersArr = []
       this.handlers.set(kind, handlersArr)
     }
 
