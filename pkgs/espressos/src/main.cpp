@@ -128,6 +128,7 @@ void loop() {
       TempReading temp = boiler.getTemp();
 
       // if (temp.fault) {
+      //   Serial.println("Foo??");
       //   // TODO: send panic event via fifo
       //   send_event(PanicEvent());
       // }

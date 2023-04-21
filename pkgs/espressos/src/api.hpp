@@ -214,6 +214,8 @@ public:
       log.set_logLevel(LogMessage_t::LogLevel::INFO);
     case LogLevel::DEBUG:
       log.set_logLevel(LogMessage_t::LogLevel::DEBUG);
+    default:
+      log.set_logLevel(LogMessage_t::LogLevel::INFO);
     }
 
     auto fs = log.get_msg();

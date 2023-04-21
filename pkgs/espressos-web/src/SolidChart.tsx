@@ -43,7 +43,7 @@ export function SolidChart(props: SolidChartProps) {
     setTimeout(() => setCanvas(canvas));
   }
 
-  console.log("Drawing canvas")
+  console.log("Drawing canvas");
 
   /* eslint-disable solid/reactivity */
   return <canvas {...props.canvasOptions} ref={createChart} />;
