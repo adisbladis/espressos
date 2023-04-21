@@ -210,12 +210,16 @@ public:
     switch (level) {
     case LogLevel::ERROR:
       log.set_logLevel(LogMessage_t::LogLevel::ERROR);
+      break;
     case LogLevel::INFO:
       log.set_logLevel(LogMessage_t::LogLevel::INFO);
+      break;
     case LogLevel::DEBUG:
       log.set_logLevel(LogMessage_t::LogLevel::DEBUG);
+      break;
     default:
       log.set_logLevel(LogMessage_t::LogLevel::INFO);
+      break;
     }
 
     auto fs = log.get_msg();
