@@ -4,7 +4,7 @@ import { onCleanup } from "solid-js";
 import { APIClient } from "./api";
 import { Event, LogMessage_LogLevel } from "./api/api";
 import { state, setState } from "./state";
-import { setConfig } from "./config";
+import { config, setConfig } from "./config";
 
 import Chart from "./chart";
 
@@ -107,7 +107,62 @@ const App: Component = () => {
           <div>
             <div class="card  bg-base-100 shadow-xl">
               <div class="card-body">
+
+                <div class="flex flex-row-reverse">
+                  <label for="state-store-modal">ℹ️</label>
+                  <label for="config-store-modal">⚙️</label>
+                </div>
+
+                <input type="checkbox" id="state-store-modal" class="modal-toggle" />
+                <div class="modal">
+                  <div class="modal-box">
+                    <h3 class="font-bold text-lg">Current state:</h3>
+                    <pre class="py-4">
+                      {JSON.stringify(state, null, 2)}
+                    </pre>
+                    <div class="modal-action">
+                      <label for="state-store-modal" class="btn">Close</label>
+                    </div>
+                  </div>
+                </div>
+
+                <input type="checkbox" id="config-store-modal" class="modal-toggle" />
+                <div class="modal">
+                  <div class="modal-box">
+                    <h3 class="font-bold text-lg">Current config:</h3>
+                    <pre class="py-4">
+                      {JSON.stringify(config, null, 2)}
+                    </pre>
+                    <div class="modal-action">
+                      <label for="config-store-modal" class="btn">Close</label>
+                    </div>
+                  </div>
+                </div>
+
                 <ul>
+
+                  <li>
+                    Mode: {((): string => {
+                        if (!state.isOn) {
+                          return "☠️"
+                        }
+
+                        if (state.isBrewing) {
+                          return "☕"
+                        }
+
+                        if (state.isPumping) {
+                          return "💧"
+                        }
+
+                        if (state.isSteaming) {
+                          return "☁️"
+                        }
+
+                        return "⚡"
+                    })()}
+                  </li>
+
                   <li>
                     Temp:{" "}
                     {((): string => {
