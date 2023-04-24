@@ -21,7 +21,11 @@ void BoilerPID::setup() {
   pid.SetMode(AUTOMATIC);
 }
 
-void BoilerPID::SetSetPoint(double setPoint) { Setpoint = setPoint; }
+void BoilerPID::SetSetPoint(double setPoint) {
+  if (setPoint != Setpoint) {
+    Setpoint = setPoint;
+  }
+}
 
 double BoilerPID::GetSetPoint() { return Setpoint; }
 
