@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { onCleanup } from "solid-js";
+import { onCleanup, createMemo } from "solid-js";
 
 import { APIClient } from "./api";
 import { Event, LogMessage_LogLevel } from "./api/api";
@@ -8,17 +8,39 @@ import { config, setConfig } from "./config";
 
 import Chart from "./chart";
 
+const Symbols = {
+  DEAD: "☠️",
+  OFF: "🚫",
+  POWER: "⚡",
+  BREWING: "☕",
+  PUMPING: "💧",
+  STEAMING: "☁️",
+  SETTINGS: "⚙️",
+  INFO: "ℹ️",
+}
+
 const client = new APIClient(
   (window.location.protocol === "https:" ? "wss:" : "ws:") +
-    "//" +
-    window.location.host +
-    "/api",
+  "//" +
+  window.location.host +
+  "/api",
 );
 
 client.onEvent("*", (event: Event) => {
   switch (event.eventOneof.$case) {
     case "stateUpdate":
       setState(event.eventOneof.stateUpdate);
+
+      const temp = event.eventOneof.stateUpdate.boilerTemp.valueOrError
+      if (temp.$case == "error") {
+        console.error(temp)
+      }
+
+      const pressure = event.eventOneof.stateUpdate.pressure.valueOrError
+      if (pressure.$case == "error") {
+        console.error(pressure)
+      }
+
       break;
     case "config":
       setConfig(event.eventOneof.config);
@@ -56,6 +78,26 @@ const App: Component = () => {
     client.close();
   });
 
+  const modeSymbol = createMemo(() => {
+    if (!state.isOn) {
+      return Symbols.OFF
+    }
+
+    if (state.isBrewing) {
+      return Symbols.BREWING
+    }
+
+    if (state.isPumping) {
+      return Symbols.PUMPING
+    }
+
+    if (state.isSteaming) {
+      return Symbols.STEAMING
+    }
+
+    return Symbols.POWER
+  })
+
   return (
     <>
       <div class="flex">
@@ -71,7 +113,7 @@ const App: Component = () => {
                 state.isBrewing ? client.stopBrew() : client.startBrew()
               }
             >
-              ☕
+              {Symbols.BREWING}
             </button>
 
             <button
@@ -80,7 +122,7 @@ const App: Component = () => {
                 state.isPumping ? client.stopPump() : client.startPump()
               }
             >
-              💧
+              {Symbols.PUMPING}
             </button>
           </div>
 
@@ -91,7 +133,7 @@ const App: Component = () => {
                 state.isSteaming ? client.stopSteam() : client.startSteam()
               }
             >
-              ☁️
+              {Symbols.STEAMING}
             </button>
 
             <button
@@ -100,7 +142,7 @@ const App: Component = () => {
                 state.isOn ? client.powerOff() : client.powerOn()
               }
             >
-              ⚡
+              {Symbols.POWER}
             </button>
           </div>
 
@@ -109,8 +151,8 @@ const App: Component = () => {
               <div class="card-body">
 
                 <div class="flex flex-row-reverse">
-                  <label for="state-store-modal">ℹ️</label>
-                  <label for="config-store-modal">⚙️</label>
+                  <label for="state-store-modal">{Symbols.INFO}</label>
+                  <label for="config-store-modal">{Symbols.SETTINGS}</label>
                 </div>
 
                 <input type="checkbox" id="state-store-modal" class="modal-toggle" />
@@ -142,25 +184,7 @@ const App: Component = () => {
                 <ul>
 
                   <li>
-                    Mode: {((): string => {
-                        if (!state.isOn) {
-                          return "☠️"
-                        }
-
-                        if (state.isBrewing) {
-                          return "☕"
-                        }
-
-                        if (state.isPumping) {
-                          return "💧"
-                        }
-
-                        if (state.isSteaming) {
-                          return "☁️"
-                        }
-
-                        return "⚡"
-                    })()}
+                    Mode: {modeSymbol()}
                   </li>
 
                   <li>
