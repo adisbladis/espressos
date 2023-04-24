@@ -74,20 +74,22 @@ public:
   void onChange(std::function<void(Config)> cb) { callbacks.push_back(cb); };
 
   void setup() {
+    initialise();
+
     File f = LittleFS.open(CONFIG_FILE, "r");
-    if (f) {
-      EmbeddedProto::ReadBufferFixedSize<CONFIG_BUF_SIZE> buf;
-      f.read(buf.get_data(), CONFIG_BUF_SIZE);
-      buf.set_bytes_written(f.size());
-      auto status = config.deserialize(buf);
-      if (status != ::EmbeddedProto::Error::NO_ERRORS) {
-        initialise();
-        logger->log(LogLevel::ERROR, "Error decoding config: %d\n", status);
-        return;
-      }
-    } else {
+    if (!f) {
       initialise();
       save();
+    }
+
+    EmbeddedProto::ReadBufferFixedSize<CONFIG_BUF_SIZE> buf;
+    f.read(buf.get_data(), CONFIG_BUF_SIZE);
+    buf.set_bytes_written(f.size());
+    auto status = config.deserialize(buf);
+    if (status != ::EmbeddedProto::Error::NO_ERRORS) {
+      initialise();
+      logger->log(LogLevel::ERROR, "Error decoding config: %d\n", status);
+      return;
     }
   }
 };
