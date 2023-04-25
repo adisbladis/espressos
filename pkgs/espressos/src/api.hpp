@@ -131,7 +131,32 @@ public:
         buf.clear();
 
         if (status != ::EmbeddedProto::Error::NO_ERRORS) {
-          logger->log(LogLevel::ERROR, "error decoding command: %d", status);
+          switch(status) {
+          case ::EmbeddedProto::Error::END_OF_BUFFER:
+            logger->log(LogLevel::ERROR, "error decoding command: While trying to read from the buffer we ran out of bytes to read.");
+            break;
+          case ::EmbeddedProto::Error::BUFFER_FULL:
+            logger->log(LogLevel::ERROR, "error decoding command: The write buffer is full, unable to push more bytes in to it.");
+            break;
+          case ::EmbeddedProto::Error::INVALID_WIRETYPE:
+            logger->log(LogLevel::ERROR, "error decoding command: When reading a Wiretype from the tag we got an invalid value.");
+            break;
+          case ::EmbeddedProto::Error::ARRAY_FULL:
+            logger->log(LogLevel::ERROR, "error decoding command: The array is full, it is not possible to push more items in it.");
+            break;
+          case ::EmbeddedProto::Error::INVALID_FIELD_ID:
+            logger->log(LogLevel::ERROR, "error decoding command: When the id obtained from the tag equeals zero.");
+            break;
+          case ::EmbeddedProto::Error::OVERLONG_VARINT:
+            logger->log(LogLevel::ERROR, "error decoding command: The maximum number of bytes where read for this varint but we did not reach the end of the data.");
+            break;
+          case ::EmbeddedProto::Error::INDEX_OUT_OF_BOUND:
+            logger->log(LogLevel::ERROR, "error decoding command: You are trying to access an index outside of valid data.");
+            break;
+          default:
+            logger->log(LogLevel::ERROR, "error decoding command: unknown error");
+            break;
+          }
           break;
         }
 
