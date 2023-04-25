@@ -35,9 +35,7 @@ private:
   Event<UUID_SIZE, ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE>
       event;
 
-  bool hasClients() {
-    return this->server.connectedClients() > 0;
-  };
+  bool hasClients() { return this->server.connectedClients() > 0; };
 
   // Broadcast the event singleton.
   //
@@ -131,30 +129,45 @@ public:
         buf.clear();
 
         if (status != ::EmbeddedProto::Error::NO_ERRORS) {
-          switch(status) {
+          switch (status) {
           case ::EmbeddedProto::Error::END_OF_BUFFER:
-            logger->log(LogLevel::ERROR, "error decoding command: While trying to read from the buffer we ran out of bytes to read.");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: While trying to read from the "
+                        "buffer we ran out of bytes to read.");
             break;
           case ::EmbeddedProto::Error::BUFFER_FULL:
-            logger->log(LogLevel::ERROR, "error decoding command: The write buffer is full, unable to push more bytes in to it.");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: The write buffer is full, "
+                        "unable to push more bytes in to it.");
             break;
           case ::EmbeddedProto::Error::INVALID_WIRETYPE:
-            logger->log(LogLevel::ERROR, "error decoding command: When reading a Wiretype from the tag we got an invalid value.");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: When reading a Wiretype from "
+                        "the tag we got an invalid value.");
             break;
           case ::EmbeddedProto::Error::ARRAY_FULL:
-            logger->log(LogLevel::ERROR, "error decoding command: The array is full, it is not possible to push more items in it.");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: The array is full, it is not "
+                        "possible to push more items in it.");
             break;
           case ::EmbeddedProto::Error::INVALID_FIELD_ID:
-            logger->log(LogLevel::ERROR, "error decoding command: When the id obtained from the tag equeals zero.");
+            logger->log(LogLevel::ERROR, "error decoding command: When the id "
+                                         "obtained from the tag equeals zero.");
             break;
           case ::EmbeddedProto::Error::OVERLONG_VARINT:
-            logger->log(LogLevel::ERROR, "error decoding command: The maximum number of bytes where read for this varint but we did not reach the end of the data.");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: The maximum number of bytes "
+                        "where read for this varint but we did not reach the "
+                        "end of the data.");
             break;
           case ::EmbeddedProto::Error::INDEX_OUT_OF_BOUND:
-            logger->log(LogLevel::ERROR, "error decoding command: You are trying to access an index outside of valid data.");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: You are trying to access an "
+                        "index outside of valid data.");
             break;
           default:
-            logger->log(LogLevel::ERROR, "error decoding command: unknown error");
+            logger->log(LogLevel::ERROR,
+                        "error decoding command: unknown error");
             break;
           }
           break;
@@ -167,7 +180,9 @@ public:
           logger->log(LogLevel::ERROR, "oneof field not set");
           break;
         case Cmd_t::FieldNumber::POWER_ON:
-          send_event(PowerOnEvent());
+          PowerOnEvent powerOnEvent;
+          powerOnEvent.setpoint = cmd.get_power_on().get_setpoint();
+          send_event(powerOnEvent);
           break;
         case Cmd_t::FieldNumber::POWER_OFF:
           send_event(PowerOffEvent());
@@ -202,6 +217,10 @@ public:
         break;
       }
     });
+  }
+
+  void setSetpoint(int setpoint) {
+    this->stateUpdateMessage.set_setpoint(setpoint);
   }
 
   void setBoilerTemp(TempReading temp) {

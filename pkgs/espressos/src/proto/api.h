@@ -795,23 +795,41 @@ private:
 class PowerOn final : public ::EmbeddedProto::MessageInterface {
 public:
   PowerOn() = default;
-  PowerOn(const PowerOn &rhs) {}
+  PowerOn(const PowerOn &rhs) { set_setpoint(rhs.get_setpoint()); }
 
-  PowerOn(const PowerOn &&rhs) noexcept {}
+  PowerOn(const PowerOn &&rhs) noexcept { set_setpoint(rhs.get_setpoint()); }
 
   ~PowerOn() override = default;
 
-  enum class FieldNumber : uint32_t {
-    NOT_SET = 0,
-  };
+  enum class FieldNumber : uint32_t { NOT_SET = 0, SETPOINT = 1 };
 
-  PowerOn &operator=(const PowerOn &rhs) { return *this; }
+  PowerOn &operator=(const PowerOn &rhs) {
+    set_setpoint(rhs.get_setpoint());
+    return *this;
+  }
 
-  PowerOn &operator=(const PowerOn &&rhs) noexcept { return *this; }
+  PowerOn &operator=(const PowerOn &&rhs) noexcept {
+    set_setpoint(rhs.get_setpoint());
+    return *this;
+  }
+
+  static constexpr char const *SETPOINT_NAME = "setpoint";
+  inline void clear_setpoint() { setpoint_.clear(); }
+  inline void set_setpoint(const int32_t &value) { setpoint_ = value; }
+  inline void set_setpoint(const int32_t &&value) { setpoint_ = value; }
+  inline int32_t &mutable_setpoint() { return setpoint_.get(); }
+  inline const int32_t &get_setpoint() const { return setpoint_.get(); }
+  inline int32_t setpoint() const { return setpoint_.get(); }
 
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+
+    if ((0 != setpoint_.get()) &&
+        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+      return_value = setpoint_.serialize_with_id(
+          static_cast<uint32_t>(FieldNumber::SETPOINT), buffer, false);
+    }
 
     return return_value;
   };
@@ -831,6 +849,10 @@ public:
            (::EmbeddedProto::Error::NO_ERRORS == tag_value)) {
       id_tag = static_cast<FieldNumber>(id_number);
       switch (id_tag) {
+      case FieldNumber::SETPOINT:
+        return_value = setpoint_.deserialize_check_type(buffer, wire_type);
+        break;
+
       case FieldNumber::NOT_SET:
         return_value = ::EmbeddedProto::Error::INVALID_FIELD_ID;
         break;
@@ -860,11 +882,14 @@ public:
     return return_value;
   };
 
-  void clear() override {}
+  void clear() override { clear_setpoint(); }
 
   static char const *field_number_to_name(const FieldNumber fieldNumber) {
     char const *name = nullptr;
     switch (fieldNumber) {
+    case FieldNumber::SETPOINT:
+      name = SETPOINT_NAME;
+      break;
     default:
       name = "Invalid FieldNumber";
       break;
@@ -917,6 +942,9 @@ public:
       left_chars.size -= n_chars_used;
     }
 
+    left_chars =
+        setpoint_.to_string(left_chars, indent_level + 2, SETPOINT_NAME, true);
+
     if (0 == indent_level) {
       n_chars_used = snprintf(left_chars.data, left_chars.size, "\n}");
     } else {
@@ -935,6 +963,7 @@ public:
 #endif // End of MSG_TO_STRING
 
 private:
+  EmbeddedProto::int32 setpoint_ = 0;
 };
 
 class StartBrew final : public ::EmbeddedProto::MessageInterface {
@@ -2835,6 +2864,7 @@ public:
     set_is_steaming(rhs.get_is_steaming());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
+    set_setpoint(rhs.get_setpoint());
   }
 
   StateUpdate(const StateUpdate &&rhs) noexcept {
@@ -2844,6 +2874,7 @@ public:
     set_is_steaming(rhs.get_is_steaming());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
+    set_setpoint(rhs.get_setpoint());
   }
 
   ~StateUpdate() override = default;
@@ -2855,7 +2886,8 @@ public:
     IS_PUMPING = 3,
     IS_STEAMING = 4,
     BOILERTEMP = 5,
-    PRESSURE = 6
+    PRESSURE = 6,
+    SETPOINT = 7
   };
 
   StateUpdate &operator=(const StateUpdate &rhs) {
@@ -2865,6 +2897,7 @@ public:
     set_is_steaming(rhs.get_is_steaming());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
+    set_setpoint(rhs.get_setpoint());
     return *this;
   }
 
@@ -2875,6 +2908,7 @@ public:
     set_is_steaming(rhs.get_is_steaming());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
+    set_setpoint(rhs.get_setpoint());
     return *this;
   }
 
@@ -2966,6 +3000,14 @@ public:
     return pressure_;
   }
 
+  static constexpr char const *SETPOINT_NAME = "setpoint";
+  inline void clear_setpoint() { setpoint_.clear(); }
+  inline void set_setpoint(const int32_t &value) { setpoint_ = value; }
+  inline void set_setpoint(const int32_t &&value) { setpoint_ = value; }
+  inline int32_t &mutable_setpoint() { return setpoint_.get(); }
+  inline const int32_t &get_setpoint() const { return setpoint_.get(); }
+  inline int32_t setpoint() const { return setpoint_.get(); }
+
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
@@ -3002,6 +3044,12 @@ public:
     if (::EmbeddedProto::Error::NO_ERRORS == return_value) {
       return_value = pressure_.serialize_with_id(
           static_cast<uint32_t>(FieldNumber::PRESSURE), buffer, false);
+    }
+
+    if ((0 != setpoint_.get()) &&
+        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+      return_value = setpoint_.serialize_with_id(
+          static_cast<uint32_t>(FieldNumber::SETPOINT), buffer, false);
     }
 
     return return_value;
@@ -3046,6 +3094,10 @@ public:
         return_value = pressure_.deserialize_check_type(buffer, wire_type);
         break;
 
+      case FieldNumber::SETPOINT:
+        return_value = setpoint_.deserialize_check_type(buffer, wire_type);
+        break;
+
       case FieldNumber::NOT_SET:
         return_value = ::EmbeddedProto::Error::INVALID_FIELD_ID;
         break;
@@ -3082,6 +3134,7 @@ public:
     clear_is_steaming();
     clear_boilerTemp();
     clear_pressure();
+    clear_setpoint();
   }
 
   static char const *field_number_to_name(const FieldNumber fieldNumber) {
@@ -3104,6 +3157,9 @@ public:
       break;
     case FieldNumber::PRESSURE:
       name = PRESSURE_NAME;
+      break;
+    case FieldNumber::SETPOINT:
+      name = SETPOINT_NAME;
       break;
     default:
       name = "Invalid FieldNumber";
@@ -3169,6 +3225,8 @@ public:
                                        BOILERTEMP_NAME, false);
     left_chars =
         pressure_.to_string(left_chars, indent_level + 2, PRESSURE_NAME, false);
+    left_chars =
+        setpoint_.to_string(left_chars, indent_level + 2, SETPOINT_NAME, false);
 
     if (0 == indent_level) {
       n_chars_used = snprintf(left_chars.data, left_chars.size, "\n}");
@@ -3196,6 +3254,7 @@ private:
       boilerTemp_;
   FloatSensorReading<StateUpdate_pressure_FloatSensorReading_error_LENGTH>
       pressure_;
+  EmbeddedProto::int32 setpoint_ = 0;
 };
 
 template <

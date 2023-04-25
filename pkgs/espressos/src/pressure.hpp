@@ -30,7 +30,7 @@ public:
     PressureSensorResultRaw_t result;
 
     int value = analogRead(inputPin);
-    if (value < 10 || value > (1024-10)) {
+    if (value < 10 || value > (1024 - 10)) {
       result.setError(PressureSensorError::OUT_OF_BOUNDS);
     } else {
       result.setValue(value);

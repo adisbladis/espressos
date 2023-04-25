@@ -17,13 +17,13 @@ const Symbols = {
   STEAMING: "☁️",
   SETTINGS: "⚙️",
   INFO: "ℹ️",
-}
+};
 
 const client = new APIClient(
   (window.location.protocol === "https:" ? "wss:" : "ws:") +
-  "//" +
-  window.location.host +
-  "/api",
+    "//" +
+    window.location.host +
+    "/api",
 );
 
 client.onEvent("*", (event: Event) => {
@@ -31,14 +31,14 @@ client.onEvent("*", (event: Event) => {
     case "stateUpdate":
       setState(event.eventOneof.stateUpdate);
 
-      const temp = event.eventOneof.stateUpdate.boilerTemp.valueOrError
+      const temp = event.eventOneof.stateUpdate.boilerTemp.valueOrError;
       if (temp.$case == "error") {
-        console.error(temp)
+        console.error(temp);
       }
 
-      const pressure = event.eventOneof.stateUpdate.pressure.valueOrError
+      const pressure = event.eventOneof.stateUpdate.pressure.valueOrError;
       if (pressure.$case == "error") {
-        console.error(pressure)
+        console.error(pressure);
       }
 
       break;
@@ -80,23 +80,23 @@ const App: Component = () => {
 
   const modeSymbol = createMemo(() => {
     if (!state.isOn) {
-      return Symbols.OFF
+      return Symbols.OFF;
     }
 
     if (state.isBrewing) {
-      return Symbols.BREWING
+      return Symbols.BREWING;
     }
 
     if (state.isPumping) {
-      return Symbols.PUMPING
+      return Symbols.PUMPING;
     }
 
     if (state.isSteaming) {
-      return Symbols.STEAMING
+      return Symbols.STEAMING;
     }
 
-    return Symbols.POWER
-  })
+    return Symbols.POWER;
+  });
 
   return (
     <>
@@ -139,7 +139,7 @@ const App: Component = () => {
             <button
               class="btn m-1 btn-lg"
               onClick={() =>
-                state.isOn ? client.powerOff() : client.powerOn()
+                state.isOn ? client.powerOff() : client.powerOn(config.setpoint)
               }
             >
               {Symbols.POWER}
@@ -147,45 +147,67 @@ const App: Component = () => {
           </div>
 
           <div>
+            <button
+              class="btn m-1 btn-lg"
+              onClick={() => client.powerOn(state.setpoint + 1)}
+            >
+              ➕
+            </button>
+
+            {state.setpoint}
+
+            <button
+              class="btn m-1 btn-lg"
+              onClick={() => client.powerOn(state.setpoint - 1)}
+            >
+              ➖
+            </button>
+          </div>
+
+          <div>
             <div class="card  bg-base-100 shadow-xl">
               <div class="card-body">
-
                 <div class="flex flex-row-reverse">
                   <label for="state-store-modal">{Symbols.INFO}</label>
                   <label for="config-store-modal">{Symbols.SETTINGS}</label>
                 </div>
 
-                <input type="checkbox" id="state-store-modal" class="modal-toggle" />
+                <input
+                  type="checkbox"
+                  id="state-store-modal"
+                  class="modal-toggle"
+                />
                 <div class="modal">
                   <div class="modal-box">
                     <h3 class="font-bold text-lg">Current state:</h3>
-                    <pre class="py-4">
-                      {JSON.stringify(state, null, 2)}
-                    </pre>
+                    <pre class="py-4">{JSON.stringify(state, null, 2)}</pre>
                     <div class="modal-action">
-                      <label for="state-store-modal" class="btn">Close</label>
+                      <label for="state-store-modal" class="btn">
+                        Close
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                <input type="checkbox" id="config-store-modal" class="modal-toggle" />
+                <input
+                  type="checkbox"
+                  id="config-store-modal"
+                  class="modal-toggle"
+                />
                 <div class="modal">
                   <div class="modal-box">
                     <h3 class="font-bold text-lg">Current config:</h3>
-                    <pre class="py-4">
-                      {JSON.stringify(config, null, 2)}
-                    </pre>
+                    <pre class="py-4">{JSON.stringify(config, null, 2)}</pre>
                     <div class="modal-action">
-                      <label for="config-store-modal" class="btn">Close</label>
+                      <label for="config-store-modal" class="btn">
+                        Close
+                      </label>
                     </div>
                   </div>
                 </div>
 
                 <ul>
-
-                  <li>
-                    Mode: {modeSymbol()}
-                  </li>
+                  <li>Mode: {modeSymbol()}</li>
 
                   <li>
                     Temp:{" "}

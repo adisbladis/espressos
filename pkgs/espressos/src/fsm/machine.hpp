@@ -11,8 +11,10 @@ class Pumping;
 class Steaming;
 
 /* Events */
+struct PowerOnEvent : tinyfsm::Event {
+  int setpoint;
+};
 struct PanicEvent : tinyfsm::Event {};
-struct PowerOnEvent : tinyfsm::Event {};
 struct PowerOffEvent : tinyfsm::Event {};
 struct StartBrewEvent : tinyfsm::Event {};
 struct StopBrewEvent : tinyfsm::Event {};
@@ -55,6 +57,12 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
 
   virtual void entry(void){}; // entry actions in some states
   void exit(void){};          // no exit actions
+
+protected:
+  static int setpoint;
+
+public:
+  virtual int getSetPoint() { return setpoint; };
 };
 
 /* Machine states */
@@ -63,21 +71,33 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
 // state but without a transition to other states
 class Panic : public MachineState {
   void entry() override {
-    logger->log(LogLevel::DEBUG, "Entering panic state");
+    logger->log(LogLevel::ERROR, "Entering panic state");
+    setpoint = 0;
   }
 };
 
 // The machine is idle with the boiler turned off
-class Off : public Panic {
-  void entry() override { logger->log(LogLevel::DEBUG, "Entering off state"); };
+class Off : public MachineState {
+  void entry() override {
+    logger->log(LogLevel::DEBUG, "Entering off state");
+    setpoint = 0;
+  };
 
-  void react(PowerOnEvent const &e) override { transit<Idle>(); }
+  void react(PowerOnEvent const &e) override {
+    setpoint = e.setpoint;
+    transit<Idle>();
+  }
 };
 
 class Idle : public MachineState {
   void entry() override {
     logger->log(LogLevel::DEBUG, "Entering idle state");
   };
+
+  void react(PowerOnEvent const &e) override {
+    setpoint = e.setpoint;
+    transit<Idle>();
+  }
 
   void react(StartBrewEvent const &e) override {
     logger->log(LogLevel::DEBUG, "Transitioning to start brew");
@@ -130,6 +150,8 @@ void MachineState::react(PanicEvent const &e) {
 
   transit<Panic>();
 }
+
+int MachineState::setpoint = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

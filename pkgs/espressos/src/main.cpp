@@ -8,6 +8,7 @@
 #include "cachedpin.hpp"
 #include "config.hpp"
 #include "fsm/fsmlist.hpp"
+#include "fsm/machine.hpp"
 #include "logger.hpp"
 #include "pressure.hpp"
 #include "websocket.hpp"
@@ -97,6 +98,8 @@ void loop() {
   bool isPanic = MachineState::is_in_state<Panic>();
   bool isSteaming = MachineState::is_in_state<Steaming>();
 
+  auto machineState = MachineState::state<MachineState>();
+
   // Only open solenoid if we're brewing
   if (isBrewing) {
     solenoid.digitalWrite(HIGH);
@@ -112,13 +115,13 @@ void loop() {
   }
 
   // Set boiler setpoint based on mode
-  if (isOff || isPanic) {
-    boiler.SetSetPoint(0);
-  } else if (isSteaming) {
+  if (isSteaming) {
     boiler.SetSetPoint(config.get_steamSetPoint());
   } else {
-    boiler.SetSetPoint(config.get_setpoint());
+    boiler.SetSetPoint(machineState.getSetPoint());
   }
+
+  apiServer.setSetpoint(machineState.getSetPoint());
 
   // Send callbacks at 1s intervals normally, 100ms intervals while brewing
   if (isBrewing) {

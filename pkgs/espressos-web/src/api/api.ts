@@ -5,6 +5,12 @@ import { Config } from "./config";
 export const protobufPackage = "";
 
 export interface PowerOn {
+  /**
+   * Setpoint represented as a hundredth of a degree celsius
+   * i.e. you'll get the real decimal representation by multiplying
+   * this number by 100.
+   */
+  setpoint: number;
 }
 
 export interface PowerOff {
@@ -59,6 +65,7 @@ export interface StateUpdate {
   isSteaming: boolean;
   boilerTemp: FloatSensorReading | undefined;
   pressure: FloatSensorReading | undefined;
+  setpoint: number;
 }
 
 export interface LogMessage {
@@ -115,11 +122,14 @@ export interface Event {
 }
 
 function createBasePowerOn(): PowerOn {
-  return {};
+  return { setpoint: 0 };
 }
 
 export const PowerOn = {
-  encode(_: PowerOn, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: PowerOn, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.setpoint !== 0) {
+      writer.uint32(8).int32(message.setpoint);
+    }
     return writer;
   },
 
@@ -130,6 +140,13 @@ export const PowerOn = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.setpoint = reader.int32();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -139,12 +156,13 @@ export const PowerOn = {
     return message;
   },
 
-  fromJSON(_: any): PowerOn {
-    return {};
+  fromJSON(object: any): PowerOn {
+    return { setpoint: isSet(object.setpoint) ? Number(object.setpoint) : 0 };
   },
 
-  toJSON(_: PowerOn): unknown {
+  toJSON(message: PowerOn): unknown {
     const obj: any = {};
+    message.setpoint !== undefined && (obj.setpoint = Math.round(message.setpoint));
     return obj;
   },
 
@@ -152,8 +170,9 @@ export const PowerOn = {
     return PowerOn.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<PowerOn>, I>>(_: I): PowerOn {
+  fromPartial<I extends Exact<DeepPartial<PowerOn>, I>>(object: I): PowerOn {
     const message = createBasePowerOn();
+    message.setpoint = object.setpoint ?? 0;
     return message;
   },
 };
@@ -817,6 +836,7 @@ function createBaseStateUpdate(): StateUpdate {
     isSteaming: false,
     boilerTemp: undefined,
     pressure: undefined,
+    setpoint: 0,
   };
 }
 
@@ -839,6 +859,9 @@ export const StateUpdate = {
     }
     if (message.pressure !== undefined) {
       FloatSensorReading.encode(message.pressure, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.setpoint !== 0) {
+      writer.uint32(56).int32(message.setpoint);
     }
     return writer;
   },
@@ -892,6 +915,13 @@ export const StateUpdate = {
 
           message.pressure = FloatSensorReading.decode(reader, reader.uint32());
           continue;
+        case 7:
+          if (tag != 56) {
+            break;
+          }
+
+          message.setpoint = reader.int32();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -909,6 +939,7 @@ export const StateUpdate = {
       isSteaming: isSet(object.isSteaming) ? Boolean(object.isSteaming) : false,
       boilerTemp: isSet(object.boilerTemp) ? FloatSensorReading.fromJSON(object.boilerTemp) : undefined,
       pressure: isSet(object.pressure) ? FloatSensorReading.fromJSON(object.pressure) : undefined,
+      setpoint: isSet(object.setpoint) ? Number(object.setpoint) : 0,
     };
   },
 
@@ -922,6 +953,7 @@ export const StateUpdate = {
       (obj.boilerTemp = message.boilerTemp ? FloatSensorReading.toJSON(message.boilerTemp) : undefined);
     message.pressure !== undefined &&
       (obj.pressure = message.pressure ? FloatSensorReading.toJSON(message.pressure) : undefined);
+    message.setpoint !== undefined && (obj.setpoint = Math.round(message.setpoint));
     return obj;
   },
 
@@ -941,6 +973,7 @@ export const StateUpdate = {
     message.pressure = (object.pressure !== undefined && object.pressure !== null)
       ? FloatSensorReading.fromPartial(object.pressure)
       : undefined;
+    message.setpoint = object.setpoint ?? 0;
     return message;
   },
 };

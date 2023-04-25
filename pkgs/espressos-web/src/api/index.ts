@@ -73,10 +73,12 @@ export class APIClient {
     this.socket.send(bytes)
   }
 
-  async powerOn(): Promise<void> {
+  async powerOn(setpoint: number): Promise<void> {
     await this.sendCommand({
       requestId: mkRequestId(),
-       commandOneof: { $case: "powerOn", powerOn: <PowerOn>{} },
+      commandOneof: { $case: "powerOn", powerOn: <PowerOn>{
+        setpoint: setpoint,
+      } },
     })
   }
 

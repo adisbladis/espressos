@@ -4,7 +4,12 @@ import "config.proto";
 
 /* Commands sent by the client */
 
-message PowerOn { }
+message PowerOn {
+  // Setpoint represented as a hundredth of a degree celsius
+  // i.e. you'll get the real decimal representation by multiplying
+  // this number by 100.
+  int32 setpoint = 1;
+}
 message PowerOff { }
 
 message StartBrew { }
@@ -57,6 +62,7 @@ message StateUpdate {
   bool is_steaming = 4;
   FloatSensorReading boilerTemp = 5;
   FloatSensorReading pressure = 6;
+  int32 setpoint = 7;
 }
 
 message LogMessage {
