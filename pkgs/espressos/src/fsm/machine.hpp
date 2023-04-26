@@ -18,6 +18,10 @@ struct StartSteamEvent : tinyfsm::Event {
   int setpoint;
 };
 
+struct LoopEvent : tinyfsm::Event {
+  unsigned long timestamp;
+};
+
 struct PanicEvent : tinyfsm::Event {};
 struct PowerOffEvent : tinyfsm::Event {};
 struct StartBrewEvent : tinyfsm::Event {};
@@ -84,54 +88,46 @@ public:
 // Panic (i.e. on hardware sensor errors) is exactly like the Off
 // state but without a transition to other states
 class Panic : public MachineState {
-  void entry() override {
-    logger->log(LogLevel::ERROR, "Entering panic state");
-    setpoint = 0;
-  }
+  void entry() override { setpoint = 0; }
 };
 
 // The machine is idle with the boiler turned off
 class Off : public MachineState {
-  void entry() override {
-    logger->log(LogLevel::DEBUG, "Entering off state");
-    setpoint = 0;
-  };
+  void entry() override { setpoint = 0; };
 
   void react(PowerOnEvent const &e) override {
     setpoint = e.setpoint;
+    logger->log(LogLevel::DEBUG, "Entering idle state");
     transit<Idle>();
   }
 };
 
 class Idle : public MachineState {
-  void entry() override {
-    logger->log(LogLevel::DEBUG, "Entering idle state");
-  };
-
   void react(PowerOnEvent const &e) override {
     setpoint = e.setpoint;
     transit<Idle>();
   }
 
   void react(StartBrewEvent const &e) override {
-    logger->log(LogLevel::DEBUG, "Transitioning to start brew");
+    logger->log(LogLevel::DEBUG, "Entering brew state");
     transit<Brewing>();
   }
 
-  void react(StartPumpEvent const &e) override { transit<Pumping>(); }
+  void react(StartPumpEvent const &e) override {
+    logger->log(LogLevel::DEBUG, "Entering pumping state");
+    transit<Pumping>();
+  }
 
   void react(StartSteamEvent const &e) override {
     prevSetpoint = setpoint;
     setpoint = e.setpoint;
+    logger->log(LogLevel::DEBUG, "Entering steaming state");
     transit<Steaming>();
   }
 };
 
 class Brewing : public MachineState {
-  void entry() {
-    stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW;
-    logger->log(LogLevel::DEBUG, "Transitioned to start brew");
-  }
+  void entry() { stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW; }
 
   void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
 
@@ -143,20 +139,11 @@ class Brewing : public MachineState {
 };
 
 class Pumping : public MachineState {
-  void entry() override {
-    logger->log(LogLevel::DEBUG, "Entering pumping state");
-  }
-
   void react(StopPumpEvent const &e) override { transit<Idle>(); }
-
   uint8_t getPump() override { return 255; }
 };
 
 class Steaming : public MachineState {
-  void entry() override {
-    logger->log(LogLevel::DEBUG, "Entering steaming state");
-  }
-
   void exit() override { setpoint = prevSetpoint; };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
@@ -170,11 +157,16 @@ void MachineState::react(PowerOffEvent const &e) {
     return;
   }
 
+  logger->log(LogLevel::DEBUG, "Entering off state");
+
   transit<Off>();
 }
 
 // All modes are allowed to enter the panic state
-void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
+void MachineState::react(PanicEvent const &e) {
+  logger->log(LogLevel::ERROR, "Entering panic state");
+  transit<Panic>();
+}
 
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;
