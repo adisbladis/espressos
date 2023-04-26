@@ -101,11 +101,7 @@ void loop() {
   auto machineState = MachineState::current_state_ptr;
 
   // Only open solenoid if we're brewing
-  if (isBrewing) {
-    solenoid.digitalWrite(HIGH);
-  } else {
-    solenoid.digitalWrite(LOW);
-  }
+  solenoid.digitalWrite(machineState->getSolenoid());
 
   // Only run pump if we're brewing or pumping
   if (isBrewing || isPumping) {

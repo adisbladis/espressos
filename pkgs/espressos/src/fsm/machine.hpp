@@ -67,8 +67,8 @@ protected:
 
 public:
   virtual int getSetPoint() { return setpoint; };
-
   virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
+  virtual PinStatus getSolenoid() { return LOW; }
 };
 
 /* Machine states */
@@ -124,6 +124,7 @@ class Brewing : public MachineState {
   void react(StopBrewEvent const &e) override { transit<Idle>(); }
 
   long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; };
+  PinStatus getSolenoid() override { return HIGH; }
 };
 
 class Pumping : public MachineState {
