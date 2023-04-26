@@ -123,15 +123,7 @@ void loop() {
   // Run control loops
   {
     if (boiler.tick()) {
-      TempReading temp = boiler.getTemp();
-
-      // if (temp.fault) {
-      //   Serial.println("Foo??");
-      //   // TODO: send panic event via fifo
-      //   send_event(PanicEvent());
-      // }
-
-      apiServer.setBoilerTemp(temp);
+      apiServer.setBoilerTemp(boiler.getTemp());
     };
 
     auto pressure = brewPressure.Read();
