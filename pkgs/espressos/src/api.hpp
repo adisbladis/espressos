@@ -200,7 +200,9 @@ public:
           send_event(StopPumpEvent());
           break;
         case Cmd_t::FieldNumber::START_STEAM:
-          send_event(StartSteamEvent());
+          StartSteamEvent startSteamEvent;
+          startSteamEvent.setpoint = cmd.get_start_steam().get_setpoint();
+          send_event(startSteamEvent);
           break;
         case Cmd_t::FieldNumber::STOP_STEAM:
           send_event(StopSteamEvent());

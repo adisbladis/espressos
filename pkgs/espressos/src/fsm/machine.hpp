@@ -14,13 +14,16 @@ class Steaming;
 struct PowerOnEvent : tinyfsm::Event {
   int setpoint;
 };
+struct StartSteamEvent : tinyfsm::Event {
+  int setpoint;
+};
+
 struct PanicEvent : tinyfsm::Event {};
 struct PowerOffEvent : tinyfsm::Event {};
 struct StartBrewEvent : tinyfsm::Event {};
 struct StopBrewEvent : tinyfsm::Event {};
 struct StartPumpEvent : tinyfsm::Event {};
 struct StopPumpEvent : tinyfsm::Event {};
-struct StartSteamEvent : tinyfsm::Event {};
 struct StopSteamEvent : tinyfsm::Event {};
 
 /* FSM base class */
@@ -56,9 +59,10 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   };
 
   virtual void entry(void){}; // entry actions in some states
-  void exit(void){};          // no exit actions
+  virtual void exit(void){};  // exit actions in some states
 
 protected:
+  static int steamSetpoint;
   static int setpoint;
 
 public:
@@ -106,7 +110,10 @@ class Idle : public MachineState {
 
   void react(StartPumpEvent const &e) override { transit<Pumping>(); }
 
-  void react(StartSteamEvent const &e) override { transit<Steaming>(); }
+  void react(StartSteamEvent const &e) override {
+    steamSetpoint = e.setpoint;
+    transit<Steaming>();
+  }
 };
 
 class Brewing : public MachineState {
@@ -128,7 +135,11 @@ class Steaming : public MachineState {
     logger->log(LogLevel::DEBUG, "Entering steaming state");
   }
 
+  void exit() override { steamSetpoint = 0; };
+
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
+
+  int getSetPoint() { return steamSetpoint; };
 };
 
 /* Shared class methods*/
@@ -152,6 +163,7 @@ void MachineState::react(PanicEvent const &e) {
 }
 
 int MachineState::setpoint = 0;
+int MachineState::steamSetpoint = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

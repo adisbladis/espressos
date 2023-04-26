@@ -29,6 +29,12 @@ export interface StopPump {
 }
 
 export interface StartSteam {
+  /**
+   * Setpoint represented as a hundredth of a degree celsius
+   * i.e. you'll get the real decimal representation by multiplying
+   * this number by 100.
+   */
+  setpoint: number;
 }
 
 export interface StopSteam {
@@ -398,11 +404,14 @@ export const StopPump = {
 };
 
 function createBaseStartSteam(): StartSteam {
-  return {};
+  return { setpoint: 0 };
 }
 
 export const StartSteam = {
-  encode(_: StartSteam, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StartSteam, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.setpoint !== 0) {
+      writer.uint32(8).int32(message.setpoint);
+    }
     return writer;
   },
 
@@ -413,6 +422,13 @@ export const StartSteam = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.setpoint = reader.int32();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -422,12 +438,13 @@ export const StartSteam = {
     return message;
   },
 
-  fromJSON(_: any): StartSteam {
-    return {};
+  fromJSON(object: any): StartSteam {
+    return { setpoint: isSet(object.setpoint) ? Number(object.setpoint) : 0 };
   },
 
-  toJSON(_: StartSteam): unknown {
+  toJSON(message: StartSteam): unknown {
     const obj: any = {};
+    message.setpoint !== undefined && (obj.setpoint = Math.round(message.setpoint));
     return obj;
   },
 
@@ -435,8 +452,9 @@ export const StartSteam = {
     return StartSteam.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<StartSteam>, I>>(_: I): StartSteam {
+  fromPartial<I extends Exact<DeepPartial<StartSteam>, I>>(object: I): StartSteam {
     const message = createBaseStartSteam();
+    message.setpoint = object.setpoint ?? 0;
     return message;
   },
 };

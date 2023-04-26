@@ -18,7 +18,12 @@ message StopBrew { }
 message StartPump { }
 message StopPump { }
 
-message StartSteam { }
+message StartSteam {
+  // Setpoint represented as a hundredth of a degree celsius
+  // i.e. you'll get the real decimal representation by multiplying
+  // this number by 100.
+  int32 setpoint = 1;
+}
 message StopSteam { }
 
 message Command {

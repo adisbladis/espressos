@@ -9,8 +9,7 @@ import { config, setConfig } from "./config";
 import Chart from "./chart";
 
 const Symbols = {
-  DEAD: "☠️",
-  OFF: "🚫",
+  OFF: "😴",
   POWER: "⚡",
   BREWING: "☕",
   PUMPING: "💧",
@@ -129,9 +128,7 @@ const App: Component = () => {
           <div>
             <button
               class="btn m-1 btn-lg"
-              onClick={() =>
-                state.isSteaming ? client.stopSteam() : client.startSteam()
-              }
+              onClick={() => state.isSteaming ? client.stopSteam() : client.startSteam(config.steamSetPoint)}
             >
               {Symbols.STEAMING}
             </button>

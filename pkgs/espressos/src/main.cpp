@@ -98,7 +98,7 @@ void loop() {
   bool isPanic = MachineState::is_in_state<Panic>();
   bool isSteaming = MachineState::is_in_state<Steaming>();
 
-  auto machineState = MachineState::state<MachineState>();
+  auto machineState = MachineState::current_state_ptr;
 
   // Only open solenoid if we're brewing
   if (isBrewing) {
@@ -114,14 +114,12 @@ void loop() {
     pump.setBrightness(0);
   }
 
-  // Set boiler setpoint based on mode
-  if (isSteaming) {
-    boiler.SetSetPoint(config.get_steamSetPoint());
-  } else {
-    boiler.SetSetPoint(machineState.getSetPoint());
+  // Set boiler setpoint
+  {
+    auto setpoint = machineState->getSetPoint();
+    boiler.SetSetPoint(setpoint);
+    apiServer.setSetpoint(setpoint);
   }
-
-  apiServer.setSetpoint(machineState.getSetPoint());
 
   // Send callbacks at 1s intervals normally, 100ms intervals while brewing
   if (isBrewing) {

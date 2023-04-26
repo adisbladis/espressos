@@ -117,10 +117,12 @@ export class APIClient {
     })
   }
 
-  async startSteam(): Promise<void> {
+  async startSteam(setpoint: number): Promise<void> {
     await this.sendCommand({
       requestId: mkRequestId(),
-      commandOneof: { $case: "startSteam", startSteam: <StartSteam>{} },
+      commandOneof: { $case: "startSteam", startSteam: <StartSteam>{
+        setpoint: setpoint,
+      } },
     })
   }
 

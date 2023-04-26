@@ -1259,23 +1259,43 @@ private:
 class StartSteam final : public ::EmbeddedProto::MessageInterface {
 public:
   StartSteam() = default;
-  StartSteam(const StartSteam &rhs) {}
+  StartSteam(const StartSteam &rhs) { set_setpoint(rhs.get_setpoint()); }
 
-  StartSteam(const StartSteam &&rhs) noexcept {}
+  StartSteam(const StartSteam &&rhs) noexcept {
+    set_setpoint(rhs.get_setpoint());
+  }
 
   ~StartSteam() override = default;
 
-  enum class FieldNumber : uint32_t {
-    NOT_SET = 0,
-  };
+  enum class FieldNumber : uint32_t { NOT_SET = 0, SETPOINT = 1 };
 
-  StartSteam &operator=(const StartSteam &rhs) { return *this; }
+  StartSteam &operator=(const StartSteam &rhs) {
+    set_setpoint(rhs.get_setpoint());
+    return *this;
+  }
 
-  StartSteam &operator=(const StartSteam &&rhs) noexcept { return *this; }
+  StartSteam &operator=(const StartSteam &&rhs) noexcept {
+    set_setpoint(rhs.get_setpoint());
+    return *this;
+  }
+
+  static constexpr char const *SETPOINT_NAME = "setpoint";
+  inline void clear_setpoint() { setpoint_.clear(); }
+  inline void set_setpoint(const int32_t &value) { setpoint_ = value; }
+  inline void set_setpoint(const int32_t &&value) { setpoint_ = value; }
+  inline int32_t &mutable_setpoint() { return setpoint_.get(); }
+  inline const int32_t &get_setpoint() const { return setpoint_.get(); }
+  inline int32_t setpoint() const { return setpoint_.get(); }
 
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+
+    if ((0 != setpoint_.get()) &&
+        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+      return_value = setpoint_.serialize_with_id(
+          static_cast<uint32_t>(FieldNumber::SETPOINT), buffer, false);
+    }
 
     return return_value;
   };
@@ -1295,6 +1315,10 @@ public:
            (::EmbeddedProto::Error::NO_ERRORS == tag_value)) {
       id_tag = static_cast<FieldNumber>(id_number);
       switch (id_tag) {
+      case FieldNumber::SETPOINT:
+        return_value = setpoint_.deserialize_check_type(buffer, wire_type);
+        break;
+
       case FieldNumber::NOT_SET:
         return_value = ::EmbeddedProto::Error::INVALID_FIELD_ID;
         break;
@@ -1324,11 +1348,14 @@ public:
     return return_value;
   };
 
-  void clear() override {}
+  void clear() override { clear_setpoint(); }
 
   static char const *field_number_to_name(const FieldNumber fieldNumber) {
     char const *name = nullptr;
     switch (fieldNumber) {
+    case FieldNumber::SETPOINT:
+      name = SETPOINT_NAME;
+      break;
     default:
       name = "Invalid FieldNumber";
       break;
@@ -1381,6 +1408,9 @@ public:
       left_chars.size -= n_chars_used;
     }
 
+    left_chars =
+        setpoint_.to_string(left_chars, indent_level + 2, SETPOINT_NAME, true);
+
     if (0 == indent_level) {
       n_chars_used = snprintf(left_chars.data, left_chars.size, "\n}");
     } else {
@@ -1399,6 +1429,7 @@ public:
 #endif // End of MSG_TO_STRING
 
 private:
+  EmbeddedProto::int32 setpoint_ = 0;
 };
 
 class StopBrew final : public ::EmbeddedProto::MessageInterface {
