@@ -122,11 +122,7 @@ void loop() {
   }
 
   // Send callbacks at 1s intervals normally, 100ms intervals while brewing
-  if (isBrewing) {
-    apiServer.setStateUpdateInterval(STATE_UPDATE_INTERVAL_BREW);
-  } else {
-    apiServer.setStateUpdateInterval(STATE_UPDATE_INTERVAL);
-  }
+  apiServer.setStateUpdateInterval(machineState->getStateUpdateInterval());
 
   // Run control loops
   {

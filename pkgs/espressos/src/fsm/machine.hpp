@@ -67,6 +67,8 @@ protected:
 
 public:
   virtual int getSetPoint() { return setpoint; };
+
+  virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
 };
 
 /* Machine states */
@@ -120,6 +122,8 @@ class Brewing : public MachineState {
   void entry() { logger->log(LogLevel::DEBUG, "Transitioned to start brew"); }
 
   void react(StopBrewEvent const &e) override { transit<Idle>(); }
+
+  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; };
 };
 
 class Pumping : public MachineState {
