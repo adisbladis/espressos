@@ -65,9 +65,6 @@ void setup() {
 void loop() {
   bool isBrewing = MachineState::is_in_state<Brewing>();
   bool isPumping = MachineState::is_in_state<Pumping>();
-  bool isOff = MachineState::is_in_state<Off>();
-  bool isPanic = MachineState::is_in_state<Panic>();
-  bool isSteaming = MachineState::is_in_state<Steaming>();
 
   auto machineState = MachineState::current_state_ptr;
 

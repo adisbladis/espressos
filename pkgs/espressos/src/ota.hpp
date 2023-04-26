@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ArduinoOTA.h>
 #include "logger.hpp"
+#include <ArduinoOTA.h>
 
 void beginOTA(int otaPort) {
   ArduinoOTA.setPort(2040);

@@ -62,12 +62,19 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void exit(void){};  // exit actions in some states
 
 protected:
-  static int steamSetpoint;
+  // Boiler setpoint
   static int setpoint;
 
+  // Store the previous boiler setpoint when entering steam mode
+  // so we can easily transition back into idle mode with the correct setpoint.
+  static int prevSetpoint;
+
+  // How often to emit state updates to clients
+  static long stateUpdateInterval;
+
 public:
-  virtual int getSetPoint() { return setpoint; };
-  virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
+  int getSetPoint() { return setpoint; };
+  long getStateUpdateInterval() { return stateUpdateInterval; };
   virtual PinStatus getSolenoid() { return LOW; }
 };
 
@@ -113,17 +120,22 @@ class Idle : public MachineState {
   void react(StartPumpEvent const &e) override { transit<Pumping>(); }
 
   void react(StartSteamEvent const &e) override {
-    steamSetpoint = e.setpoint;
+    prevSetpoint = setpoint;
+    setpoint = e.setpoint;
     transit<Steaming>();
   }
 };
 
 class Brewing : public MachineState {
-  void entry() { logger->log(LogLevel::DEBUG, "Transitioned to start brew"); }
+  void entry() {
+    stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW;
+    logger->log(LogLevel::DEBUG, "Transitioned to start brew");
+  }
+
+  void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
 
   void react(StopBrewEvent const &e) override { transit<Idle>(); }
 
-  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; };
   PinStatus getSolenoid() override { return HIGH; }
 };
 
@@ -140,11 +152,9 @@ class Steaming : public MachineState {
     logger->log(LogLevel::DEBUG, "Entering steaming state");
   }
 
-  void exit() override { steamSetpoint = 0; };
+  void exit() override { setpoint = prevSetpoint; };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
-
-  int getSetPoint() { return steamSetpoint; };
 };
 
 /* Shared class methods*/
@@ -168,7 +178,8 @@ void MachineState::react(PanicEvent const &e) {
 }
 
 int MachineState::setpoint = 0;
-int MachineState::steamSetpoint = 0;
+int MachineState::prevSetpoint = 0;
+long MachineState::stateUpdateInterval = STATE_UPDATE_INTERVAL;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)
