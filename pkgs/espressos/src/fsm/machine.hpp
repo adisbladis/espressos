@@ -76,6 +76,7 @@ public:
   int getSetPoint() { return setpoint; };
   long getStateUpdateInterval() { return stateUpdateInterval; };
   virtual PinStatus getSolenoid() { return LOW; }
+  virtual uint8_t getPump() { return 0; }
 };
 
 /* Machine states */
@@ -137,6 +138,8 @@ class Brewing : public MachineState {
   void react(StopBrewEvent const &e) override { transit<Idle>(); }
 
   PinStatus getSolenoid() override { return HIGH; }
+
+  uint8_t getPump() override { return 255; }
 };
 
 class Pumping : public MachineState {
@@ -145,6 +148,8 @@ class Pumping : public MachineState {
   }
 
   void react(StopPumpEvent const &e) override { transit<Idle>(); }
+
+  uint8_t getPump() override { return 255; }
 };
 
 class Steaming : public MachineState {
@@ -169,13 +174,7 @@ void MachineState::react(PowerOffEvent const &e) {
 }
 
 // All modes are allowed to enter the panic state
-void MachineState::react(PanicEvent const &e) {
-  if (is_in_state<Panic>()) {
-    return;
-  }
-
-  transit<Panic>();
-}
+void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
 
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;

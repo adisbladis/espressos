@@ -63,29 +63,16 @@ void setup() {
 }
 
 void loop() {
-  bool isBrewing = MachineState::is_in_state<Brewing>();
-  bool isPumping = MachineState::is_in_state<Pumping>();
-
   auto machineState = MachineState::current_state_ptr;
 
-  // Only open solenoid if we're brewing
+  // Set hardware/API states according to FSM
   solenoid.digitalWrite(machineState->getSolenoid());
-
-  // Only run pump if we're brewing or pumping
-  if (isBrewing || isPumping) {
-    pump.setBrightness(255);
-  } else {
-    pump.setBrightness(0);
-  }
-
-  // Set boiler setpoint
+  pump.setBrightness(machineState->getPump());
   {
     auto setpoint = machineState->getSetPoint();
     boiler.SetSetPoint(setpoint);
     apiServer.setSetpoint(setpoint);
   }
-
-  // Send callbacks at 1s intervals normally, 100ms intervals while brewing
   apiServer.setStateUpdateInterval(machineState->getStateUpdateInterval());
 
   // Run control loops
