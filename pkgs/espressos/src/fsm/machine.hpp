@@ -4,6 +4,7 @@
 
 #include "../logger.hpp"
 #include "events.hpp"
+#include "fsmlist.hpp"
 
 /* Forward declarations */
 class Idle;
@@ -38,6 +39,7 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   };
   void react(PanicEvent const &);
   void react(PowerOffEvent const &);
+  virtual void react(LoopEvent const &){};
   virtual void react(PowerOnEvent const &) {
     logger->log(LogLevel::DEBUG, "PowerOnEvent ignored");
   };
@@ -125,7 +127,7 @@ class Idle : public MachineState {
 };
 
 class Brewing : public MachineState {
-  void entry() { stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW; }
+  void entry() override { stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW; }
 
   void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
 
@@ -142,9 +144,22 @@ class Pumping : public MachineState {
 };
 
 class Steaming : public MachineState {
+  void entry() override { timeout = millis() + STEAM_TIMEOUT; }
+
   void exit() override { setpoint = prevSetpoint; };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
+
+  void react(LoopEvent const &e) override {
+    if (e.timestamp >= timeout) {
+      logger->log(LogLevel::DEBUG,
+                  "Steaming timed out, transitition back to idle.");
+      transit<Idle>();
+    }
+  }
+
+protected:
+  static unsigned long timeout;
 };
 
 /* Shared class methods*/
@@ -169,6 +184,7 @@ void MachineState::react(PanicEvent const &e) {
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;
 long MachineState::stateUpdateInterval = STATE_UPDATE_INTERVAL;
+unsigned long Steaming::timeout = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)
