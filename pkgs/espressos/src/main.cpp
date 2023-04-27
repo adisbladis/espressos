@@ -25,6 +25,9 @@ static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 static PersistedConfig *pConfig = new PersistedConfig();
 static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
 
+// Re-use loop event on every iteration
+LoopEvent loopEvent;
+
 void setup() {
   // Turn on board power LED
   pinMode(LED_BUILTIN, OUTPUT);
@@ -63,6 +66,11 @@ void setup() {
 }
 
 void loop() {
+  // Run FSM loop
+  loopEvent.timestamp = millis();
+  send_event(loopEvent);
+
+  // Get current FSM state
   auto machineState = MachineState::current_state_ptr;
 
   // Set hardware/API states according to FSM

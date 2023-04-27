@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../logger.hpp"
 #include <tinyfsm.hpp>
+
+#include "../logger.hpp"
+#include "events.hpp"
 
 /* Forward declarations */
 class Idle;
@@ -16,10 +18,6 @@ struct PowerOnEvent : tinyfsm::Event {
 };
 struct StartSteamEvent : tinyfsm::Event {
   int setpoint;
-};
-
-struct LoopEvent : tinyfsm::Event {
-  unsigned long timestamp;
 };
 
 struct PanicEvent : tinyfsm::Event {};
