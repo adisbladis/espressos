@@ -4,6 +4,75 @@ import { Config } from "./config";
 
 export const protobufPackage = "";
 
+export enum MachineMode {
+  UNKNOWN = 0,
+  PANIC = 1,
+  OFF = 2,
+  IDLE = 3,
+  BREWING = 4,
+  BACKFLUSHING = 5,
+  PUMPING = 6,
+  STEAMING = 7,
+  UNRECOGNIZED = -1,
+}
+
+export function machineModeFromJSON(object: any): MachineMode {
+  switch (object) {
+    case 0:
+    case "UNKNOWN":
+      return MachineMode.UNKNOWN;
+    case 1:
+    case "PANIC":
+      return MachineMode.PANIC;
+    case 2:
+    case "OFF":
+      return MachineMode.OFF;
+    case 3:
+    case "IDLE":
+      return MachineMode.IDLE;
+    case 4:
+    case "BREWING":
+      return MachineMode.BREWING;
+    case 5:
+    case "BACKFLUSHING":
+      return MachineMode.BACKFLUSHING;
+    case 6:
+    case "PUMPING":
+      return MachineMode.PUMPING;
+    case 7:
+    case "STEAMING":
+      return MachineMode.STEAMING;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return MachineMode.UNRECOGNIZED;
+  }
+}
+
+export function machineModeToJSON(object: MachineMode): string {
+  switch (object) {
+    case MachineMode.UNKNOWN:
+      return "UNKNOWN";
+    case MachineMode.PANIC:
+      return "PANIC";
+    case MachineMode.OFF:
+      return "OFF";
+    case MachineMode.IDLE:
+      return "IDLE";
+    case MachineMode.BREWING:
+      return "BREWING";
+    case MachineMode.BACKFLUSHING:
+      return "BACKFLUSHING";
+    case MachineMode.PUMPING:
+      return "PUMPING";
+    case MachineMode.STEAMING:
+      return "STEAMING";
+    case MachineMode.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface PowerOn {
   /**
    * Setpoint represented as a hundredth of a degree celsius
@@ -73,11 +142,7 @@ export interface FloatSensorReading {
 }
 
 export interface StateUpdate {
-  /** TODO: Communicate mode via an enum */
-  isOn: boolean;
-  isBrewing: boolean;
-  isPumping: boolean;
-  isSteaming: boolean;
+  mode: MachineMode;
   boilerTemp: FloatSensorReading | undefined;
   pressure: FloatSensorReading | undefined;
   setpoint: number;
@@ -1000,39 +1065,22 @@ export const FloatSensorReading = {
 };
 
 function createBaseStateUpdate(): StateUpdate {
-  return {
-    isOn: false,
-    isBrewing: false,
-    isPumping: false,
-    isSteaming: false,
-    boilerTemp: undefined,
-    pressure: undefined,
-    setpoint: 0,
-  };
+  return { mode: 0, boilerTemp: undefined, pressure: undefined, setpoint: 0 };
 }
 
 export const StateUpdate = {
   encode(message: StateUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.isOn === true) {
-      writer.uint32(8).bool(message.isOn);
-    }
-    if (message.isBrewing === true) {
-      writer.uint32(16).bool(message.isBrewing);
-    }
-    if (message.isPumping === true) {
-      writer.uint32(24).bool(message.isPumping);
-    }
-    if (message.isSteaming === true) {
-      writer.uint32(32).bool(message.isSteaming);
+    if (message.mode !== 0) {
+      writer.uint32(8).int32(message.mode);
     }
     if (message.boilerTemp !== undefined) {
-      FloatSensorReading.encode(message.boilerTemp, writer.uint32(42).fork()).ldelim();
+      FloatSensorReading.encode(message.boilerTemp, writer.uint32(18).fork()).ldelim();
     }
     if (message.pressure !== undefined) {
-      FloatSensorReading.encode(message.pressure, writer.uint32(50).fork()).ldelim();
+      FloatSensorReading.encode(message.pressure, writer.uint32(26).fork()).ldelim();
     }
     if (message.setpoint !== 0) {
-      writer.uint32(56).int32(message.setpoint);
+      writer.uint32(32).int32(message.setpoint);
     }
     return writer;
   },
@@ -1049,45 +1097,24 @@ export const StateUpdate = {
             break;
           }
 
-          message.isOn = reader.bool();
+          message.mode = reader.int32() as any;
           continue;
         case 2:
-          if (tag != 16) {
-            break;
-          }
-
-          message.isBrewing = reader.bool();
-          continue;
-        case 3:
-          if (tag != 24) {
-            break;
-          }
-
-          message.isPumping = reader.bool();
-          continue;
-        case 4:
-          if (tag != 32) {
-            break;
-          }
-
-          message.isSteaming = reader.bool();
-          continue;
-        case 5:
-          if (tag != 42) {
+          if (tag != 18) {
             break;
           }
 
           message.boilerTemp = FloatSensorReading.decode(reader, reader.uint32());
           continue;
-        case 6:
-          if (tag != 50) {
+        case 3:
+          if (tag != 26) {
             break;
           }
 
           message.pressure = FloatSensorReading.decode(reader, reader.uint32());
           continue;
-        case 7:
-          if (tag != 56) {
+        case 4:
+          if (tag != 32) {
             break;
           }
 
@@ -1104,10 +1131,7 @@ export const StateUpdate = {
 
   fromJSON(object: any): StateUpdate {
     return {
-      isOn: isSet(object.isOn) ? Boolean(object.isOn) : false,
-      isBrewing: isSet(object.isBrewing) ? Boolean(object.isBrewing) : false,
-      isPumping: isSet(object.isPumping) ? Boolean(object.isPumping) : false,
-      isSteaming: isSet(object.isSteaming) ? Boolean(object.isSteaming) : false,
+      mode: isSet(object.mode) ? machineModeFromJSON(object.mode) : 0,
       boilerTemp: isSet(object.boilerTemp) ? FloatSensorReading.fromJSON(object.boilerTemp) : undefined,
       pressure: isSet(object.pressure) ? FloatSensorReading.fromJSON(object.pressure) : undefined,
       setpoint: isSet(object.setpoint) ? Number(object.setpoint) : 0,
@@ -1116,10 +1140,7 @@ export const StateUpdate = {
 
   toJSON(message: StateUpdate): unknown {
     const obj: any = {};
-    message.isOn !== undefined && (obj.isOn = message.isOn);
-    message.isBrewing !== undefined && (obj.isBrewing = message.isBrewing);
-    message.isPumping !== undefined && (obj.isPumping = message.isPumping);
-    message.isSteaming !== undefined && (obj.isSteaming = message.isSteaming);
+    message.mode !== undefined && (obj.mode = machineModeToJSON(message.mode));
     message.boilerTemp !== undefined &&
       (obj.boilerTemp = message.boilerTemp ? FloatSensorReading.toJSON(message.boilerTemp) : undefined);
     message.pressure !== undefined &&
@@ -1134,10 +1155,7 @@ export const StateUpdate = {
 
   fromPartial<I extends Exact<DeepPartial<StateUpdate>, I>>(object: I): StateUpdate {
     const message = createBaseStateUpdate();
-    message.isOn = object.isOn ?? false;
-    message.isBrewing = object.isBrewing ?? false;
-    message.isPumping = object.isPumping ?? false;
-    message.isSteaming = object.isSteaming ?? false;
+    message.mode = object.mode ?? 0;
     message.boilerTemp = (object.boilerTemp !== undefined && object.boilerTemp !== null)
       ? FloatSensorReading.fromPartial(object.boilerTemp)
       : undefined;

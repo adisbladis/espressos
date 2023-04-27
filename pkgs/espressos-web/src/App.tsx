@@ -2,13 +2,15 @@ import type { Component } from "solid-js";
 import { onCleanup, createMemo } from "solid-js";
 
 import { APIClient } from "./api";
-import { Event, LogMessage_LogLevel } from "./api/api";
+import { Event, LogMessage_LogLevel, MachineMode } from "./api/api";
 import { state, setState } from "./state";
 import { config, setConfig } from "./config";
 
 import Chart from "./chart";
 
 const Symbols = {
+  UNKNOWN: "❓",
+  PANIC: "❗",
   OFF: "😴",
   POWER: "⚡",
   BREWING: "☕",
@@ -16,13 +18,14 @@ const Symbols = {
   STEAMING: "☁️",
   SETTINGS: "⚙️",
   INFO: "ℹ️",
+  BACKFLUSHING: "🧹",
 };
 
 const client = new APIClient(
   (window.location.protocol === "https:" ? "wss:" : "ws:") +
-    "//" +
-    window.location.host +
-    "/api",
+  "//" +
+  window.location.host +
+  "/api",
 );
 
 client.onEvent("*", (event: Event) => {
@@ -78,23 +81,26 @@ const App: Component = () => {
   });
 
   const modeSymbol = createMemo(() => {
-    if (!state.isOn) {
-      return Symbols.OFF;
+    switch (state.mode) {
+      case MachineMode.UNKNOWN:
+        return Symbols.UNKNOWN;
+      case MachineMode.PANIC:
+        return Symbols.PANIC;
+      case MachineMode.OFF:
+        return Symbols.OFF;
+      case MachineMode.IDLE:
+        return Symbols.POWER;
+      case MachineMode.BREWING:
+        return Symbols.BREWING;
+      case MachineMode.BACKFLUSHING:
+        return Symbols.BACKFLUSHING;
+      case MachineMode.PUMPING:
+        return Symbols.PUMPING;
+      case MachineMode.STEAMING:
+        return Symbols.STEAMING;
+      default:
+        return Symbols.UNKNOWN;
     }
-
-    if (state.isBrewing) {
-      return Symbols.BREWING;
-    }
-
-    if (state.isPumping) {
-      return Symbols.PUMPING;
-    }
-
-    if (state.isSteaming) {
-      return Symbols.STEAMING;
-    }
-
-    return Symbols.POWER;
   });
 
   return (
@@ -109,7 +115,9 @@ const App: Component = () => {
             <button
               class="btn m-1 btn-lg"
               onClick={() =>
-                state.isBrewing ? client.stopBrew() : client.startBrew()
+                state.mode == MachineMode.BREWING
+                  ? client.stopBrew()
+                  : client.startBrew()
               }
             >
               {Symbols.BREWING}
@@ -118,7 +126,9 @@ const App: Component = () => {
             <button
               class="btn m-1 btn-lg"
               onClick={() =>
-                state.isPumping ? client.stopPump() : client.startPump()
+                state.mode == MachineMode.PUMPING
+                  ? client.stopPump()
+                  : client.startPump()
               }
             >
               {Symbols.PUMPING}
@@ -128,7 +138,11 @@ const App: Component = () => {
           <div>
             <button
               class="btn m-1 btn-lg"
-              onClick={() => state.isSteaming ? client.stopSteam() : client.startSteam(config.steamSetPoint)}
+              onClick={() =>
+                state.mode == MachineMode.STEAMING
+                  ? client.stopSteam()
+                  : client.startSteam(config.steamSetPoint)
+              }
             >
               {Symbols.STEAMING}
             </button>
@@ -136,7 +150,9 @@ const App: Component = () => {
             <button
               class="btn m-1 btn-lg"
               onClick={() =>
-                state.isOn ? client.powerOff() : client.powerOn(config.setpoint)
+                state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
+                  ? client.powerOff()
+                  : client.powerOn(config.setpoint)
               }
             >
               {Symbols.POWER}
@@ -166,7 +182,7 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() => client.backflushStart()}
             >
-              🧹
+              {Symbols.BACKFLUSHING}
             </button>
           </div>
 

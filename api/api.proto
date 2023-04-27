@@ -66,15 +66,22 @@ message FloatSensorReading {
   }
 };
 
+enum MachineMode {
+  UNKNOWN = 0;
+  PANIC = 1;
+  OFF = 2;
+  IDLE = 3;
+  BREWING = 4;
+  BACKFLUSHING = 5;
+  PUMPING = 6;
+  STEAMING = 7;
+}
+
 message StateUpdate {
-  // TODO: Communicate mode via an enum
-  bool is_on = 1;
-  bool is_brewing = 2;
-  bool is_pumping = 3;
-  bool is_steaming = 4;
-  FloatSensorReading boilerTemp = 5;
-  FloatSensorReading pressure = 6;
-  int32 setpoint = 7;
+  MachineMode mode = 1;
+  FloatSensorReading boilerTemp = 2;
+  FloatSensorReading pressure = 3;
+  int32 setpoint = 4;
 }
 
 message LogMessage {

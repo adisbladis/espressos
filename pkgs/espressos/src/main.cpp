@@ -14,6 +14,7 @@
 #include "logger.hpp"
 #include "ota.hpp"
 #include "pressure.hpp"
+#include "proto/api.h"
 #include "websocket.hpp"
 
 // Hardware IO
@@ -73,6 +74,11 @@ void setup() {
       [](long updateInterval) {
         apiServer.setStateUpdateInterval(updateInterval);
       });
+
+  // Set mode in API server
+  effects.createEffect<MachineMode>(
+      []() { return MachineState::current_state_ptr->getMode(); },
+      [](MachineMode mode) { apiServer.setMachineMode(mode); });
 
   // Set boiler temp in API server
   effects.createEffect<TempReading>(

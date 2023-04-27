@@ -21,7 +21,7 @@ class Panic : public MachineState {
   void entry() override { setpoint = 0; }
 
 public:
-  bool isOn() override { return false; }
+  MachineMode getMode() override { return MachineMode::PANIC; };
 };
 
 // The machine is idle with the boiler turned off
@@ -36,10 +36,13 @@ class Off : public MachineState {
   }
 
 public:
-  bool isOn() override { return false; }
+  MachineMode getMode() override { return MachineMode::OFF; };
 };
 
+// Idle state - Meaning just sitting around with the boiler on
 class Idle : public MachineState {
+  MachineMode getMode() override { return MachineMode::IDLE; };
+
   void react(PowerOnEvent const &e) override {
     setpoint = e.setpoint;
     transit<Idle>();
@@ -68,7 +71,10 @@ class Idle : public MachineState {
   }
 };
 
+// Brewing - We're actively brewing a cup
 class Brewing : public MachineState {
+  MachineMode getMode() override { return MachineMode::BREWING; };
+
   void entry() override { stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW; }
 
   void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
@@ -78,7 +84,6 @@ class Brewing : public MachineState {
 public:
   PinStatus getSolenoid() override { return HIGH; }
   uint8_t getPump() override { return 255; }
-  bool isBrewing() override { return true; }
 };
 
 class Backflushing : public MachineState {
@@ -86,6 +91,9 @@ class Backflushing : public MachineState {
   void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
 
   void react(BackflushStopEvent const &e) override { transit<Idle>(); }
+
+public:
+  MachineMode getMode() override { return MachineMode::BACKFLUSHING; };
 
   PinStatus getSolenoid() override {
     if (BackflushState::current_state_ptr->active()) {
@@ -109,9 +117,10 @@ class Pumping : public MachineState {
 
 public:
   uint8_t getPump() override { return 255; }
-  bool isPumping() override { return true; }
+  MachineMode getMode() override { return MachineMode::PUMPING; };
 };
 
+// Steaming - Boiler is set to the steam setpoint
 class Steaming : public MachineState {
   void entry() override { timeout = millis() + STEAM_TIMEOUT; }
 
@@ -129,6 +138,9 @@ class Steaming : public MachineState {
 
 protected:
   static unsigned long timeout;
+
+public:
+  MachineMode getMode() override { return MachineMode::STEAMING; };
 };
 
 /* Shared class methods*/

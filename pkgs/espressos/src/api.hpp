@@ -63,16 +63,8 @@ private:
   };
 
   void broadcastState() {
-    auto machineState = MachineState::current_state_ptr;
-
-    stateUpdateMessage.set_is_on(machineState->isOn());
-    stateUpdateMessage.set_is_brewing(machineState->isBrewing());
-    stateUpdateMessage.set_is_pumping(machineState->isPumping());
-    stateUpdateMessage.set_is_steaming(machineState->isSteaming());
-
     event.clear_request_id();
     event.set_state_update(stateUpdateMessage);
-
     broadcastEvent();
   };
 
@@ -231,6 +223,10 @@ public:
 
   void setSetpoint(int setpoint) {
     this->stateUpdateMessage.set_setpoint(setpoint);
+  }
+
+  void setMachineMode(MachineMode mode) {
+    this->stateUpdateMessage.set_mode(mode);
   }
 
   void setBoilerTemp(TempReading temp) {

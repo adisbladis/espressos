@@ -17,6 +17,17 @@
 // Include external proto definitions
 #include "config.h"
 
+enum class MachineMode : uint32_t {
+  UNKNOWN = 0,
+  PANIC = 1,
+  OFF = 2,
+  IDLE = 3,
+  BREWING = 4,
+  BACKFLUSHING = 5,
+  PUMPING = 6,
+  STEAMING = 7
+};
+
 class BackflushStart final : public ::EmbeddedProto::MessageInterface {
 public:
   BackflushStart() = default;
@@ -3341,20 +3352,14 @@ class StateUpdate final : public ::EmbeddedProto::MessageInterface {
 public:
   StateUpdate() = default;
   StateUpdate(const StateUpdate &rhs) {
-    set_is_on(rhs.get_is_on());
-    set_is_brewing(rhs.get_is_brewing());
-    set_is_pumping(rhs.get_is_pumping());
-    set_is_steaming(rhs.get_is_steaming());
+    set_mode(rhs.get_mode());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
     set_setpoint(rhs.get_setpoint());
   }
 
   StateUpdate(const StateUpdate &&rhs) noexcept {
-    set_is_on(rhs.get_is_on());
-    set_is_brewing(rhs.get_is_brewing());
-    set_is_pumping(rhs.get_is_pumping());
-    set_is_steaming(rhs.get_is_steaming());
+    set_mode(rhs.get_mode());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
     set_setpoint(rhs.get_setpoint());
@@ -3364,20 +3369,14 @@ public:
 
   enum class FieldNumber : uint32_t {
     NOT_SET = 0,
-    IS_ON = 1,
-    IS_BREWING = 2,
-    IS_PUMPING = 3,
-    IS_STEAMING = 4,
-    BOILERTEMP = 5,
-    PRESSURE = 6,
-    SETPOINT = 7
+    MODE = 1,
+    BOILERTEMP = 2,
+    PRESSURE = 3,
+    SETPOINT = 4
   };
 
   StateUpdate &operator=(const StateUpdate &rhs) {
-    set_is_on(rhs.get_is_on());
-    set_is_brewing(rhs.get_is_brewing());
-    set_is_pumping(rhs.get_is_pumping());
-    set_is_steaming(rhs.get_is_steaming());
+    set_mode(rhs.get_mode());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
     set_setpoint(rhs.get_setpoint());
@@ -3385,47 +3384,19 @@ public:
   }
 
   StateUpdate &operator=(const StateUpdate &&rhs) noexcept {
-    set_is_on(rhs.get_is_on());
-    set_is_brewing(rhs.get_is_brewing());
-    set_is_pumping(rhs.get_is_pumping());
-    set_is_steaming(rhs.get_is_steaming());
+    set_mode(rhs.get_mode());
     set_boilerTemp(rhs.get_boilerTemp());
     set_pressure(rhs.get_pressure());
     set_setpoint(rhs.get_setpoint());
     return *this;
   }
 
-  static constexpr char const *IS_ON_NAME = "is_on";
-  inline void clear_is_on() { is_on_.clear(); }
-  inline void set_is_on(const bool &value) { is_on_ = value; }
-  inline void set_is_on(const bool &&value) { is_on_ = value; }
-  inline bool &mutable_is_on() { return is_on_.get(); }
-  inline const bool &get_is_on() const { return is_on_.get(); }
-  inline bool is_on() const { return is_on_.get(); }
-
-  static constexpr char const *IS_BREWING_NAME = "is_brewing";
-  inline void clear_is_brewing() { is_brewing_.clear(); }
-  inline void set_is_brewing(const bool &value) { is_brewing_ = value; }
-  inline void set_is_brewing(const bool &&value) { is_brewing_ = value; }
-  inline bool &mutable_is_brewing() { return is_brewing_.get(); }
-  inline const bool &get_is_brewing() const { return is_brewing_.get(); }
-  inline bool is_brewing() const { return is_brewing_.get(); }
-
-  static constexpr char const *IS_PUMPING_NAME = "is_pumping";
-  inline void clear_is_pumping() { is_pumping_.clear(); }
-  inline void set_is_pumping(const bool &value) { is_pumping_ = value; }
-  inline void set_is_pumping(const bool &&value) { is_pumping_ = value; }
-  inline bool &mutable_is_pumping() { return is_pumping_.get(); }
-  inline const bool &get_is_pumping() const { return is_pumping_.get(); }
-  inline bool is_pumping() const { return is_pumping_.get(); }
-
-  static constexpr char const *IS_STEAMING_NAME = "is_steaming";
-  inline void clear_is_steaming() { is_steaming_.clear(); }
-  inline void set_is_steaming(const bool &value) { is_steaming_ = value; }
-  inline void set_is_steaming(const bool &&value) { is_steaming_ = value; }
-  inline bool &mutable_is_steaming() { return is_steaming_.get(); }
-  inline const bool &get_is_steaming() const { return is_steaming_.get(); }
-  inline bool is_steaming() const { return is_steaming_.get(); }
+  static constexpr char const *MODE_NAME = "mode";
+  inline void clear_mode() { mode_.clear(); }
+  inline void set_mode(const MachineMode &value) { mode_ = value; }
+  inline void set_mode(const MachineMode &&value) { mode_ = value; }
+  inline const MachineMode &get_mode() const { return mode_.get(); }
+  inline MachineMode mode() const { return mode_.get(); }
 
   static constexpr char const *BOILERTEMP_NAME = "boilerTemp";
   inline void clear_boilerTemp() { boilerTemp_.clear(); }
@@ -3495,28 +3466,10 @@ public:
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
 
-    if ((false != is_on_.get()) &&
+    if ((static_cast<MachineMode>(0) != mode_.get()) &&
         (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
-      return_value = is_on_.serialize_with_id(
-          static_cast<uint32_t>(FieldNumber::IS_ON), buffer, false);
-    }
-
-    if ((false != is_brewing_.get()) &&
-        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
-      return_value = is_brewing_.serialize_with_id(
-          static_cast<uint32_t>(FieldNumber::IS_BREWING), buffer, false);
-    }
-
-    if ((false != is_pumping_.get()) &&
-        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
-      return_value = is_pumping_.serialize_with_id(
-          static_cast<uint32_t>(FieldNumber::IS_PUMPING), buffer, false);
-    }
-
-    if ((false != is_steaming_.get()) &&
-        (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
-      return_value = is_steaming_.serialize_with_id(
-          static_cast<uint32_t>(FieldNumber::IS_STEAMING), buffer, false);
+      return_value = mode_.serialize_with_id(
+          static_cast<uint32_t>(FieldNumber::MODE), buffer, false);
     }
 
     if (::EmbeddedProto::Error::NO_ERRORS == return_value) {
@@ -3553,20 +3506,8 @@ public:
            (::EmbeddedProto::Error::NO_ERRORS == tag_value)) {
       id_tag = static_cast<FieldNumber>(id_number);
       switch (id_tag) {
-      case FieldNumber::IS_ON:
-        return_value = is_on_.deserialize_check_type(buffer, wire_type);
-        break;
-
-      case FieldNumber::IS_BREWING:
-        return_value = is_brewing_.deserialize_check_type(buffer, wire_type);
-        break;
-
-      case FieldNumber::IS_PUMPING:
-        return_value = is_pumping_.deserialize_check_type(buffer, wire_type);
-        break;
-
-      case FieldNumber::IS_STEAMING:
-        return_value = is_steaming_.deserialize_check_type(buffer, wire_type);
+      case FieldNumber::MODE:
+        return_value = mode_.deserialize_check_type(buffer, wire_type);
         break;
 
       case FieldNumber::BOILERTEMP:
@@ -3611,10 +3552,7 @@ public:
   };
 
   void clear() override {
-    clear_is_on();
-    clear_is_brewing();
-    clear_is_pumping();
-    clear_is_steaming();
+    clear_mode();
     clear_boilerTemp();
     clear_pressure();
     clear_setpoint();
@@ -3623,17 +3561,8 @@ public:
   static char const *field_number_to_name(const FieldNumber fieldNumber) {
     char const *name = nullptr;
     switch (fieldNumber) {
-    case FieldNumber::IS_ON:
-      name = IS_ON_NAME;
-      break;
-    case FieldNumber::IS_BREWING:
-      name = IS_BREWING_NAME;
-      break;
-    case FieldNumber::IS_PUMPING:
-      name = IS_PUMPING_NAME;
-      break;
-    case FieldNumber::IS_STEAMING:
-      name = IS_STEAMING_NAME;
+    case FieldNumber::MODE:
+      name = MODE_NAME;
       break;
     case FieldNumber::BOILERTEMP:
       name = BOILERTEMP_NAME;
@@ -3696,14 +3625,7 @@ public:
       left_chars.size -= n_chars_used;
     }
 
-    left_chars =
-        is_on_.to_string(left_chars, indent_level + 2, IS_ON_NAME, true);
-    left_chars = is_brewing_.to_string(left_chars, indent_level + 2,
-                                       IS_BREWING_NAME, false);
-    left_chars = is_pumping_.to_string(left_chars, indent_level + 2,
-                                       IS_PUMPING_NAME, false);
-    left_chars = is_steaming_.to_string(left_chars, indent_level + 2,
-                                        IS_STEAMING_NAME, false);
+    left_chars = mode_.to_string(left_chars, indent_level + 2, MODE_NAME, true);
     left_chars = boilerTemp_.to_string(left_chars, indent_level + 2,
                                        BOILERTEMP_NAME, false);
     left_chars =
@@ -3729,10 +3651,7 @@ public:
 #endif // End of MSG_TO_STRING
 
 private:
-  EmbeddedProto::boolean is_on_ = false;
-  EmbeddedProto::boolean is_brewing_ = false;
-  EmbeddedProto::boolean is_pumping_ = false;
-  EmbeddedProto::boolean is_steaming_ = false;
+  EmbeddedProto::enumeration<MachineMode> mode_ = static_cast<MachineMode>(0);
   FloatSensorReading<StateUpdate_boilerTemp_FloatSensorReading_error_LENGTH>
       boilerTemp_;
   FloatSensorReading<StateUpdate_pressure_FloatSensorReading_error_LENGTH>

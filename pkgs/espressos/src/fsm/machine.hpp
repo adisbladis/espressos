@@ -3,6 +3,7 @@
 #include <tinyfsm.hpp>
 
 #include "../logger.hpp"
+#include "../proto/api.h"
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
@@ -89,9 +90,5 @@ public:
   virtual PinStatus getSolenoid() { return LOW; }
   virtual uint8_t getPump() { return 0; }
 
-  // Temporary while we move away from is_in_state
-  virtual bool isOn() { return true; }
-  virtual bool isBrewing() { return false; }
-  virtual bool isPumping() { return false; }
-  virtual bool isSteaming() { return false; }
+  virtual MachineMode getMode() { return MachineMode::UNKNOWN; };
 };
