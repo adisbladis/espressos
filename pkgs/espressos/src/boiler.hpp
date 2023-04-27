@@ -8,6 +8,12 @@ struct TempReading {
   double temp;
   uint8_t fault; // Fault identifier
 
+  bool operator==(TempReading const &rhs) const {
+    return fault == rhs.fault && temp == rhs.temp;
+  }
+
+  bool operator!=(TempReading const &rhs) const { return !(*this == rhs); }
+
   const char *errorMessage() {
     String message;
 

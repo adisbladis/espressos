@@ -1,12 +1,14 @@
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
 #include <WiFi.h>
+#include <cstdint>
 #include <dimmable_light.h>
 
 #include "api.hpp"
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 #include "config.hpp"
+#include "effects.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
 #include "logger.hpp"
@@ -25,6 +27,9 @@ static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 static PersistedConfig *pConfig = new PersistedConfig();
 static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
 
+// Watch variables for change and propagate to hardware/API
+Effects effects;
+
 // Re-use loop event on every iteration
 LoopEvent loopEvent;
 
@@ -33,15 +38,51 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
-  Serial.begin(115200);
-
+  // Initialise the FSM
   fsm_list::start();
 
-  boiler.setup();
-  solenoid.setup();
+  Serial.begin(115200);
 
+  // Boiler
+  boiler.setup();
+  effects.createEffect<int>(
+      []() { return MachineState::current_state_ptr->getSetPoint(); },
+      [](int setpoint) {
+        boiler.SetSetPoint(setpoint);
+        apiServer.setSetpoint(setpoint);
+      });
+
+  // Solenoid
+  solenoid.setup();
+  effects.createEffect<PinStatus>(
+      []() { return MachineState::current_state_ptr->getSolenoid(); },
+      [](PinStatus pinStatus) { solenoid.digitalWrite(pinStatus); });
+
+  // Pump dimming
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
   DimmableLight::begin();
+  effects.createEffect<uint8_t>(
+      []() { return MachineState::current_state_ptr->getPump(); },
+      [](uint8_t pumpIntensity) { pump.setBrightness(pumpIntensity); });
+
+  // Set state update interval
+  effects.createEffect<long>(
+      []() {
+        return MachineState::current_state_ptr->getStateUpdateInterval();
+      },
+      [](long updateInterval) {
+        apiServer.setStateUpdateInterval(updateInterval);
+      });
+
+  // Set boiler temp in API server
+  effects.createEffect<TempReading>(
+      []() { return boiler.getTemp(); },
+      [](TempReading temp) { apiServer.setBoilerTemp(temp); });
+
+  // Set pressure in API server
+  effects.createEffect<PressureSensorResult_t>(
+      []() { return brewPressure.Read(); },
+      [](PressureSensorResult_t pressure) { apiServer.setPressure(pressure); });
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID_NAME, SSID_PASWORD);
@@ -70,30 +111,10 @@ void loop() {
   loopEvent.timestamp = millis();
   send_event(loopEvent);
 
-  // Get current FSM state
-  auto machineState = MachineState::current_state_ptr;
+  effects.loop();
 
-  // Set hardware/API states according to FSM
-  solenoid.digitalWrite(machineState->getSolenoid());
-  pump.setBrightness(machineState->getPump());
-  {
-    auto setpoint = machineState->getSetPoint();
-    boiler.SetSetPoint(setpoint);
-    apiServer.setSetpoint(setpoint);
-  }
-  apiServer.setStateUpdateInterval(machineState->getStateUpdateInterval());
-
-  // Run control loops
-  {
-    if (boiler.tick()) {
-      apiServer.setBoilerTemp(boiler.getTemp());
-    };
-
-    auto pressure = brewPressure.Read();
-    apiServer.setPressure(pressure);
-  }
+  boiler.tick();
 
   handleOTA();
-
   apiServer.loop();
 }
