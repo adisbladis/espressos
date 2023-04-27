@@ -30,6 +30,7 @@ static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
 
 // Watch variables for change and propagate to hardware/API
 Effects effects;
+Effects apiEffects;
 
 // Re-use loop event on every iteration
 LoopEvent loopEvent;
@@ -39,19 +40,24 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
+  // Set up logging
+  {
+    Serial.begin(115200);
+
+    auto multiLogger = new MultiLogger();
+    multiLogger->add(new SerialLogger());
+    multiLogger->add(&apiServer);
+    setLogger(multiLogger);
+  }
+
   // Initialise the FSM
   fsm_list::start();
-
-  Serial.begin(115200);
 
   // Boiler
   boiler.setup();
   effects.createEffect<int>(
       []() { return MachineState::current_state_ptr->getSetPoint(); },
-      [](int setpoint) {
-        boiler.SetSetPoint(setpoint);
-        apiServer.setSetpoint(setpoint);
-      });
+      [](int setpoint) { boiler.SetSetPoint(setpoint); });
 
   // Solenoid
   solenoid.setup();
@@ -66,49 +72,56 @@ void setup() {
       []() { return MachineState::current_state_ptr->getPump(); },
       [](uint8_t pumpIntensity) { pump.setBrightness(pumpIntensity); });
 
-  // Set state update interval
-  effects.createEffect<long>(
-      []() {
-        return MachineState::current_state_ptr->getStateUpdateInterval();
-      },
-      [](long updateInterval) {
-        apiServer.setStateUpdateInterval(updateInterval);
-      });
-
-  // Set mode in API server
-  effects.createEffect<MachineMode>(
-      []() { return MachineState::current_state_ptr->getMode(); },
-      [](MachineMode mode) { apiServer.setMachineMode(mode); });
-
-  // Set boiler temp in API server
-  effects.createEffect<TempReading>(
-      []() { return boiler.getTemp(); },
-      [](TempReading temp) { apiServer.setBoilerTemp(temp); });
-
-  // Set pressure in API server
-  effects.createEffect<PressureSensorResult_t>(
-      []() { return brewPressure.Read(); },
-      [](PressureSensorResult_t pressure) { apiServer.setPressure(pressure); });
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID_NAME, SSID_PASWORD);
-
-  LittleFS.begin();
-
-  pConfig->setup();
-
-  // Set up OTA
-  beginOTA(2040);
-
-  // Start listening
-  apiServer.begin();
-
-  // Set up logging
+  // Set API server states
   {
-    auto multiLogger = new MultiLogger();
-    multiLogger->add(new SerialLogger());
-    multiLogger->add(&apiServer);
-    setLogger(multiLogger);
+    LittleFS.begin();
+
+    apiEffects.createEffect<int>(
+        []() { return MachineState::current_state_ptr->getSetPoint(); },
+        [](int setpoint) {
+          apiServer.setSetpoint(setpoint);
+          apiServer.broadcastState();
+        });
+
+    // Set mode in API server
+    apiEffects.createEffect<MachineMode>(
+        []() { return MachineState::current_state_ptr->getMode(); },
+        [](MachineMode mode) {
+          apiServer.setMachineMode(mode);
+          apiServer.broadcastState();
+        });
+
+    // Set boiler temp in API server
+    apiEffects.createEffect<TempReading>(
+        []() { return boiler.getTemp(); },
+        [](TempReading temp) { apiServer.setBoilerTemp(temp); });
+
+    // Set pressure in API server
+    apiEffects.createEffect<PressureSensorResult_t>(
+        []() { return brewPressure.Read(); },
+        [](PressureSensorResult_t pressure) {
+          apiServer.setPressure(pressure);
+        });
+
+    // Set state update interval
+    apiEffects.createEffect<long>(
+        []() {
+          return MachineState::current_state_ptr->getStateUpdateInterval();
+        },
+        [](long updateInterval) {
+          apiServer.setStateUpdateInterval(updateInterval);
+        });
+
+    pConfig->setup();
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(SSID_NAME, SSID_PASWORD);
+
+    // Set up OTA
+    beginOTA(2040);
+
+    // Start listening
+    apiServer.begin();
   }
 }
 
@@ -118,6 +131,7 @@ void loop() {
   send_event(loopEvent);
 
   effects.loop();
+  apiEffects.loop();
 
   boiler.tick();
 

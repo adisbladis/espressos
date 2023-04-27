@@ -62,12 +62,6 @@ private:
     broadcastEvent();
   };
 
-  void broadcastState() {
-    event.clear_request_id();
-    event.set_state_update(stateUpdateMessage);
-    broadcastEvent();
-  };
-
   void broadcastInitial() {
     broadcastState();
     broadcastConfig();
@@ -78,11 +72,7 @@ public:
       : server(port), stateUpdateCallback(STATE_UPDATE_INTERVAL),
         pConfig(pConfig) {
 
-    stateUpdateCallback.setCallback([this]() {
-      if (this->hasClients()) {
-        this->broadcastState();
-      }
-    });
+    stateUpdateCallback.setCallback([this]() { this->broadcastState(); });
 
     pConfig->onChange([this](Config config) {
       if (this->hasClients()) {
@@ -308,6 +298,16 @@ public:
   void begin() { this->server.begin(); }
 
   void close() { this->server.close(); }
+
+  void broadcastState() {
+    if (!this->hasClients()) {
+      return;
+    }
+
+    event.clear_request_id();
+    event.set_state_update(stateUpdateMessage);
+    broadcastEvent();
+  };
 };
 
 // A logger that emits log messages to websockets
