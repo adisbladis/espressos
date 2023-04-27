@@ -162,6 +162,15 @@ const App: Component = () => {
           </div>
 
           <div>
+            <button
+              class="btn m-1 btn-lg"
+              onClick={() => client.backflushStart()}
+            >
+              🧹
+            </button>
+          </div>
+
+          <div>
             <div class="card  bg-base-100 shadow-xl">
               <div class="card-body">
                 <div class="flex flex-row-reverse">

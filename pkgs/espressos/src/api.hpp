@@ -1,6 +1,7 @@
 #pragma once
 #include "boiler.hpp"
 #include "config.hpp"
+#include "fsm/events.hpp"
 #include "pressure.hpp"
 #include "proto/api.h"
 #include "websocket.hpp"
@@ -62,11 +63,12 @@ private:
   };
 
   void broadcastState() {
-    stateUpdateMessage.set_is_on(!(MachineState::is_in_state<Off>() ||
-                                   MachineState::is_in_state<Panic>()));
-    stateUpdateMessage.set_is_brewing(MachineState::is_in_state<Brewing>());
-    stateUpdateMessage.set_is_pumping(MachineState::is_in_state<Pumping>());
-    stateUpdateMessage.set_is_steaming(MachineState::is_in_state<Steaming>());
+    auto machineState = MachineState::current_state_ptr;
+
+    stateUpdateMessage.set_is_on(machineState->isOn());
+    stateUpdateMessage.set_is_brewing(machineState->isBrewing());
+    stateUpdateMessage.set_is_pumping(machineState->isPumping());
+    stateUpdateMessage.set_is_steaming(machineState->isSteaming());
 
     event.clear_request_id();
     event.set_state_update(stateUpdateMessage);
@@ -208,6 +210,12 @@ public:
           send_event(StopSteamEvent());
         case Cmd_t::FieldNumber::CONFIG:
           this->pConfig->setConfig(cmd.get_config());
+          break;
+        case Cmd_t::FieldNumber::BACKFLUSH_START:
+          send_event(BackflushStartEvent());
+          break;
+        case Cmd_t::FieldNumber::BACKFLUSH_STOP:
+          send_event(BackflushStopEvent());
           break;
         default:
           logger->log(LogLevel::ERROR, "Logic error: Unhandled switch case");

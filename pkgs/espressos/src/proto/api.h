@@ -17,6 +17,298 @@
 // Include external proto definitions
 #include "config.h"
 
+class BackflushStart final : public ::EmbeddedProto::MessageInterface {
+public:
+  BackflushStart() = default;
+  BackflushStart(const BackflushStart &rhs) {}
+
+  BackflushStart(const BackflushStart &&rhs) noexcept {}
+
+  ~BackflushStart() override = default;
+
+  enum class FieldNumber : uint32_t {
+    NOT_SET = 0,
+  };
+
+  BackflushStart &operator=(const BackflushStart &rhs) { return *this; }
+
+  BackflushStart &operator=(const BackflushStart &&rhs) noexcept {
+    return *this;
+  }
+
+  ::EmbeddedProto::Error
+  serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
+    ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+
+    return return_value;
+  };
+
+  ::EmbeddedProto::Error
+  deserialize(::EmbeddedProto::ReadBufferInterface &buffer) override {
+    ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+    ::EmbeddedProto::WireFormatter::WireType wire_type =
+        ::EmbeddedProto::WireFormatter::WireType::VARINT;
+    uint32_t id_number = 0;
+    FieldNumber id_tag = FieldNumber::NOT_SET;
+
+    ::EmbeddedProto::Error tag_value =
+        ::EmbeddedProto::WireFormatter::DeserializeTag(buffer, wire_type,
+                                                       id_number);
+    while ((::EmbeddedProto::Error::NO_ERRORS == return_value) &&
+           (::EmbeddedProto::Error::NO_ERRORS == tag_value)) {
+      id_tag = static_cast<FieldNumber>(id_number);
+      switch (id_tag) {
+      case FieldNumber::NOT_SET:
+        return_value = ::EmbeddedProto::Error::INVALID_FIELD_ID;
+        break;
+
+      default:
+        return_value = skip_unknown_field(buffer, wire_type);
+        break;
+      }
+
+      if (::EmbeddedProto::Error::NO_ERRORS == return_value) {
+        // Read the next tag.
+        tag_value = ::EmbeddedProto::WireFormatter::DeserializeTag(
+            buffer, wire_type, id_number);
+      }
+    }
+
+    // When an error was detect while reading the tag but no other errors where
+    // found, set it in the return value.
+    if ((::EmbeddedProto::Error::NO_ERRORS == return_value) &&
+        (::EmbeddedProto::Error::NO_ERRORS != tag_value) &&
+        (::EmbeddedProto::Error::END_OF_BUFFER !=
+         tag_value)) // The end of the buffer is not an array in this case.
+    {
+      return_value = tag_value;
+    }
+
+    return return_value;
+  };
+
+  void clear() override {}
+
+  static char const *field_number_to_name(const FieldNumber fieldNumber) {
+    char const *name = nullptr;
+    switch (fieldNumber) {
+    default:
+      name = "Invalid FieldNumber";
+      break;
+    }
+    return name;
+  }
+
+#ifdef MSG_TO_STRING
+
+  ::EmbeddedProto::string_view
+  to_string(::EmbeddedProto::string_view &str) const {
+    return this->to_string(str, 0, nullptr, true);
+  }
+
+  ::EmbeddedProto::string_view
+  to_string(::EmbeddedProto::string_view &str, const uint32_t indent_level,
+            char const *name, const bool first_field) const override {
+    ::EmbeddedProto::string_view left_chars = str;
+    int32_t n_chars_used = 0;
+
+    if (!first_field) {
+      // Add a comma behind the previous field.
+      n_chars_used = snprintf(left_chars.data, left_chars.size, ",\n");
+      if (0 < n_chars_used) {
+        // Update the character pointer and characters left in the array.
+        left_chars.data += n_chars_used;
+        left_chars.size -= n_chars_used;
+      }
+    }
+
+    if (nullptr != name) {
+      if (0 == indent_level) {
+        n_chars_used =
+            snprintf(left_chars.data, left_chars.size, "\"%s\": {\n", name);
+      } else {
+        n_chars_used = snprintf(left_chars.data, left_chars.size,
+                                "%*s\"%s\": {\n", indent_level, " ", name);
+      }
+    } else {
+      if (0 == indent_level) {
+        n_chars_used = snprintf(left_chars.data, left_chars.size, "{\n");
+      } else {
+        n_chars_used = snprintf(left_chars.data, left_chars.size, "%*s{\n",
+                                indent_level, " ");
+      }
+    }
+
+    if (0 < n_chars_used) {
+      left_chars.data += n_chars_used;
+      left_chars.size -= n_chars_used;
+    }
+
+    if (0 == indent_level) {
+      n_chars_used = snprintf(left_chars.data, left_chars.size, "\n}");
+    } else {
+      n_chars_used = snprintf(left_chars.data, left_chars.size, "\n%*s}",
+                              indent_level, " ");
+    }
+
+    if (0 < n_chars_used) {
+      left_chars.data += n_chars_used;
+      left_chars.size -= n_chars_used;
+    }
+
+    return left_chars;
+  }
+
+#endif // End of MSG_TO_STRING
+
+private:
+};
+
+class BackflushStop final : public ::EmbeddedProto::MessageInterface {
+public:
+  BackflushStop() = default;
+  BackflushStop(const BackflushStop &rhs) {}
+
+  BackflushStop(const BackflushStop &&rhs) noexcept {}
+
+  ~BackflushStop() override = default;
+
+  enum class FieldNumber : uint32_t {
+    NOT_SET = 0,
+  };
+
+  BackflushStop &operator=(const BackflushStop &rhs) { return *this; }
+
+  BackflushStop &operator=(const BackflushStop &&rhs) noexcept { return *this; }
+
+  ::EmbeddedProto::Error
+  serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
+    ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+
+    return return_value;
+  };
+
+  ::EmbeddedProto::Error
+  deserialize(::EmbeddedProto::ReadBufferInterface &buffer) override {
+    ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
+    ::EmbeddedProto::WireFormatter::WireType wire_type =
+        ::EmbeddedProto::WireFormatter::WireType::VARINT;
+    uint32_t id_number = 0;
+    FieldNumber id_tag = FieldNumber::NOT_SET;
+
+    ::EmbeddedProto::Error tag_value =
+        ::EmbeddedProto::WireFormatter::DeserializeTag(buffer, wire_type,
+                                                       id_number);
+    while ((::EmbeddedProto::Error::NO_ERRORS == return_value) &&
+           (::EmbeddedProto::Error::NO_ERRORS == tag_value)) {
+      id_tag = static_cast<FieldNumber>(id_number);
+      switch (id_tag) {
+      case FieldNumber::NOT_SET:
+        return_value = ::EmbeddedProto::Error::INVALID_FIELD_ID;
+        break;
+
+      default:
+        return_value = skip_unknown_field(buffer, wire_type);
+        break;
+      }
+
+      if (::EmbeddedProto::Error::NO_ERRORS == return_value) {
+        // Read the next tag.
+        tag_value = ::EmbeddedProto::WireFormatter::DeserializeTag(
+            buffer, wire_type, id_number);
+      }
+    }
+
+    // When an error was detect while reading the tag but no other errors where
+    // found, set it in the return value.
+    if ((::EmbeddedProto::Error::NO_ERRORS == return_value) &&
+        (::EmbeddedProto::Error::NO_ERRORS != tag_value) &&
+        (::EmbeddedProto::Error::END_OF_BUFFER !=
+         tag_value)) // The end of the buffer is not an array in this case.
+    {
+      return_value = tag_value;
+    }
+
+    return return_value;
+  };
+
+  void clear() override {}
+
+  static char const *field_number_to_name(const FieldNumber fieldNumber) {
+    char const *name = nullptr;
+    switch (fieldNumber) {
+    default:
+      name = "Invalid FieldNumber";
+      break;
+    }
+    return name;
+  }
+
+#ifdef MSG_TO_STRING
+
+  ::EmbeddedProto::string_view
+  to_string(::EmbeddedProto::string_view &str) const {
+    return this->to_string(str, 0, nullptr, true);
+  }
+
+  ::EmbeddedProto::string_view
+  to_string(::EmbeddedProto::string_view &str, const uint32_t indent_level,
+            char const *name, const bool first_field) const override {
+    ::EmbeddedProto::string_view left_chars = str;
+    int32_t n_chars_used = 0;
+
+    if (!first_field) {
+      // Add a comma behind the previous field.
+      n_chars_used = snprintf(left_chars.data, left_chars.size, ",\n");
+      if (0 < n_chars_used) {
+        // Update the character pointer and characters left in the array.
+        left_chars.data += n_chars_used;
+        left_chars.size -= n_chars_used;
+      }
+    }
+
+    if (nullptr != name) {
+      if (0 == indent_level) {
+        n_chars_used =
+            snprintf(left_chars.data, left_chars.size, "\"%s\": {\n", name);
+      } else {
+        n_chars_used = snprintf(left_chars.data, left_chars.size,
+                                "%*s\"%s\": {\n", indent_level, " ", name);
+      }
+    } else {
+      if (0 == indent_level) {
+        n_chars_used = snprintf(left_chars.data, left_chars.size, "{\n");
+      } else {
+        n_chars_used = snprintf(left_chars.data, left_chars.size, "%*s{\n",
+                                indent_level, " ");
+      }
+    }
+
+    if (0 < n_chars_used) {
+      left_chars.data += n_chars_used;
+      left_chars.size -= n_chars_used;
+    }
+
+    if (0 == indent_level) {
+      n_chars_used = snprintf(left_chars.data, left_chars.size, "\n}");
+    } else {
+      n_chars_used = snprintf(left_chars.data, left_chars.size, "\n%*s}",
+                              indent_level, " ");
+    }
+
+    if (0 < n_chars_used) {
+      left_chars.data += n_chars_used;
+      left_chars.size -= n_chars_used;
+    }
+
+    return left_chars;
+  }
+
+#endif // End of MSG_TO_STRING
+
+private:
+};
+
 template <uint32_t FloatSensorReading_error_LENGTH>
 class FloatSensorReading final : public ::EmbeddedProto::MessageInterface {
 public:
@@ -1915,6 +2207,14 @@ public:
       set_config(rhs.get_config());
       break;
 
+    case FieldNumber::BACKFLUSH_START:
+      set_backflush_start(rhs.get_backflush_start());
+      break;
+
+    case FieldNumber::BACKFLUSH_STOP:
+      set_backflush_stop(rhs.get_backflush_stop());
+      break;
+
     default:
       break;
     }
@@ -1964,6 +2264,14 @@ public:
       set_config(rhs.get_config());
       break;
 
+    case FieldNumber::BACKFLUSH_START:
+      set_backflush_start(rhs.get_backflush_start());
+      break;
+
+    case FieldNumber::BACKFLUSH_STOP:
+      set_backflush_stop(rhs.get_backflush_stop());
+      break;
+
     default:
       break;
     }
@@ -1982,7 +2290,9 @@ public:
     STOP_PUMP = 7,
     START_STEAM = 8,
     STOP_STEAM = 9,
-    CONFIG = 10
+    CONFIG = 10,
+    BACKFLUSH_START = 11,
+    BACKFLUSH_STOP = 12
   };
 
   Command &operator=(const Command &rhs) {
@@ -2027,6 +2337,14 @@ public:
 
     case FieldNumber::CONFIG:
       set_config(rhs.get_config());
+      break;
+
+    case FieldNumber::BACKFLUSH_START:
+      set_backflush_start(rhs.get_backflush_start());
+      break;
+
+    case FieldNumber::BACKFLUSH_STOP:
+      set_backflush_stop(rhs.get_backflush_stop());
       break;
 
     default:
@@ -2078,6 +2396,14 @@ public:
 
     case FieldNumber::CONFIG:
       set_config(rhs.get_config());
+      break;
+
+    case FieldNumber::BACKFLUSH_START:
+      set_backflush_start(rhs.get_backflush_start());
+      break;
+
+    case FieldNumber::BACKFLUSH_STOP:
+      set_backflush_stop(rhs.get_backflush_stop());
       break;
 
     default:
@@ -2408,6 +2734,76 @@ public:
   inline const Config &get_config() const { return command_oneof_.config_; }
   inline const Config &config() const { return command_oneof_.config_; }
 
+  static constexpr char const *BACKFLUSH_START_NAME = "backflush_start";
+  inline bool has_backflush_start() const {
+    return FieldNumber::BACKFLUSH_START == which_command_oneof_;
+  }
+  inline void clear_backflush_start() {
+    if (FieldNumber::BACKFLUSH_START == which_command_oneof_) {
+      which_command_oneof_ = FieldNumber::NOT_SET;
+      command_oneof_.backflush_start_.~BackflushStart();
+    }
+  }
+  inline void set_backflush_start(const BackflushStart &value) {
+    if (FieldNumber::BACKFLUSH_START != which_command_oneof_) {
+      init_command_oneof(FieldNumber::BACKFLUSH_START);
+    }
+    command_oneof_.backflush_start_ = value;
+  }
+  inline void set_backflush_start(const BackflushStart &&value) {
+    if (FieldNumber::BACKFLUSH_START != which_command_oneof_) {
+      init_command_oneof(FieldNumber::BACKFLUSH_START);
+    }
+    command_oneof_.backflush_start_ = value;
+  }
+  inline BackflushStart &mutable_backflush_start() {
+    if (FieldNumber::BACKFLUSH_START != which_command_oneof_) {
+      init_command_oneof(FieldNumber::BACKFLUSH_START);
+    }
+    return command_oneof_.backflush_start_;
+  }
+  inline const BackflushStart &get_backflush_start() const {
+    return command_oneof_.backflush_start_;
+  }
+  inline const BackflushStart &backflush_start() const {
+    return command_oneof_.backflush_start_;
+  }
+
+  static constexpr char const *BACKFLUSH_STOP_NAME = "backflush_stop";
+  inline bool has_backflush_stop() const {
+    return FieldNumber::BACKFLUSH_STOP == which_command_oneof_;
+  }
+  inline void clear_backflush_stop() {
+    if (FieldNumber::BACKFLUSH_STOP == which_command_oneof_) {
+      which_command_oneof_ = FieldNumber::NOT_SET;
+      command_oneof_.backflush_stop_.~BackflushStop();
+    }
+  }
+  inline void set_backflush_stop(const BackflushStop &value) {
+    if (FieldNumber::BACKFLUSH_STOP != which_command_oneof_) {
+      init_command_oneof(FieldNumber::BACKFLUSH_STOP);
+    }
+    command_oneof_.backflush_stop_ = value;
+  }
+  inline void set_backflush_stop(const BackflushStop &&value) {
+    if (FieldNumber::BACKFLUSH_STOP != which_command_oneof_) {
+      init_command_oneof(FieldNumber::BACKFLUSH_STOP);
+    }
+    command_oneof_.backflush_stop_ = value;
+  }
+  inline BackflushStop &mutable_backflush_stop() {
+    if (FieldNumber::BACKFLUSH_STOP != which_command_oneof_) {
+      init_command_oneof(FieldNumber::BACKFLUSH_STOP);
+    }
+    return command_oneof_.backflush_stop_;
+  }
+  inline const BackflushStop &get_backflush_stop() const {
+    return command_oneof_.backflush_stop_;
+  }
+  inline const BackflushStop &backflush_stop() const {
+    return command_oneof_.backflush_stop_;
+  }
+
   ::EmbeddedProto::Error
   serialize(::EmbeddedProto::WriteBufferInterface &buffer) const override {
     ::EmbeddedProto::Error return_value = ::EmbeddedProto::Error::NO_ERRORS;
@@ -2489,6 +2885,22 @@ public:
       }
       break;
 
+    case FieldNumber::BACKFLUSH_START:
+      if (has_backflush_start() &&
+          (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+        return_value = command_oneof_.backflush_start_.serialize_with_id(
+            static_cast<uint32_t>(FieldNumber::BACKFLUSH_START), buffer, true);
+      }
+      break;
+
+    case FieldNumber::BACKFLUSH_STOP:
+      if (has_backflush_stop() &&
+          (::EmbeddedProto::Error::NO_ERRORS == return_value)) {
+        return_value = command_oneof_.backflush_stop_.serialize_with_id(
+            static_cast<uint32_t>(FieldNumber::BACKFLUSH_STOP), buffer, true);
+      }
+      break;
+
     default:
       break;
     }
@@ -2524,6 +2936,8 @@ public:
       case FieldNumber::START_STEAM:
       case FieldNumber::STOP_STEAM:
       case FieldNumber::CONFIG:
+      case FieldNumber::BACKFLUSH_START:
+      case FieldNumber::BACKFLUSH_STOP:
         return_value = deserialize_command_oneof(id_tag, buffer, wire_type);
         break;
 
@@ -2593,6 +3007,12 @@ public:
       break;
     case FieldNumber::CONFIG:
       name = CONFIG_NAME;
+      break;
+    case FieldNumber::BACKFLUSH_START:
+      name = BACKFLUSH_START_NAME;
+      break;
+    case FieldNumber::BACKFLUSH_STOP:
+      name = BACKFLUSH_STOP_NAME;
       break;
     default:
       name = "Invalid FieldNumber";
@@ -2683,6 +3103,8 @@ private:
     StartSteam start_steam_;
     StopSteam stop_steam_;
     Config config_;
+    BackflushStart backflush_start_;
+    BackflushStop backflush_stop_;
   };
   command_oneof command_oneof_;
 
@@ -2731,6 +3153,14 @@ private:
       new (&command_oneof_.config_) Config;
       break;
 
+    case FieldNumber::BACKFLUSH_START:
+      new (&command_oneof_.backflush_start_) BackflushStart;
+      break;
+
+    case FieldNumber::BACKFLUSH_STOP:
+      new (&command_oneof_.backflush_stop_) BackflushStop;
+      break;
+
     default:
       break;
     }
@@ -2766,6 +3196,12 @@ private:
       break;
     case FieldNumber::CONFIG:
       ::EmbeddedProto::destroy_at(&command_oneof_.config_);
+      break;
+    case FieldNumber::BACKFLUSH_START:
+      ::EmbeddedProto::destroy_at(&command_oneof_.backflush_start_);
+      break;
+    case FieldNumber::BACKFLUSH_STOP:
+      ::EmbeddedProto::destroy_at(&command_oneof_.backflush_stop_);
       break;
     default:
       break;
@@ -2818,6 +3254,14 @@ private:
     case FieldNumber::CONFIG:
       return_value =
           command_oneof_.config_.deserialize_check_type(buffer, wire_type);
+      break;
+    case FieldNumber::BACKFLUSH_START:
+      return_value = command_oneof_.backflush_start_.deserialize_check_type(
+          buffer, wire_type);
+      break;
+    case FieldNumber::BACKFLUSH_STOP:
+      return_value = command_oneof_.backflush_stop_.deserialize_check_type(
+          buffer, wire_type);
       break;
     default:
       break;
@@ -2872,6 +3316,14 @@ private:
     case FieldNumber::CONFIG:
       left_chars = command_oneof_.config_.to_string(left_chars, indent_level,
                                                     CONFIG_NAME, first_field);
+      break;
+    case FieldNumber::BACKFLUSH_START:
+      left_chars = command_oneof_.backflush_start_.to_string(
+          left_chars, indent_level, BACKFLUSH_START_NAME, first_field);
+      break;
+    case FieldNumber::BACKFLUSH_STOP:
+      left_chars = command_oneof_.backflush_stop_.to_string(
+          left_chars, indent_level, BACKFLUSH_STOP_NAME, first_field);
       break;
     default:
       break;

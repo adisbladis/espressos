@@ -40,6 +40,12 @@ export interface StartSteam {
 export interface StopSteam {
 }
 
+export interface BackflushStart {
+}
+
+export interface BackflushStop {
+}
+
 export interface Command {
   /**
    * A unique client-generated request identifier.
@@ -56,7 +62,9 @@ export interface Command {
     | { $case: "stopPump"; stopPump: StopPump }
     | { $case: "startSteam"; startSteam: StartSteam }
     | { $case: "stopSteam"; stopSteam: StopSteam }
-    | { $case: "config"; config: Config };
+    | { $case: "config"; config: Config }
+    | { $case: "backflushStart"; backflushStart: BackflushStart }
+    | { $case: "backflushStop"; backflushStop: BackflushStop };
 }
 
 /** An envelope for an arbitrary sensor that returns a float with an optional error */
@@ -65,6 +73,7 @@ export interface FloatSensorReading {
 }
 
 export interface StateUpdate {
+  /** TODO: Communicate mode via an enum */
   isOn: boolean;
   isBrewing: boolean;
   isPumping: boolean;
@@ -503,6 +512,94 @@ export const StopSteam = {
   },
 };
 
+function createBaseBackflushStart(): BackflushStart {
+  return {};
+}
+
+export const BackflushStart = {
+  encode(_: BackflushStart, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BackflushStart {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBackflushStart();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): BackflushStart {
+    return {};
+  },
+
+  toJSON(_: BackflushStart): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BackflushStart>, I>>(base?: I): BackflushStart {
+    return BackflushStart.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<BackflushStart>, I>>(_: I): BackflushStart {
+    const message = createBaseBackflushStart();
+    return message;
+  },
+};
+
+function createBaseBackflushStop(): BackflushStop {
+  return {};
+}
+
+export const BackflushStop = {
+  encode(_: BackflushStop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): BackflushStop {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBackflushStop();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): BackflushStop {
+    return {};
+  },
+
+  toJSON(_: BackflushStop): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BackflushStop>, I>>(base?: I): BackflushStop {
+    return BackflushStop.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<BackflushStop>, I>>(_: I): BackflushStop {
+    const message = createBaseBackflushStop();
+    return message;
+  },
+};
+
 function createBaseCommand(): Command {
   return { requestId: new Uint8Array(), commandOneof: undefined };
 }
@@ -539,6 +636,12 @@ export const Command = {
         break;
       case "config":
         Config.encode(message.commandOneof.config, writer.uint32(82).fork()).ldelim();
+        break;
+      case "backflushStart":
+        BackflushStart.encode(message.commandOneof.backflushStart, writer.uint32(90).fork()).ldelim();
+        break;
+      case "backflushStop":
+        BackflushStop.encode(message.commandOneof.backflushStop, writer.uint32(98).fork()).ldelim();
         break;
     }
     return writer;
@@ -621,6 +724,26 @@ export const Command = {
 
           message.commandOneof = { $case: "config", config: Config.decode(reader, reader.uint32()) };
           continue;
+        case 11:
+          if (tag != 90) {
+            break;
+          }
+
+          message.commandOneof = {
+            $case: "backflushStart",
+            backflushStart: BackflushStart.decode(reader, reader.uint32()),
+          };
+          continue;
+        case 12:
+          if (tag != 98) {
+            break;
+          }
+
+          message.commandOneof = {
+            $case: "backflushStop",
+            backflushStop: BackflushStop.decode(reader, reader.uint32()),
+          };
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -651,6 +774,10 @@ export const Command = {
         ? { $case: "stopSteam", stopSteam: StopSteam.fromJSON(object.stopSteam) }
         : isSet(object.config)
         ? { $case: "config", config: Config.fromJSON(object.config) }
+        : isSet(object.backflushStart)
+        ? { $case: "backflushStart", backflushStart: BackflushStart.fromJSON(object.backflushStart) }
+        : isSet(object.backflushStop)
+        ? { $case: "backflushStop", backflushStop: BackflushStop.fromJSON(object.backflushStop) }
         : undefined,
     };
   },
@@ -678,6 +805,12 @@ export const Command = {
       (obj.stopSteam = message.commandOneof?.stopSteam ? StopSteam.toJSON(message.commandOneof?.stopSteam) : undefined);
     message.commandOneof?.$case === "config" &&
       (obj.config = message.commandOneof?.config ? Config.toJSON(message.commandOneof?.config) : undefined);
+    message.commandOneof?.$case === "backflushStart" && (obj.backflushStart = message.commandOneof?.backflushStart
+      ? BackflushStart.toJSON(message.commandOneof?.backflushStart)
+      : undefined);
+    message.commandOneof?.$case === "backflushStop" && (obj.backflushStop = message.commandOneof?.backflushStop
+      ? BackflushStop.toJSON(message.commandOneof?.backflushStop)
+      : undefined);
     return obj;
   },
 
@@ -753,6 +886,26 @@ export const Command = {
       object.commandOneof?.config !== null
     ) {
       message.commandOneof = { $case: "config", config: Config.fromPartial(object.commandOneof.config) };
+    }
+    if (
+      object.commandOneof?.$case === "backflushStart" &&
+      object.commandOneof?.backflushStart !== undefined &&
+      object.commandOneof?.backflushStart !== null
+    ) {
+      message.commandOneof = {
+        $case: "backflushStart",
+        backflushStart: BackflushStart.fromPartial(object.commandOneof.backflushStart),
+      };
+    }
+    if (
+      object.commandOneof?.$case === "backflushStop" &&
+      object.commandOneof?.backflushStop !== undefined &&
+      object.commandOneof?.backflushStop !== null
+    ) {
+      message.commandOneof = {
+        $case: "backflushStop",
+        backflushStop: BackflushStop.fromPartial(object.commandOneof.backflushStop),
+      };
     }
     return message;
   },

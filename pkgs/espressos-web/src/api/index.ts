@@ -69,6 +69,8 @@ export class APIClient {
       throw new Error(`socket not connected, status ${this.socket.readyState}`)
     }
 
+    console.log("Sending command", msg)
+
     const bytes = Command.encode(msg).finish()
     this.socket.send(bytes)
   }
@@ -130,6 +132,20 @@ export class APIClient {
     await this.sendCommand({
       requestId: mkRequestId(),
       commandOneof: { $case: "stopSteam", stopSteam: <StopSteam>{} },
+    })
+  }
+
+  async backflushStart(): Promise<void> {
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: { $case: "backflushStart", backflushStart: <BackflushStart>{} },
+    })
+  }
+
+  async backflushStop(): Promise<void>{
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: { $case: "backflushStop", backflushStop: <BackflushStop>{} },
     })
   }
 

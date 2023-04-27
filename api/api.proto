@@ -26,6 +26,9 @@ message StartSteam {
 }
 message StopSteam { }
 
+message BackflushStart { }
+message BackflushStop { }
+
 message Command {
   // A unique client-generated request identifier.
   // This will be embedded into a command response coming from the server
@@ -47,6 +50,9 @@ message Command {
 
     // Set the configuration
     Config config = 10;
+
+    BackflushStart backflush_start = 11;
+    BackflushStop backflush_stop = 12;
   }
 };
 
@@ -61,6 +67,7 @@ message FloatSensorReading {
 };
 
 message StateUpdate {
+  // TODO: Communicate mode via an enum
   bool is_on = 1;
   bool is_brewing = 2;
   bool is_pumping = 3;
