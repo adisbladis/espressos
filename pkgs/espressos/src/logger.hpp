@@ -8,7 +8,7 @@
 
 enum LogLevel { ERROR, INFO, DEBUG };
 
-const char *logLevelName(LogLevel level) {
+static const char *logLevelName(LogLevel level) {
   switch (level) {
   case LogLevel::ERROR:
     return "ERROR";
@@ -67,6 +67,6 @@ public:
   void add(Logger *logger) { loggers.push_back(logger); }
 };
 
-Logger *logger = new Logger();
+static Logger *logger = new Logger();
 
-void setLogger(Logger *l) { logger = l; }
+static void setLogger(Logger *l) { logger = l; }
