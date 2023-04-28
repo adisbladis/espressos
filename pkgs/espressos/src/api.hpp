@@ -172,10 +172,10 @@ public:
           send_event(PowerOffEvent());
           break;
         case Cmd_t::FieldNumber::START_BREW:
-          send_event(StartBrewEvent());
+          send_event(BrewStartEvent());
           break;
         case Cmd_t::FieldNumber::STOP_BREW:
-          send_event(StopBrewEvent());
+          send_event(BrewStopEvent());
           break;
         case Cmd_t::FieldNumber::START_PUMP:
           send_event(StartPumpEvent());

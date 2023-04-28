@@ -25,8 +25,6 @@ struct StartSteamEvent : tinyfsm::Event {
 
 struct PanicEvent : tinyfsm::Event {};
 struct PowerOffEvent : tinyfsm::Event {};
-struct StartBrewEvent : tinyfsm::Event {};
-struct StopBrewEvent : tinyfsm::Event {};
 struct StartPumpEvent : tinyfsm::Event {};
 struct StopPumpEvent : tinyfsm::Event {};
 struct StopSteamEvent : tinyfsm::Event {};
@@ -45,11 +43,11 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(PowerOnEvent const &) {
     logger->log(LogLevel::DEBUG, "PowerOnEvent ignored");
   };
-  virtual void react(StartBrewEvent const &) {
-    logger->log(LogLevel::DEBUG, "StartBrewEvent ignored");
+  virtual void react(BrewStartEvent const &) {
+    logger->log(LogLevel::DEBUG, "BrewStartEvent ignored");
   };
-  virtual void react(StopBrewEvent const &) {
-    logger->log(LogLevel::DEBUG, "StopBrewEvent ignored");
+  virtual void react(BrewStopEvent const &) {
+    logger->log(LogLevel::DEBUG, "BrewStopEvent ignored");
   };
   virtual void react(StartPumpEvent const &) {
     logger->log(LogLevel::DEBUG, "StartPumpEvent ignored");

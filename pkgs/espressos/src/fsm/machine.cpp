@@ -48,7 +48,7 @@ class Idle : public MachineState {
     transit<Idle>();
   }
 
-  void react(StartBrewEvent const &e) override {
+  void react(BrewStartEvent const &e) override {
     logger->log(LogLevel::DEBUG, "Entering brew state");
     transit<Brewing>();
   }
@@ -74,7 +74,7 @@ class Idle : public MachineState {
 // Brewing - We're actively brewing a cup
 class Brewing : public MachineState {
   MachineMode getMode() override { return MachineMode::BREWING; };
-  void react(StopBrewEvent const &e) override { transit<Idle>(); }
+  void react(BrewStopEvent const &e) override { transit<Idle>(); }
 
 public:
   PinStatus getSolenoid() override { return HIGH; }
@@ -159,7 +159,6 @@ void MachineState::react(PanicEvent const &e) {
 
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;
-long MachineState::stateUpdateInterval = STATE_UPDATE_INTERVAL;
 unsigned long Steaming::timeout = 0;
 
 /* Initial state */

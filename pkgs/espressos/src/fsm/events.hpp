@@ -8,3 +8,6 @@ struct LoopEvent : tinyfsm::Event {
 
 struct BackflushStartEvent : tinyfsm::Event {};
 struct BackflushStopEvent : tinyfsm::Event {};
+
+struct BrewStartEvent : tinyfsm::Event {};
+struct BrewStopEvent : tinyfsm::Event {};
