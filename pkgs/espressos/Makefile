@@ -9,5 +9,5 @@ build:
 	pio run
 
 generate:
+	@mkdir -p src/proto
 	protoc -I ../../api --eams_out=src/proto ../../api/*.proto
-	clang-format -i src/proto/*.h
