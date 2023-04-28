@@ -1,5 +1,11 @@
 #pragma once
 
+#include <vector>
+#include <functional>
+#include <memory>
+
+#include <iostream>
+
 // Provides a mechanism to watch variables emited by functions and
 // run a callback function on change.
 class Effects {
@@ -9,13 +15,13 @@ private:
 public:
   template <typename T>
   void createEffect(std::function<T()> cause, std::function<void(T)> effect) {
-    static T value = cause();
-    effect(value);
+    std::shared_ptr<T> value = std::make_shared<T>(cause());
+    effect(*value);
 
-    effects.push_back([cause, effect]() {
+    effects.push_back([cause ,effect, value]() mutable {
       T v = cause();
-      if (value != v) {
-        value = v;
+      if (*value != v) {
+        *value = v;
         effect(v);
       }
     });
