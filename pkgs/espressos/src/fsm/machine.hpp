@@ -86,9 +86,8 @@ protected:
 
 public:
   int getSetPoint() { return setpoint; };
-  long getStateUpdateInterval() { return stateUpdateInterval; };
   virtual PinStatus getSolenoid() { return LOW; }
   virtual uint8_t getPump() { return 0; }
-
+  virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
   virtual MachineMode getMode() { return MachineMode::UNKNOWN; };
 };

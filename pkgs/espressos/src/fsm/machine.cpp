@@ -74,26 +74,21 @@ class Idle : public MachineState {
 // Brewing - We're actively brewing a cup
 class Brewing : public MachineState {
   MachineMode getMode() override { return MachineMode::BREWING; };
-
-  void entry() override { stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW; }
-
-  void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
-
   void react(StopBrewEvent const &e) override { transit<Idle>(); }
 
 public:
   PinStatus getSolenoid() override { return HIGH; }
   uint8_t getPump() override { return 255; }
+  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 };
 
 class Backflushing : public MachineState {
-  void entry() override { stateUpdateInterval = STATE_UPDATE_INTERVAL_BREW; }
-  void exit() override { stateUpdateInterval = STATE_UPDATE_INTERVAL; };
-
   void react(BackflushStopEvent const &e) override { transit<Idle>(); }
 
 public:
   MachineMode getMode() override { return MachineMode::BACKFLUSHING; };
+
+  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 
   PinStatus getSolenoid() override {
     if (BackflushState::current_state_ptr->active()) {
