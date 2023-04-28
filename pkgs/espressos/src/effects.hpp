@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <functional>
 #include <memory>
+#include <vector>
 
 #include <iostream>
 
@@ -18,7 +18,7 @@ public:
     std::shared_ptr<T> value = std::make_shared<T>(cause());
     effect(*value);
 
-    effects.push_back([cause ,effect, value]() mutable {
+    effects.push_back([cause, effect, value]() mutable {
       T v = cause();
       if (*value != v) {
         *value = v;
