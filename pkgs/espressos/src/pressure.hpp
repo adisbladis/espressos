@@ -25,7 +25,7 @@ public:
     floor = (1024 - (1024 * sensorRange)) / 2;
     ceil = 1024 - floor;
   };
-  // TODO: Return wrapper taking hardware errors into account
+
   PressureSensorResultRaw_t ReadRaw() {
     PressureSensorResultRaw_t result;
 
