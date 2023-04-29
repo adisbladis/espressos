@@ -8,8 +8,8 @@
 class BrewState : public tinyfsm::Fsm<BrewState> {
   friend class tinyfsm::Fsm<BrewState>;
 
-  virtual void entry(void){}; // entry actions in some states
-  virtual void exit(void){};  // exit actions in some states
+  virtual void entry(void){};
+  virtual void exit(void){};
 
   virtual void react(LoopEvent const &){};
 
@@ -20,4 +20,15 @@ class BrewState : public tinyfsm::Fsm<BrewState> {
   virtual void react(BrewStartEvent const &) {
     logger->log(LogLevel::DEBUG, "Ignored BrewStartEvent");
   };
+  void react(BrewStopEvent const &);
+
+protected:
+  // Shot start timestamp.
+  // This is normally created by millis()
+  static unsigned long shotStartTime;
+
+  // Shot stop timestamp.
+  // This is normally created by millis()
+  // Note that during the shot this will be set to 0
+  static unsigned long shotStopTime;
 };

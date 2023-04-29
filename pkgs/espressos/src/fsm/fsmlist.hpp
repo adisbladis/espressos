@@ -1,8 +1,8 @@
 #pragma once
 
 #include "backflush.hpp"
-#include "machine.hpp"
 #include "brew.hpp"
+#include "machine.hpp"
 #include <tinyfsm.hpp>
 
 using fsm_list = tinyfsm::FsmList<MachineState, BackflushState, BrewState>;

@@ -172,10 +172,14 @@ public:
           send_event(PowerOffEvent());
           break;
         case Cmd_t::FieldNumber::START_BREW:
-          send_event(BrewStartEvent());
+          BrewStartEvent brewStartEvent;
+          brewStartEvent.timestamp = millis();
+          send_event(brewStartEvent);
           break;
         case Cmd_t::FieldNumber::STOP_BREW:
-          send_event(BrewStopEvent());
+          BrewStopEvent brewStopEvent;
+          brewStopEvent.timestamp = millis();
+          send_event(brewStopEvent);
           break;
         case Cmd_t::FieldNumber::START_PUMP:
           send_event(StartPumpEvent());
