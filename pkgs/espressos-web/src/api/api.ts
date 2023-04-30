@@ -142,12 +142,17 @@ export interface FloatSensorReading {
 }
 
 /**
- * The shot timer requires the caller to do a bit of maths to get the actual shot time in seconds
- * if (StateUpdate.mode == MachineMode.BREWING) {
- *   return<2
- * } else {
+ * The shot timer requires the caller to do a bit of maths to get the actual
+ * shot time in milliseconds:
  *
+ * if (StateUpdate.mode == MachineMode.BREWING) {
+ *   return (StateUpdate.millis - ShotTimer.start)
+ * } else {
+ *   return (ShotTimer.stop - ShotTimer.start)
  * }
+ *
+ * Start/Stop could also be used together with StateUpdate.millis to establish
+ * _when_ the last shot was pulled.
  */
 export interface ShotTimer {
   start: number;
@@ -170,6 +175,7 @@ export interface StateUpdate {
    * This number can also be used to display the uptime of the machine.
    */
   millis: number;
+  shotTimer: ShotTimer | undefined;
 }
 
 export interface LogMessage {
@@ -1160,7 +1166,7 @@ export const ShotTimer = {
 };
 
 function createBaseStateUpdate(): StateUpdate {
-  return { mode: 0, boilerTemp: undefined, pressure: undefined, setpoint: 0, millis: 0 };
+  return { mode: 0, boilerTemp: undefined, pressure: undefined, setpoint: 0, millis: 0, shotTimer: undefined };
 }
 
 export const StateUpdate = {
@@ -1179,6 +1185,9 @@ export const StateUpdate = {
     }
     if (message.millis !== 0) {
       writer.uint32(40).uint32(message.millis);
+    }
+    if (message.shotTimer !== undefined) {
+      ShotTimer.encode(message.shotTimer, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1225,6 +1234,13 @@ export const StateUpdate = {
 
           message.millis = reader.uint32();
           continue;
+        case 6:
+          if (tag != 50) {
+            break;
+          }
+
+          message.shotTimer = ShotTimer.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -1241,6 +1257,7 @@ export const StateUpdate = {
       pressure: isSet(object.pressure) ? FloatSensorReading.fromJSON(object.pressure) : undefined,
       setpoint: isSet(object.setpoint) ? Number(object.setpoint) : 0,
       millis: isSet(object.millis) ? Number(object.millis) : 0,
+      shotTimer: isSet(object.shotTimer) ? ShotTimer.fromJSON(object.shotTimer) : undefined,
     };
   },
 
@@ -1253,6 +1270,8 @@ export const StateUpdate = {
       (obj.pressure = message.pressure ? FloatSensorReading.toJSON(message.pressure) : undefined);
     message.setpoint !== undefined && (obj.setpoint = Math.round(message.setpoint));
     message.millis !== undefined && (obj.millis = Math.round(message.millis));
+    message.shotTimer !== undefined &&
+      (obj.shotTimer = message.shotTimer ? ShotTimer.toJSON(message.shotTimer) : undefined);
     return obj;
   },
 
@@ -1271,6 +1290,9 @@ export const StateUpdate = {
       : undefined;
     message.setpoint = object.setpoint ?? 0;
     message.millis = object.millis ?? 0;
+    message.shotTimer = (object.shotTimer !== undefined && object.shotTimer !== null)
+      ? ShotTimer.fromPartial(object.shotTimer)
+      : undefined;
     return message;
   },
 };

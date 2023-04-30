@@ -103,6 +103,20 @@ const App: Component = () => {
     }
   });
 
+  const shotTimer = createMemo(() => {
+    if (!state.shotTimer) {
+      return
+    }
+
+    const shotMs = state.mode == MachineMode.BREWING ? (state.millis - state.shotTimer.start) : (state.shotTimer.stop - state.shotTimer.start);
+    const minutes = Math.floor(shotMs / 60000);
+    const seconds = ((shotMs % 60000) / 1000).toFixed(1);
+
+    const s = minutes ? `${minutes}m` : ""
+
+    return s + (s ? " " : "") + `${seconds}s`
+  })
+
   return (
     <>
       <div class="flex">
@@ -116,8 +130,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.BREWING
-                  ? client.stopBrew()
-                  : client.startBrew()
+                ? client.stopBrew()
+                : client.startBrew()
               }
             >
               {Symbols.BREWING}
@@ -127,8 +141,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.PUMPING
-                  ? client.stopPump()
-                  : client.startPump()
+                ? client.stopPump()
+                : client.startPump()
               }
             >
               {Symbols.PUMPING}
@@ -140,8 +154,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.STEAMING
-                  ? client.stopSteam()
-                  : client.startSteam(config.steamSetPoint)
+                ? client.stopSteam()
+                : client.startSteam(config.steamSetPoint)
               }
             >
               {Symbols.STEAMING}
@@ -151,8 +165,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
-                  ? client.powerOff()
-                  : client.powerOn(config.setpoint)
+                ? client.powerOff()
+                : client.powerOn(config.setpoint)
               }
             >
               {Symbols.POWER}
@@ -258,6 +272,11 @@ const App: Component = () => {
                       }
                     })()}
                   </li>
+
+                  <li>
+                    Timer: {shotTimer}
+                  </li>
+
                 </ul>
               </div>
             </div>

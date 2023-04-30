@@ -84,14 +84,6 @@ void setup() {
           apiServer.broadcastState();
         });
 
-    // Set mode in API server
-    apiEffects.createEffect<MachineMode>(
-        []() { return MachineState::current_state_ptr->getMode(); },
-        [](MachineMode mode) {
-          apiServer.setMachineMode(mode);
-          apiServer.broadcastState();
-        });
-
     // Set boiler temp in API server
     apiEffects.createEffect<TempReading>(
         []() { return boiler.getTemp(); },
@@ -119,6 +111,14 @@ void setup() {
         },
         [](long updateInterval) {
           apiServer.setStateUpdateInterval(updateInterval);
+        });
+
+    // Set mode in API server
+    apiEffects.createEffect<MachineMode>(
+        []() { return MachineState::current_state_ptr->getMode(); },
+        [](MachineMode mode) {
+          apiServer.setMachineMode(mode);
+          apiServer.broadcastState();
         });
 
     pConfig->setup();
