@@ -146,6 +146,17 @@ export interface StateUpdate {
   boilerTemp: FloatSensorReading | undefined;
   pressure: FloatSensorReading | undefined;
   setpoint: number;
+  /**
+   * Current time of machine since startup in milliseconds
+   * as returned by the Arduino function millis().
+   *
+   * This is intended to be used for a client to synchronise time with
+   * the server so it can make sense of things like shot timers
+   * which aren't expressed as a straight up count but as timestamps.
+   *
+   * This number can also be used to display the uptime of the machine.
+   */
+  millis: number;
 }
 
 export interface LogMessage {
@@ -1065,7 +1076,7 @@ export const FloatSensorReading = {
 };
 
 function createBaseStateUpdate(): StateUpdate {
-  return { mode: 0, boilerTemp: undefined, pressure: undefined, setpoint: 0 };
+  return { mode: 0, boilerTemp: undefined, pressure: undefined, setpoint: 0, millis: 0 };
 }
 
 export const StateUpdate = {
@@ -1081,6 +1092,9 @@ export const StateUpdate = {
     }
     if (message.setpoint !== 0) {
       writer.uint32(32).int32(message.setpoint);
+    }
+    if (message.millis !== 0) {
+      writer.uint32(40).uint32(message.millis);
     }
     return writer;
   },
@@ -1120,6 +1134,13 @@ export const StateUpdate = {
 
           message.setpoint = reader.int32();
           continue;
+        case 5:
+          if (tag != 40) {
+            break;
+          }
+
+          message.millis = reader.uint32();
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -1135,6 +1156,7 @@ export const StateUpdate = {
       boilerTemp: isSet(object.boilerTemp) ? FloatSensorReading.fromJSON(object.boilerTemp) : undefined,
       pressure: isSet(object.pressure) ? FloatSensorReading.fromJSON(object.pressure) : undefined,
       setpoint: isSet(object.setpoint) ? Number(object.setpoint) : 0,
+      millis: isSet(object.millis) ? Number(object.millis) : 0,
     };
   },
 
@@ -1146,6 +1168,7 @@ export const StateUpdate = {
     message.pressure !== undefined &&
       (obj.pressure = message.pressure ? FloatSensorReading.toJSON(message.pressure) : undefined);
     message.setpoint !== undefined && (obj.setpoint = Math.round(message.setpoint));
+    message.millis !== undefined && (obj.millis = Math.round(message.millis));
     return obj;
   },
 
@@ -1163,6 +1186,7 @@ export const StateUpdate = {
       ? FloatSensorReading.fromPartial(object.pressure)
       : undefined;
     message.setpoint = object.setpoint ?? 0;
+    message.millis = object.millis ?? 0;
     return message;
   },
 };

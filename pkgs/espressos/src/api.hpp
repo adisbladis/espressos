@@ -308,8 +308,11 @@ public:
       return;
     }
 
-    event.clear_request_id();
+    event.clear();
+
+    stateUpdateMessage.set_millis(millis());
     event.set_state_update(stateUpdateMessage);
+
     broadcastEvent();
   };
 };

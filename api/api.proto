@@ -82,6 +82,16 @@ message StateUpdate {
   FloatSensorReading boilerTemp = 2;
   FloatSensorReading pressure = 3;
   int32 setpoint = 4;
+
+  // Current time of machine since startup in milliseconds
+  // as returned by the Arduino function millis().
+  //
+  // This is intended to be used for a client to synchronise time with
+  // the server so it can make sense of things like shot timers
+  // which aren't expressed as a straight up count but as timestamps.
+  //
+  // This number can also be used to display the uptime of the machine.
+  uint32 millis = 5;
 }
 
 message LogMessage {
