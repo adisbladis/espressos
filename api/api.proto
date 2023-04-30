@@ -77,6 +77,22 @@ enum MachineMode {
   STEAMING = 7;
 }
 
+// The shot timer requires the caller to do a bit of maths to get the actual
+// shot time in milliseconds:
+//
+// if (StateUpdate.mode == MachineMode.BREWING) {
+//   return (StateUpdate.millis - ShotTimer.start)
+// } else {
+//   return (ShotTimer.stop - ShotTimer.start)
+// }
+//
+// Start/Stop could also be used together with StateUpdate.millis to establish
+// _when_ the last shot was pulled.
+message ShotTimer {
+  uint32 start = 1;
+  uint32 stop = 2;
+}
+
 message StateUpdate {
   MachineMode mode = 1;
   FloatSensorReading boilerTemp = 2;
@@ -92,6 +108,8 @@ message StateUpdate {
   //
   // This number can also be used to display the uptime of the machine.
   uint32 millis = 5;
+
+  ShotTimer shot_timer = 6;
 }
 
 message LogMessage {

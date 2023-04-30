@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <tinyfsm.hpp>
 
 #include "../logger.hpp"
@@ -31,4 +32,8 @@ protected:
   // This is normally created by millis()
   // Note that during the shot this will be set to 0
   static unsigned long shotStopTime;
+
+public:
+  uint32_t getShotStartTime() { return shotStartTime; };
+  uint32_t getShotStopTime() { return shotStopTime; };
 };

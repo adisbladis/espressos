@@ -9,6 +9,7 @@
 #include "cachedpin.hpp"
 #include "config.hpp"
 #include "effects.hpp"
+#include "fsm/brew.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
 #include "logger.hpp"
@@ -102,6 +103,14 @@ void setup() {
         [](PressureSensorResult_t pressure) {
           apiServer.setPressure(pressure);
         });
+
+    apiEffects.createEffect<uint32_t>(
+        []() { return BrewState::current_state_ptr->getShotStartTime(); },
+        [](uint32_t ts) { apiServer.setShotTimerStart(ts); });
+
+    apiEffects.createEffect<uint32_t>(
+        []() { return BrewState::current_state_ptr->getShotStopTime(); },
+        [](uint32_t ts) { apiServer.setShotTimerStop(ts); });
 
     // Set state update interval
     apiEffects.createEffect<long>(

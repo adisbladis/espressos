@@ -219,6 +219,18 @@ public:
     this->stateUpdateMessage.set_setpoint(setpoint);
   }
 
+  void setShotTimerStart(uint32_t timestamp) {
+    auto shotTimer = this->stateUpdateMessage.mutable_shot_timer();
+    shotTimer.set_start(timestamp);
+    this->stateUpdateMessage.set_shot_timer(shotTimer);
+  }
+
+  void setShotTimerStop(uint32_t timestamp) {
+    auto shotTimer = this->stateUpdateMessage.mutable_shot_timer();
+    shotTimer.set_stop(timestamp);
+    this->stateUpdateMessage.set_shot_timer(shotTimer);
+  }
+
   void setMachineMode(MachineMode mode) {
     this->stateUpdateMessage.set_mode(mode);
   }

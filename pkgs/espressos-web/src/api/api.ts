@@ -141,6 +141,19 @@ export interface FloatSensorReading {
   valueOrError?: { $case: "value"; value: number } | { $case: "error"; error: string };
 }
 
+/**
+ * The shot timer requires the caller to do a bit of maths to get the actual shot time in seconds
+ * if (StateUpdate.mode == MachineMode.BREWING) {
+ *   return<2
+ * } else {
+ *
+ * }
+ */
+export interface ShotTimer {
+  start: number;
+  stop: number;
+}
+
 export interface StateUpdate {
   mode: MachineMode;
   boilerTemp: FloatSensorReading | undefined;
@@ -1071,6 +1084,77 @@ export const FloatSensorReading = {
     ) {
       message.valueOrError = { $case: "error", error: object.valueOrError.error };
     }
+    return message;
+  },
+};
+
+function createBaseShotTimer(): ShotTimer {
+  return { start: 0, stop: 0 };
+}
+
+export const ShotTimer = {
+  encode(message: ShotTimer, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.start !== 0) {
+      writer.uint32(8).uint32(message.start);
+    }
+    if (message.stop !== 0) {
+      writer.uint32(16).uint32(message.stop);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ShotTimer {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShotTimer();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.start = reader.uint32();
+          continue;
+        case 2:
+          if (tag != 16) {
+            break;
+          }
+
+          message.stop = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ShotTimer {
+    return {
+      start: isSet(object.start) ? Number(object.start) : 0,
+      stop: isSet(object.stop) ? Number(object.stop) : 0,
+    };
+  },
+
+  toJSON(message: ShotTimer): unknown {
+    const obj: any = {};
+    message.start !== undefined && (obj.start = Math.round(message.start));
+    message.stop !== undefined && (obj.stop = Math.round(message.stop));
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ShotTimer>, I>>(base?: I): ShotTimer {
+    return ShotTimer.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ShotTimer>, I>>(object: I): ShotTimer {
+    const message = createBaseShotTimer();
+    message.start = object.start ?? 0;
+    message.stop = object.stop ?? 0;
     return message;
   },
 };
