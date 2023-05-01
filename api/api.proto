@@ -29,6 +29,9 @@ message StopSteam { }
 message BackflushStart { }
 message BackflushStop { }
 
+message RinseStart { }
+message RinseStop { }
+
 message Command {
   // A unique client-generated request identifier.
   // This will be embedded into a command response coming from the server
@@ -53,6 +56,9 @@ message Command {
 
     BackflushStart backflush_start = 11;
     BackflushStop backflush_stop = 12;
+
+    RinseStart rinse_start = 13;
+    RinseStop rinse_stop = 14;
   }
 };
 
@@ -75,6 +81,7 @@ enum MachineMode {
   BACKFLUSHING = 5;
   PUMPING = 6;
   STEAMING = 7;
+  RINSING = 8;
 }
 
 // The shot timer requires the caller to do a bit of maths to get the actual

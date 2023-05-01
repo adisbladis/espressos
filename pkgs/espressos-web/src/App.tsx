@@ -19,6 +19,7 @@ const Symbols = {
   SETTINGS: "⚙️",
   INFO: "ℹ️",
   BACKFLUSHING: "🧹",
+  RINSING: "💦",
 };
 
 const client = new APIClient(
@@ -197,6 +198,12 @@ const App: Component = () => {
               onClick={() => client.backflushStart()}
             >
               {Symbols.BACKFLUSHING}
+            </button>
+            <button
+              class="btn m-1 btn-lg"
+              onClick={() => client.rinseStart()}
+            >
+              {Symbols.RINSING}
             </button>
           </div>
 

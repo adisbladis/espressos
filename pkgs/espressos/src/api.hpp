@@ -2,6 +2,7 @@
 #include "boiler.hpp"
 #include "config.hpp"
 #include "fsm/events.hpp"
+#include "fsm/rinse.hpp"
 #include "pressure.hpp"
 #include "proto/api.h"
 #include "websocket.hpp"
@@ -202,6 +203,14 @@ public:
           break;
         case Cmd_t::FieldNumber::BACKFLUSH_STOP:
           send_event(BackflushStopEvent());
+          break;
+        case Cmd_t::FieldNumber::RINSE_START:
+          RinseStartEvent rinseStartEvent;
+          rinseStartEvent.timestamp = millis();
+          send_event(rinseStartEvent);
+          break;
+        case Cmd_t::FieldNumber::RINSE_STOP:
+          send_event(RinseStopEvent());
           break;
         default:
           logger->log(LogLevel::ERROR, "Logic error: Unhandled switch case");

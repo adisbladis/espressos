@@ -149,4 +149,17 @@ export class APIClient {
     })
   }
 
+  async rinseStart(): Promise<void> {
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: { $case: "rinseStart", rinseStart: <RinseStart>{} },
+    })
+  }
+
+  async rinseStop(): Promise<void>{
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: { $case: "rinseStop", rinseStop: <RinseStop>{} },
+    })
+  }
 }

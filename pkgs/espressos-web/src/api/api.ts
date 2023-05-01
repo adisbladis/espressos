@@ -115,6 +115,12 @@ export interface BackflushStart {
 export interface BackflushStop {
 }
 
+export interface RinseStart {
+}
+
+export interface RinseStop {
+}
+
 export interface Command {
   /**
    * A unique client-generated request identifier.
@@ -133,7 +139,9 @@ export interface Command {
     | { $case: "stopSteam"; stopSteam: StopSteam }
     | { $case: "config"; config: Config }
     | { $case: "backflushStart"; backflushStart: BackflushStart }
-    | { $case: "backflushStop"; backflushStop: BackflushStop };
+    | { $case: "backflushStop"; backflushStop: BackflushStop }
+    | { $case: "rinseStart"; rinseStart: RinseStart }
+    | { $case: "rinseStop"; rinseStop: RinseStop };
 }
 
 /** An envelope for an arbitrary sensor that returns a float with an optional error */
@@ -695,6 +703,94 @@ export const BackflushStop = {
   },
 };
 
+function createBaseRinseStart(): RinseStart {
+  return {};
+}
+
+export const RinseStart = {
+  encode(_: RinseStart, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RinseStart {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRinseStart();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): RinseStart {
+    return {};
+  },
+
+  toJSON(_: RinseStart): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RinseStart>, I>>(base?: I): RinseStart {
+    return RinseStart.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<RinseStart>, I>>(_: I): RinseStart {
+    const message = createBaseRinseStart();
+    return message;
+  },
+};
+
+function createBaseRinseStop(): RinseStop {
+  return {};
+}
+
+export const RinseStop = {
+  encode(_: RinseStop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RinseStop {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRinseStop();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): RinseStop {
+    return {};
+  },
+
+  toJSON(_: RinseStop): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RinseStop>, I>>(base?: I): RinseStop {
+    return RinseStop.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<RinseStop>, I>>(_: I): RinseStop {
+    const message = createBaseRinseStop();
+    return message;
+  },
+};
+
 function createBaseCommand(): Command {
   return { requestId: new Uint8Array(), commandOneof: undefined };
 }
@@ -737,6 +833,12 @@ export const Command = {
         break;
       case "backflushStop":
         BackflushStop.encode(message.commandOneof.backflushStop, writer.uint32(98).fork()).ldelim();
+        break;
+      case "rinseStart":
+        RinseStart.encode(message.commandOneof.rinseStart, writer.uint32(106).fork()).ldelim();
+        break;
+      case "rinseStop":
+        RinseStop.encode(message.commandOneof.rinseStop, writer.uint32(114).fork()).ldelim();
         break;
     }
     return writer;
@@ -839,6 +941,20 @@ export const Command = {
             backflushStop: BackflushStop.decode(reader, reader.uint32()),
           };
           continue;
+        case 13:
+          if (tag != 106) {
+            break;
+          }
+
+          message.commandOneof = { $case: "rinseStart", rinseStart: RinseStart.decode(reader, reader.uint32()) };
+          continue;
+        case 14:
+          if (tag != 114) {
+            break;
+          }
+
+          message.commandOneof = { $case: "rinseStop", rinseStop: RinseStop.decode(reader, reader.uint32()) };
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -873,6 +989,10 @@ export const Command = {
         ? { $case: "backflushStart", backflushStart: BackflushStart.fromJSON(object.backflushStart) }
         : isSet(object.backflushStop)
         ? { $case: "backflushStop", backflushStop: BackflushStop.fromJSON(object.backflushStop) }
+        : isSet(object.rinseStart)
+        ? { $case: "rinseStart", rinseStart: RinseStart.fromJSON(object.rinseStart) }
+        : isSet(object.rinseStop)
+        ? { $case: "rinseStop", rinseStop: RinseStop.fromJSON(object.rinseStop) }
         : undefined,
     };
   },
@@ -906,6 +1026,11 @@ export const Command = {
     message.commandOneof?.$case === "backflushStop" && (obj.backflushStop = message.commandOneof?.backflushStop
       ? BackflushStop.toJSON(message.commandOneof?.backflushStop)
       : undefined);
+    message.commandOneof?.$case === "rinseStart" && (obj.rinseStart = message.commandOneof?.rinseStart
+      ? RinseStart.toJSON(message.commandOneof?.rinseStart)
+      : undefined);
+    message.commandOneof?.$case === "rinseStop" &&
+      (obj.rinseStop = message.commandOneof?.rinseStop ? RinseStop.toJSON(message.commandOneof?.rinseStop) : undefined);
     return obj;
   },
 
@@ -1001,6 +1126,23 @@ export const Command = {
         $case: "backflushStop",
         backflushStop: BackflushStop.fromPartial(object.commandOneof.backflushStop),
       };
+    }
+    if (
+      object.commandOneof?.$case === "rinseStart" &&
+      object.commandOneof?.rinseStart !== undefined &&
+      object.commandOneof?.rinseStart !== null
+    ) {
+      message.commandOneof = {
+        $case: "rinseStart",
+        rinseStart: RinseStart.fromPartial(object.commandOneof.rinseStart),
+      };
+    }
+    if (
+      object.commandOneof?.$case === "rinseStop" &&
+      object.commandOneof?.rinseStop !== undefined &&
+      object.commandOneof?.rinseStop !== null
+    ) {
+      message.commandOneof = { $case: "rinseStop", rinseStop: RinseStop.fromPartial(object.commandOneof.rinseStop) };
     }
     return message;
   },

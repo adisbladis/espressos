@@ -7,6 +7,7 @@
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
+#include "rinse.hpp"
 
 /* Forward declarations */
 class Idle;
@@ -66,6 +67,12 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   };
   virtual void react(BackflushStopEvent const &) {
     logger->log(LogLevel::DEBUG, "BackflushStopEvent ignored");
+  };
+  virtual void react(RinseStartEvent const &) {
+    logger->log(LogLevel::DEBUG, "RinseStartEvent ignored");
+  };
+  virtual void react(RinseStopEvent const &) {
+    logger->log(LogLevel::DEBUG, "RinseStopEvent ignored");
   };
 
   virtual void entry(void){}; // entry actions in some states

@@ -30,11 +30,11 @@ static PersistedConfig *pConfig = new PersistedConfig();
 static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
 
 // Watch variables for change and propagate to hardware/API
-Effects effects;
-Effects apiEffects;
+static Effects effects;
+static Effects apiEffects;
 
 // Re-use loop event on every iteration
-LoopEvent loopEvent;
+static LoopEvent loopEvent;
 
 void setup() {
   // Turn on board power LED

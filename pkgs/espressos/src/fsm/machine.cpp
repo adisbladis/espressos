@@ -4,6 +4,7 @@
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
+#include "rinse.hpp"
 
 /* Forward declarations */
 class Idle;
@@ -12,6 +13,7 @@ class Brewing;
 class Pumping;
 class Steaming;
 class Backflushing;
+class Rinsing;
 
 /* Machine states */
 
@@ -69,6 +71,11 @@ class Idle : public MachineState {
     logger->log(LogLevel::DEBUG, "Starting backflush");
     transit<Backflushing>();
   }
+
+  void react(RinseStartEvent const &e) override {
+    logger->log(LogLevel::DEBUG, "Starting rinse");
+    transit<Rinsing>();
+  }
 };
 
 // Brewing - We're actively brewing a cup
@@ -100,6 +107,31 @@ public:
 
   uint8_t getPump() override {
     if (BackflushState::current_state_ptr->active()) {
+      return 255;
+    } else {
+      return 0;
+    }
+  }
+};
+
+class Rinsing : public MachineState {
+  void react(RinseStopEvent const &e) override { transit<Idle>(); }
+
+public:
+  MachineMode getMode() override { return MachineMode::RINSING; };
+
+  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
+
+  PinStatus getSolenoid() override {
+    if (RinseState::current_state_ptr->active()) {
+      return HIGH;
+    } else {
+      return LOW;
+    }
+  }
+
+  uint8_t getPump() override {
+    if (RinseState::current_state_ptr->active()) {
       return 255;
     } else {
       return 0;
