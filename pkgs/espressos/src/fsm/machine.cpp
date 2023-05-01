@@ -1,8 +1,8 @@
 #include <tinyfsm.hpp>
 
 #include "../logger.hpp"
-#include "events.hpp"
 #include "backflush.hpp"
+#include "events.hpp"
 #include "fsmlist.hpp"
 #include "machine.hpp"
 #include "rinse.hpp"

@@ -1,6 +1,4 @@
 #pragma once
-
-#include <Arduino.h>
 #include <tinyfsm.hpp>
 
 #include "../logger.hpp"
@@ -22,6 +20,8 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
 
   virtual void react(LoopEvent const &){};
 
+  void react(TimeEvent const &e) { timestamp = e.timestamp; };
+
   void react(BackflushStopEvent const &e);
 
   virtual void react(BackflushStartEvent const &) {
@@ -34,6 +34,7 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
 
 protected:
   static int activeCount;
+  static unsigned long timestamp;
 
 public:
   virtual bool active() { return false; }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <tinyfsm.hpp>
 
 #include "../logger.hpp"

@@ -35,6 +35,7 @@ static Effects apiEffects;
 
 // Re-use loop event on every iteration
 static LoopEvent loopEvent;
+static TimeEvent timeEvent;
 
 void setup() {
   // Turn on board power LED
@@ -135,9 +136,12 @@ void setup() {
 }
 
 void loop() {
-  // Run FSM loop
-  loopEvent.timestamp = millis();
+  // Run FSM loops
+  unsigned long now = millis();
+  loopEvent.timestamp = now;
+  timeEvent.timestamp = now;
   send_event(loopEvent);
+  send_event(timeEvent);
 
   effects.loop();
   apiEffects.loop();
