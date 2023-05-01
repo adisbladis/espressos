@@ -1,9 +1,10 @@
 #include <tinyfsm.hpp>
 
 #include "../logger.hpp"
-#include "backflush.hpp"
 #include "events.hpp"
+#include "backflush.hpp"
 #include "fsmlist.hpp"
+#include "machine.hpp"
 #include "rinse.hpp"
 
 /* Forward declarations */
@@ -63,6 +64,7 @@ class Idle : public MachineState {
   void react(StartSteamEvent const &e) override {
     prevSetpoint = setpoint;
     setpoint = e.setpoint;
+    timeout = e.timestamp + STEAM_TIMEOUT;
     logger->log(LogLevel::DEBUG, "Entering steaming state");
     transit<Steaming>();
   }
@@ -149,8 +151,6 @@ public:
 
 // Steaming - Boiler is set to the steam setpoint
 class Steaming : public MachineState {
-  void entry() override { timeout = millis() + STEAM_TIMEOUT; }
-
   void exit() override { setpoint = prevSetpoint; };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
@@ -162,9 +162,6 @@ class Steaming : public MachineState {
       transit<Idle>();
     }
   }
-
-protected:
-  static unsigned long timeout;
 
 public:
   MachineMode getMode() override { return MachineMode::STEAMING; };
@@ -191,7 +188,7 @@ void MachineState::react(PanicEvent const &e) {
 
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;
-unsigned long Steaming::timeout = 0;
+unsigned long MachineState::timeout = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

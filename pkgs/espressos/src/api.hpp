@@ -191,6 +191,7 @@ public:
         case Cmd_t::FieldNumber::START_STEAM:
           StartSteamEvent startSteamEvent;
           startSteamEvent.setpoint = cmd.get_start_steam().get_setpoint();
+          startSteamEvent.timestamp = millis();
           send_event(startSteamEvent);
           break;
         case Cmd_t::FieldNumber::STOP_STEAM:

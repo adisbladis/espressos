@@ -21,6 +21,7 @@ struct PowerOnEvent : tinyfsm::Event {
   int setpoint;
 };
 struct StartSteamEvent : tinyfsm::Event {
+  unsigned long timestamp;
   int setpoint;
 };
 
@@ -88,6 +89,10 @@ protected:
 
   // How often to emit state updates to clients
   static long stateUpdateInterval;
+
+  // Timeout for the current state
+  // It's up to each state to implement this themselves.
+  static unsigned long timeout;
 
 public:
   int getSetPoint() { return setpoint; };
