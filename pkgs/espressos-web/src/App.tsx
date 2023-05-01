@@ -108,7 +108,7 @@ const App: Component = () => {
 
   const shotTimer = createMemo(() => {
     if (!state.shotTimer) {
-      return
+      return "0s"
     }
 
     const shotMs = state.mode == MachineMode.BREWING ? (state.millis - state.shotTimer.start) : (state.shotTimer.stop - state.shotTimer.start);
