@@ -21,7 +21,6 @@ struct PowerOnEvent : tinyfsm::Event {
   int setpoint;
 };
 struct StartSteamEvent : tinyfsm::Event {
-  unsigned long timestamp;
   int setpoint;
 };
 
@@ -35,10 +34,8 @@ struct StopSteamEvent : tinyfsm::Event {};
 class MachineState : public tinyfsm::Fsm<MachineState> {
   friend class tinyfsm::Fsm<MachineState>;
 
-  // Reactions
-  void react(tinyfsm::Event const &) {
-    logger->log(LogLevel::DEBUG, "Got unhandled event");
-  };
+  void react(tinyfsm::Event const &){};
+
   void react(PanicEvent const &);
   void react(PowerOffEvent const &);
   virtual void react(LoopEvent const &){};
@@ -75,6 +72,7 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(RinseStopEvent const &) {
     logger->log(LogLevel::DEBUG, "RinseStopEvent ignored");
   };
+  void react(TimeEvent const &e) { timestamp = e.timestamp; };
 
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
@@ -93,6 +91,9 @@ protected:
   // Timeout for the current state
   // It's up to each state to implement this themselves.
   static unsigned long timeout;
+
+  // Current timestamp
+  static unsigned long timestamp;
 
 public:
   int getSetPoint() { return setpoint; };

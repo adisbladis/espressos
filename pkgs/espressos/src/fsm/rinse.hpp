@@ -13,9 +13,7 @@
 
 #define RINSE_DUTY_CYCLE 1000
 
-struct RinseStartEvent : tinyfsm::Event {
-  unsigned long timestamp;
-};
+struct RinseStartEvent : tinyfsm::Event {};
 struct RinseStopEvent : tinyfsm::Event {};
 
 class RinseState : public tinyfsm::Fsm<RinseState> {
@@ -32,11 +30,15 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
     logger->log(LogLevel::DEBUG, "RinseStartEvent ignored");
   };
 
-  void react(tinyfsm::Event const &) {
-    logger->log(LogLevel::DEBUG, "Got unhandled event");
-  };
+  void react(tinyfsm::Event const &){};
+
+  void react(TimeEvent const &e) { timestamp = e.timestamp; };
 
 protected:
+  // Current time
+  static unsigned long timestamp;
+
+  // Time when to transition to RinseDone
   static unsigned long timeout;
 
 public:

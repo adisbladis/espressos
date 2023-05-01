@@ -64,7 +64,7 @@ class Idle : public MachineState {
   void react(StartSteamEvent const &e) override {
     prevSetpoint = setpoint;
     setpoint = e.setpoint;
-    timeout = e.timestamp + STEAM_TIMEOUT;
+    timeout = timestamp + STEAM_TIMEOUT;
     logger->log(LogLevel::DEBUG, "Entering steaming state");
     transit<Steaming>();
   }
@@ -189,6 +189,7 @@ void MachineState::react(PanicEvent const &e) {
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;
 unsigned long MachineState::timeout = 0;
+unsigned long MachineState::timestamp = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

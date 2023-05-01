@@ -14,14 +14,14 @@ class BrewState : public tinyfsm::Fsm<BrewState> {
 
   virtual void react(LoopEvent const &){};
 
-  virtual void react(tinyfsm::Event const &) {
-    logger->log(LogLevel::DEBUG, "Got unhandled event");
-  };
+  virtual void react(tinyfsm::Event const &){};
 
   virtual void react(BrewStartEvent const &) {
     logger->log(LogLevel::DEBUG, "Ignored BrewStartEvent");
   };
   void react(BrewStopEvent const &);
+
+  void react(TimeEvent const &e) { timestamp = e.timestamp; };
 
 protected:
   // Shot start timestamp.
@@ -32,6 +32,9 @@ protected:
   // This is normally created by millis()
   // Note that during the shot this will be set to 0
   static unsigned long shotStopTime;
+
+  // Current timestamp
+  static unsigned long timestamp;
 
 public:
   uint32_t getShotStartTime() { return shotStartTime; };

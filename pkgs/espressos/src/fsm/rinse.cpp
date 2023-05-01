@@ -11,7 +11,7 @@ class RinseActive;
 class RinseDone : public RinseState {
   void react(RinseStartEvent const &e) override {
     logger->log(LogLevel::DEBUG, "Activating rinse");
-    timeout = e.timestamp + RINSE_DUTY_CYCLE;
+    timeout = timestamp + RINSE_DUTY_CYCLE;
     transit<RinseActive>();
   }
 };
@@ -33,5 +33,6 @@ public:
 void RinseState::react(RinseStopEvent const &e) { transit<RinseDone>(); }
 
 unsigned long RinseState::timeout = 0;
+unsigned long RinseState::timestamp = 0;
 
 FSM_INITIAL_STATE(RinseState, RinseDone)

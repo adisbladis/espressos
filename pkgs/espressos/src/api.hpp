@@ -173,14 +173,10 @@ public:
           send_event(PowerOffEvent());
           break;
         case Cmd_t::FieldNumber::START_BREW:
-          BrewStartEvent brewStartEvent;
-          brewStartEvent.timestamp = millis();
-          send_event(brewStartEvent);
+          send_event(BrewStartEvent());
           break;
         case Cmd_t::FieldNumber::STOP_BREW:
-          BrewStopEvent brewStopEvent;
-          brewStopEvent.timestamp = millis();
-          send_event(brewStopEvent);
+          send_event(BrewStopEvent());
           break;
         case Cmd_t::FieldNumber::START_PUMP:
           send_event(StartPumpEvent());
@@ -191,7 +187,6 @@ public:
         case Cmd_t::FieldNumber::START_STEAM:
           StartSteamEvent startSteamEvent;
           startSteamEvent.setpoint = cmd.get_start_steam().get_setpoint();
-          startSteamEvent.timestamp = millis();
           send_event(startSteamEvent);
           break;
         case Cmd_t::FieldNumber::STOP_STEAM:
@@ -206,9 +201,7 @@ public:
           send_event(BackflushStopEvent());
           break;
         case Cmd_t::FieldNumber::RINSE_START:
-          RinseStartEvent rinseStartEvent;
-          rinseStartEvent.timestamp = millis();
-          send_event(rinseStartEvent);
+          send_event(RinseStartEvent());
           break;
         case Cmd_t::FieldNumber::RINSE_STOP:
           send_event(RinseStopEvent());

@@ -138,10 +138,10 @@ void setup() {
 void loop() {
   // Run FSM loops
   unsigned long now = millis();
-  loopEvent.timestamp = now;
   timeEvent.timestamp = now;
-  send_event(loopEvent);
+  loopEvent.timestamp = now;
   send_event(timeEvent);
+  send_event(loopEvent);
 
   effects.loop();
   apiEffects.loop();

@@ -18,9 +18,5 @@ struct TimeEvent : tinyfsm::Event {
 struct BackflushStartEvent : tinyfsm::Event {};
 struct BackflushStopEvent : tinyfsm::Event {};
 
-struct BrewStartEvent : tinyfsm::Event {
-  unsigned long timestamp;
-};
-struct BrewStopEvent : tinyfsm::Event {
-  unsigned long timestamp;
-};
+struct BrewStartEvent : tinyfsm::Event {};
+struct BrewStopEvent : tinyfsm::Event {};

@@ -28,9 +28,7 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
     logger->log(LogLevel::DEBUG, "BackflushStartEvent ignored");
   };
 
-  void react(tinyfsm::Event const &) {
-    logger->log(LogLevel::DEBUG, "Got unhandled event");
-  };
+  void react(tinyfsm::Event const &){};
 
 protected:
   static int activeCount;

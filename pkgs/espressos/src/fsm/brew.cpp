@@ -11,7 +11,7 @@ class BrewActive;
 class BrewDone : public BrewState {
   void react(BrewStartEvent const &e) override {
     logger->log(LogLevel::DEBUG, "Starting brew");
-    shotStartTime = e.timestamp;
+    shotStartTime = timestamp;
     shotStopTime = 0;
     transit<BrewActive>();
   }
@@ -23,11 +23,12 @@ class BrewActive : public BrewState {};
 // We can stop brewing from all states
 void BrewState::react(BrewStopEvent const &e) {
   logger->log(LogLevel::DEBUG, "Transitioning to BrewDone");
-  shotStopTime = e.timestamp;
+  shotStopTime = timestamp;
   transit<BrewDone>();
 };
 
 unsigned long BrewState::shotStartTime = 0;
 unsigned long BrewState::shotStopTime = 0;
+unsigned long BrewState::timestamp = 0;
 
 FSM_INITIAL_STATE(BrewState, BrewDone)
