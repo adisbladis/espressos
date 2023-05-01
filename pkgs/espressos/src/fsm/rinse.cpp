@@ -23,7 +23,7 @@ class RinseActive : public RinseState {
     if (e.timestamp >= timeout) {
       logger->log(LogLevel::DEBUG,
                   "Rinse active timed out, transitition back to done.");
-      transit<RinseDone>();
+      send_event(RinseStopEvent());
     }
   }
 

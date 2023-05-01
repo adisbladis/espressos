@@ -99,6 +99,8 @@ const App: Component = () => {
         return Symbols.PUMPING;
       case MachineMode.STEAMING:
         return Symbols.STEAMING;
+      case MachineMode.RINSING:
+        return Symbols.RINSING;
       default:
         return Symbols.UNKNOWN;
     }
