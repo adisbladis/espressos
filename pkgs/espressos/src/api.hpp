@@ -328,12 +328,3 @@ public:
     broadcastEvent();
   };
 };
-
-// A logger that emits log messages to websockets
-class APIServerLogger : public Logger {
-private:
-  APIServer apiServer;
-
-public:
-  APIServerLogger(APIServer apiServer) : apiServer(apiServer){};
-};
