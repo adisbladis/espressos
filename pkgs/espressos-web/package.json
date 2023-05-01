@@ -4,7 +4,7 @@
   "description": "Coffee machine UI",
   "scripts": {
     "dev": "vite",
-    "generate": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=oneof=unions --ts_proto_out=./src/api -I ../../api ../../api/api.proto",
+    "generate": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=oneof=unions --ts_proto_out=./src/proto -I ../../api ../../api/api.proto",
     "build": "vite build",
     "serve": "vite preview"
   },

@@ -13,6 +13,7 @@ export enum MachineMode {
   BACKFLUSHING = 5,
   PUMPING = 6,
   STEAMING = 7,
+  RINSING = 8,
   UNRECOGNIZED = -1,
 }
 
@@ -42,6 +43,9 @@ export function machineModeFromJSON(object: any): MachineMode {
     case 7:
     case "STEAMING":
       return MachineMode.STEAMING;
+    case 8:
+    case "RINSING":
+      return MachineMode.RINSING;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -67,6 +71,8 @@ export function machineModeToJSON(object: MachineMode): string {
       return "PUMPING";
     case MachineMode.STEAMING:
       return "STEAMING";
+    case MachineMode.RINSING:
+      return "RINSING";
     case MachineMode.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

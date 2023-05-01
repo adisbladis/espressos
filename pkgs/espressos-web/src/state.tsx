@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { StateUpdate } from "./api/api";
+import { StateUpdate } from "./proto/api";
 
 export const [state, setState] = createStore(
   StateUpdate.create({
