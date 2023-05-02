@@ -12,6 +12,7 @@
 #include "fsm/brew.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
+#include "interval_callback.hpp"
 #include "logger.hpp"
 #include "ota.hpp"
 #include "pressure.hpp"
@@ -36,6 +37,9 @@ static Effects apiEffects;
 // Re-use loop event on every iteration
 static LoopEvent loopEvent;
 static TimeEvent timeEvent;
+
+static StateUpdate<ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE> stateUpdateMessage;
+static IntervalCallback apiServerBroadcastCallback(STATE_UPDATE_INTERVAL);
 
 void setup() {
   // Turn on board power LED
@@ -80,47 +84,91 @@ void setup() {
 
     apiEffects.createEffect<int>(
         []() { return MachineState::current_state_ptr->getSetPoint(); },
-        [](int setpoint) { apiServer.setSetpoint(setpoint); });
+        [](int setpoint) { stateUpdateMessage.set_setpoint(setpoint); });
 
     // Set boiler temp in API server
     apiEffects.createEffect<TempReading>(
         []() { return boiler.getTemp(); },
-        [](TempReading temp) { apiServer.setBoilerTemp(temp); },
+        [](TempReading temp) {
+          auto boilerTempMsg = stateUpdateMessage.mutable_boilerTemp();
+
+          if (temp.fault) {
+            auto fs = boilerTempMsg.get_error();
+
+            auto errorMessage = temp.errorMessage();
+            fs.set(errorMessage, strlen(errorMessage));
+            boilerTempMsg.set_error(fs);
+          } else {
+            boilerTempMsg.set_value(temp.temp);
+          }
+
+          stateUpdateMessage.set_boilerTemp(boilerTempMsg);
+        },
         false); // Update cadence too high to use as update trigger
 
     // Set pressure in API server
     apiEffects.createEffect<PressureSensorResult_t>(
         []() { return brewPressure.Read(); },
         [](PressureSensorResult_t pressure) {
-          apiServer.setPressure(pressure);
+          auto pressureMsg = stateUpdateMessage.mutable_pressure();
+
+          if (pressure.hasError()) {
+            auto fs = pressureMsg.get_error();
+            fs.set("Value out of bounds", 19);
+            pressureMsg.set_error(fs);
+          } else {
+            pressureMsg.set_value(pressure.getValue());
+          }
+
+          stateUpdateMessage.set_pressure(pressureMsg);
         },
         false); // Update cadence too high to use as update trigger
 
     apiEffects.createEffect<uint32_t>(
         []() { return BrewState::current_state_ptr->getShotStartTime(); },
-        [](uint32_t ts) { apiServer.setShotTimerStart(ts); });
+        [](uint32_t ts) {
+          auto shotTimer = stateUpdateMessage.mutable_shot_timer();
+          shotTimer.set_start(ts);
+          stateUpdateMessage.set_shot_timer(shotTimer);
+        });
 
     apiEffects.createEffect<uint32_t>(
         []() { return BrewState::current_state_ptr->getShotStopTime(); },
-        [](uint32_t ts) { apiServer.setShotTimerStop(ts); });
+        [](uint32_t ts) {
+          auto shotTimer = stateUpdateMessage.mutable_shot_timer();
+          shotTimer.set_stop(ts);
+          stateUpdateMessage.set_shot_timer(shotTimer);
+        });
 
     // Set state update interval
-    apiEffects.createEffect<long>(
+    apiEffects.createEffect<unsigned long>(
         []() {
           return MachineState::current_state_ptr->getStateUpdateInterval();
         },
-        [](long updateInterval) {
-          apiServer.setStateUpdateInterval(updateInterval);
+        [](unsigned long updateInterval) {
+          apiServerBroadcastCallback.setInterval(updateInterval);
+        },
+        false); // The update interval is irrelevant to the API server
+
+    // Set current time
+    apiEffects.createEffect<unsigned long>(
+        []() { return MachineState::current_state_ptr->getTimestamp(); },
+        [](unsigned long timestamp) {
+          stateUpdateMessage.set_millis(timestamp);
         },
         false); // The update interval is irrelevant to the API server
 
     // Set mode in API server
     apiEffects.createEffect<MachineMode>(
         []() { return MachineState::current_state_ptr->getMode(); },
-        [](MachineMode mode) { apiServer.setMachineMode(mode); });
+        [](MachineMode mode) { stateUpdateMessage.set_mode(mode); });
 
     // If any watched effects triggered send update to clients
-    apiEffects.onTriggered([]() { apiServer.broadcastState(); });
+    apiEffects.onTriggered([]() { apiServerBroadcastCallback.reset(); });
+
+    // Set up state broadcast callback
+    apiServerBroadcastCallback.setCallback(
+        []() { apiServer.broadcastState(stateUpdateMessage); });
 
     pConfig->setup();
 
@@ -150,4 +198,5 @@ void loop() {
 
   handleOTA();
   apiServer.loop();
+  apiServerBroadcastCallback.loop(now);
 }

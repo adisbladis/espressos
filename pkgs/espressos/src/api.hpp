@@ -11,7 +11,6 @@
 
 #include "config.hpp"
 #include "fsm/fsmlist.hpp"
-#include "interval_callback.hpp"
 #include "logger.hpp"
 
 #define MSG_BUF_SIZE 128
@@ -27,8 +26,6 @@ private:
   PersistedConfig *pConfig;
   EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf;
   EmbeddedProto::WriteBufferFixedSize<MSG_BUF_SIZE> outBuf;
-  IntervalCallback stateUpdateCallback;
-  StateUpdate<ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE> stateUpdateMessage;
   Cmd_t cmd;
   char logMessageBuf[LOG_MESSAGE_SIZE];
 
@@ -63,17 +60,11 @@ private:
     broadcastEvent();
   };
 
-  void broadcastInitial() {
-    broadcastState();
-    broadcastConfig();
-  };
+  void broadcastInitial() { broadcastConfig(); };
 
 public:
   APIServer(int port, PersistedConfig *pConfig)
-      : server(port), stateUpdateCallback(STATE_UPDATE_INTERVAL),
-        pConfig(pConfig) {
-
-    stateUpdateCallback.setCallback([this]() { this->broadcastState(); });
+      : server(port), pConfig(pConfig) {
 
     pConfig->onChange([this](Config config) {
       if (this->hasClients()) {
@@ -218,42 +209,6 @@ public:
     });
   }
 
-  void setSetpoint(int setpoint) {
-    this->stateUpdateMessage.set_setpoint(setpoint);
-  }
-
-  void setShotTimerStart(uint32_t timestamp) {
-    auto shotTimer = this->stateUpdateMessage.mutable_shot_timer();
-    shotTimer.set_start(timestamp);
-    this->stateUpdateMessage.set_shot_timer(shotTimer);
-  }
-
-  void setShotTimerStop(uint32_t timestamp) {
-    auto shotTimer = this->stateUpdateMessage.mutable_shot_timer();
-    shotTimer.set_stop(timestamp);
-    this->stateUpdateMessage.set_shot_timer(shotTimer);
-  }
-
-  void setMachineMode(MachineMode mode) {
-    this->stateUpdateMessage.set_mode(mode);
-  }
-
-  void setBoilerTemp(TempReading temp) {
-    auto boilerTempMsg = this->stateUpdateMessage.mutable_boilerTemp();
-
-    if (temp.fault) {
-      auto fs = boilerTempMsg.get_error();
-
-      auto errorMessage = temp.errorMessage();
-      fs.set(errorMessage, strlen(errorMessage));
-      boilerTempMsg.set_error(fs);
-    } else {
-      boilerTempMsg.set_value(temp.temp);
-    }
-
-    this->stateUpdateMessage.set_boilerTemp(boilerTempMsg);
-  }
-
   void log(LogLevel level, const char *message, ...) override {
     if (!this->hasClients()) {
       return;
@@ -291,43 +246,19 @@ public:
     broadcastEvent();
   }
 
-  void setPressure(PressureSensorResult_t pressure) {
-    auto pressureMsg = this->stateUpdateMessage.mutable_pressure();
-
-    if (pressure.hasError()) {
-      auto fs = pressureMsg.get_error();
-      fs.set("Value out of bounds", 19);
-      pressureMsg.set_error(fs);
-    } else {
-      pressureMsg.set_value(pressure.getValue());
-    }
-
-    this->stateUpdateMessage.set_pressure(pressureMsg);
-  }
-
-  void setStateUpdateInterval(long interval) {
-    this->stateUpdateCallback.setInterval(interval);
-  }
-
-  void loop() {
-    this->server.loop();
-    this->stateUpdateCallback.loop();
-  }
+  void loop() { this->server.loop(); }
 
   void begin() { this->server.begin(); }
 
   void close() { this->server.close(); }
 
-  void broadcastState() {
+  void broadcastState(
+      StateUpdate<ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE> &stateUpdateMessage) {
     if (!this->hasClients()) {
       return;
     }
 
-    event.clear();
-
-    stateUpdateMessage.set_millis(millis());
     event.set_state_update(stateUpdateMessage);
-
     broadcastEvent();
   };
 };
