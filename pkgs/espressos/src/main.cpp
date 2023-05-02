@@ -184,19 +184,29 @@ void setup() {
 }
 
 void loop() {
-  // Run FSM loops
   unsigned long now = millis();
+
+  // Run FSM loops
   timeEvent.timestamp = now;
-  loopEvent.timestamp = now;
   send_event(timeEvent);
+  loopEvent.timestamp = now;
   send_event(loopEvent);
 
+  // Reconcile hardware with FSM state
   effects.loop();
+
+  // Set API state
   apiEffects.loop();
 
+  // Run boiler PID loop
   boiler.tick();
 
+  // Handle Arduino OTA
   handleOTA();
+
+  // Handle websocket API
   apiServer.loop();
+
+  // Send state updates on value change/interval
   apiServerBroadcastCallback.loop(now);
 }
