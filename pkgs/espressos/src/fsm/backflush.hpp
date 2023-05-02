@@ -1,7 +1,6 @@
 #pragma once
 #include <tinyfsm.hpp>
 
-#include "../logger.hpp"
 #include "events.hpp"
 
 // Backflushing is done by:
@@ -24,9 +23,7 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
 
   void react(BackflushStopEvent const &e);
 
-  virtual void react(BackflushStartEvent const &) {
-    logger->log(LogLevel::DEBUG, "BackflushStartEvent ignored");
-  };
+  virtual void react(BackflushStartEvent const &){};
 
   void react(tinyfsm::Event const &){};
 

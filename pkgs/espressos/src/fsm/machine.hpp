@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Arduino.h>
 #include <tinyfsm.hpp>
 
-#include "../logger.hpp"
 #include "../proto/api.h"
 #include "backflush.hpp"
 #include "events.hpp"
@@ -39,39 +39,17 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   void react(PanicEvent const &);
   void react(PowerOffEvent const &);
   virtual void react(LoopEvent const &){};
-  virtual void react(PowerOnEvent const &) {
-    logger->log(LogLevel::DEBUG, "PowerOnEvent ignored");
-  };
-  virtual void react(BrewStartEvent const &) {
-    logger->log(LogLevel::DEBUG, "BrewStartEvent ignored");
-  };
-  virtual void react(BrewStopEvent const &) {
-    logger->log(LogLevel::DEBUG, "BrewStopEvent ignored");
-  };
-  virtual void react(StartPumpEvent const &) {
-    logger->log(LogLevel::DEBUG, "StartPumpEvent ignored");
-  };
-  virtual void react(StopPumpEvent const &) {
-    logger->log(LogLevel::DEBUG, "StopPumpEvent ignored");
-  };
-  virtual void react(StartSteamEvent const &) {
-    logger->log(LogLevel::DEBUG, "StartSteamEvent ignored");
-  };
-  virtual void react(StopSteamEvent const &) {
-    logger->log(LogLevel::DEBUG, "StopSteamEvent ignored");
-  };
-  virtual void react(BackflushStartEvent const &) {
-    logger->log(LogLevel::DEBUG, "BackflushStartEvent ignored");
-  };
-  virtual void react(BackflushStopEvent const &) {
-    logger->log(LogLevel::DEBUG, "BackflushStopEvent ignored");
-  };
-  virtual void react(RinseStartEvent const &) {
-    logger->log(LogLevel::DEBUG, "RinseStartEvent ignored");
-  };
-  virtual void react(RinseStopEvent const &) {
-    logger->log(LogLevel::DEBUG, "RinseStopEvent ignored");
-  };
+  virtual void react(PowerOnEvent const &){};
+  virtual void react(BrewStartEvent const &){};
+  virtual void react(BrewStopEvent const &){};
+  virtual void react(StartPumpEvent const &) {}
+  virtual void react(StopPumpEvent const &){};
+  virtual void react(StartSteamEvent const &){};
+  virtual void react(StopSteamEvent const &){};
+  virtual void react(BackflushStartEvent const &){};
+  virtual void react(BackflushStopEvent const &){};
+  virtual void react(RinseStartEvent const &){};
+  virtual void react(RinseStopEvent const &){};
   void react(TimeEvent const &e) { timestamp = e.timestamp; };
 
   virtual void entry(void){}; // entry actions in some states

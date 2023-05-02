@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <tinyfsm.hpp>
 
-#include "../logger.hpp"
 #include "events.hpp"
 
 class BrewState : public tinyfsm::Fsm<BrewState> {
@@ -16,9 +15,7 @@ class BrewState : public tinyfsm::Fsm<BrewState> {
 
   virtual void react(tinyfsm::Event const &){};
 
-  virtual void react(BrewStartEvent const &) {
-    logger->log(LogLevel::DEBUG, "Ignored BrewStartEvent");
-  };
+  virtual void react(BrewStartEvent const &){};
   void react(BrewStopEvent const &);
 
   void react(TimeEvent const &e) { timestamp = e.timestamp; };

@@ -2,7 +2,6 @@
 
 #include <tinyfsm.hpp>
 
-#include "../logger.hpp"
 #include "events.hpp"
 
 // This is for quickly rinsing the group head after a shot.
@@ -26,9 +25,7 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
 
   void react(RinseStopEvent const &e);
 
-  virtual void react(RinseStartEvent const &) {
-    logger->log(LogLevel::DEBUG, "RinseStartEvent ignored");
-  };
+  virtual void react(RinseStartEvent const &){};
 
   void react(tinyfsm::Event const &){};
 

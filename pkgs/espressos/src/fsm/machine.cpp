@@ -1,6 +1,5 @@
 #include <tinyfsm.hpp>
 
-#include "../logger.hpp"
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
@@ -33,8 +32,6 @@ class Off : public MachineState {
 
   void react(PowerOnEvent const &e) override {
     setpoint = e.setpoint;
-    logger->log(LogLevel::DEBUG, "Entering idle state");
-
     transit<Idle>();
   }
 
@@ -51,33 +48,20 @@ class Idle : public MachineState {
     transit<Idle>();
   }
 
-  void react(BrewStartEvent const &e) override {
-    logger->log(LogLevel::DEBUG, "Entering brew state");
-    transit<Brewing>();
-  }
+  void react(BrewStartEvent const &e) override { transit<Brewing>(); }
 
-  void react(StartPumpEvent const &e) override {
-    logger->log(LogLevel::DEBUG, "Entering pumping state");
-    transit<Pumping>();
-  }
+  void react(StartPumpEvent const &e) override { transit<Pumping>(); }
 
   void react(StartSteamEvent const &e) override {
     prevSetpoint = setpoint;
     setpoint = e.setpoint;
     timeout = timestamp + STEAM_TIMEOUT;
-    logger->log(LogLevel::DEBUG, "Entering steaming state");
     transit<Steaming>();
   }
 
-  void react(BackflushStartEvent const &e) override {
-    logger->log(LogLevel::DEBUG, "Starting backflush");
-    transit<Backflushing>();
-  }
+  void react(BackflushStartEvent const &e) override { transit<Backflushing>(); }
 
-  void react(RinseStartEvent const &e) override {
-    logger->log(LogLevel::DEBUG, "Starting rinse");
-    transit<Rinsing>();
-  }
+  void react(RinseStartEvent const &e) override { transit<Rinsing>(); }
 };
 
 // Brewing - We're actively brewing a cup
@@ -157,8 +141,6 @@ class Steaming : public MachineState {
 
   void react(LoopEvent const &e) override {
     if (e.timestamp >= timeout) {
-      logger->log(LogLevel::DEBUG,
-                  "Steaming timed out, transitition back to idle.");
       transit<Idle>();
     }
   }
@@ -175,16 +157,11 @@ void MachineState::react(PowerOffEvent const &e) {
     return;
   }
 
-  logger->log(LogLevel::DEBUG, "Entering off state");
-
   transit<Off>();
 }
 
 // All modes are allowed to enter the panic state
-void MachineState::react(PanicEvent const &e) {
-  logger->log(LogLevel::ERROR, "Entering panic state");
-  transit<Panic>();
-}
+void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
 
 int MachineState::setpoint = 0;
 int MachineState::prevSetpoint = 0;

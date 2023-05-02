@@ -1,6 +1,5 @@
 #include <tinyfsm.hpp>
 
-#include "../logger.hpp"
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
@@ -13,7 +12,6 @@ class BackflushDone : public BackflushState {
   void entry() override { activeCount = BACKFLUSH_ACTIVE_COUNT; }
 
   void react(BackflushStartEvent const &e) override {
-    logger->log(LogLevel::DEBUG, "Activating backflush");
     transit<BackflushActive>();
   }
 };
@@ -31,8 +29,6 @@ class BackflushActive : public BackflushState {
 
   void react(LoopEvent const &e) override {
     if (e.timestamp >= timeout) {
-      logger->log(LogLevel::DEBUG,
-                  "Backflush active timed out, transitition back to resting.");
       transit<BackflushResting>();
     }
   }
@@ -49,8 +45,6 @@ class BackflushResting : public BackflushState {
 
   void react(LoopEvent const &e) override {
     if (e.timestamp >= timeout) {
-      logger->log(LogLevel::DEBUG,
-                  "Backflush resting timed out, transitition back to active.");
       transit<BackflushActive>();
     }
   }
