@@ -80,22 +80,21 @@ void setup() {
 
     apiEffects.createEffect<int>(
         []() { return MachineState::current_state_ptr->getSetPoint(); },
-        [](int setpoint) {
-          apiServer.setSetpoint(setpoint);
-          apiServer.broadcastState();
-        });
+        [](int setpoint) { apiServer.setSetpoint(setpoint); });
 
     // Set boiler temp in API server
     apiEffects.createEffect<TempReading>(
         []() { return boiler.getTemp(); },
-        [](TempReading temp) { apiServer.setBoilerTemp(temp); });
+        [](TempReading temp) { apiServer.setBoilerTemp(temp); },
+        false); // Update cadence too high to use as update trigger
 
     // Set pressure in API server
     apiEffects.createEffect<PressureSensorResult_t>(
         []() { return brewPressure.Read(); },
         [](PressureSensorResult_t pressure) {
           apiServer.setPressure(pressure);
-        });
+        },
+        false); // Update cadence too high to use as update trigger
 
     apiEffects.createEffect<uint32_t>(
         []() { return BrewState::current_state_ptr->getShotStartTime(); },
@@ -112,15 +111,16 @@ void setup() {
         },
         [](long updateInterval) {
           apiServer.setStateUpdateInterval(updateInterval);
-        });
+        },
+        false); // The update interval is irrelevant to the API server
 
     // Set mode in API server
     apiEffects.createEffect<MachineMode>(
         []() { return MachineState::current_state_ptr->getMode(); },
-        [](MachineMode mode) {
-          apiServer.setMachineMode(mode);
-          apiServer.broadcastState();
-        });
+        [](MachineMode mode) { apiServer.setMachineMode(mode); });
+
+    // If any watched effects triggered send update to clients
+    apiEffects.onTriggered([]() { apiServer.broadcastState(); });
 
     pConfig->setup();
 
