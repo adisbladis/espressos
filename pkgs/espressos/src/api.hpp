@@ -1,10 +1,10 @@
 #pragma once
 #include "boiler.hpp"
-#include "config.hpp"
 #include "fsm/events.hpp"
 #include "fsm/rinse.hpp"
 #include "pressure.hpp"
 #include "proto/api.h"
+#include "proto/config.h"
 #include "websocket.hpp"
 #include <ReadBufferFixedSize.h>
 #include <WriteBufferFixedSize.h>
@@ -55,22 +55,13 @@ private:
     this->server.broadcastBIN(outBuf.get_data(), outBuf.get_size());
   }
 
-  void broadcastConfig() {
-    event.set_config(pConfig->getConfig());
-    broadcastEvent();
+  void broadcastInitial() {
+    // TODO: Fix me
   };
-
-  void broadcastInitial() { broadcastConfig(); };
 
 public:
   APIServer(int port, PersistedConfig *pConfig)
       : server(port), pConfig(pConfig) {
-
-    pConfig->onChange([this](Config config) {
-      if (this->hasClients()) {
-        this->broadcastConfig();
-      }
-    });
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,
                           size_t length) {
@@ -259,6 +250,15 @@ public:
     }
 
     event.set_state_update(stateUpdateMessage);
+    broadcastEvent();
+  };
+
+  void broadcastConfig(Config config) {
+    if (!this->hasClients()) {
+      return;
+    }
+
+    event.set_config(config);
     broadcastEvent();
   };
 };

@@ -8,10 +8,10 @@
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 #include "config.hpp"
-#include "lib/effects.hpp"
 #include "fsm/brew.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
+#include "lib/effects.hpp"
 #include "lib/interval_callback.hpp"
 #include "logger.hpp"
 #include "ota.hpp"
@@ -171,6 +171,7 @@ void setup() {
         []() { apiServer.broadcastState(stateUpdateMessage); });
 
     pConfig->setup();
+    pConfig->onChange([](Config config) { apiServer.broadcastConfig(config); });
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(SSID_NAME, SSID_PASWORD);
