@@ -8,11 +8,11 @@
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 #include "config.hpp"
-#include "effects.hpp"
+#include "lib/effects.hpp"
 #include "fsm/brew.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
-#include "interval_callback.hpp"
+#include "lib/interval_callback.hpp"
 #include "logger.hpp"
 #include "ota.hpp"
 #include "pressure.hpp"
@@ -195,7 +195,7 @@ void loop() {
   // Reconcile hardware with FSM state
   effects.loop();
 
-  // Set API state
+  // Set API states
   apiEffects.loop();
 
   // Run boiler PID loop
