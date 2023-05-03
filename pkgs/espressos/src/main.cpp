@@ -5,6 +5,7 @@
 #include <dimmable_light.h>
 
 #include "api.hpp"
+#include "api/handler.hpp"
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 #include "config.hpp"
@@ -27,8 +28,9 @@ static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
 static DimmableLight pump(PUMP_DIMMER_OUT);
 static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 
-static PersistedConfig *pConfig = new PersistedConfig();
-static APIServer apiServer = APIServer(HTTP_PORT, pConfig);
+static PersistedConfig pConfig;
+static APIHandler apiHandler(&pConfig);
+static APIServer apiServer = APIServer(HTTP_PORT, &apiHandler);
 
 // Watch variables for change and propagate to hardware/API
 static Effects effects;
@@ -170,8 +172,8 @@ void setup() {
     apiServerBroadcastCallback.setCallback(
         []() { apiServer.broadcastState(stateUpdateMessage); });
 
-    pConfig->setup();
-    pConfig->onChange([](Config config) { apiServer.broadcastConfig(config); });
+    pConfig.setup();
+    pConfig.onChange([](Config config) { apiServer.broadcastConfig(config); });
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(SSID_NAME, SSID_PASWORD);
@@ -180,6 +182,10 @@ void setup() {
     beginOTA(2040);
 
     // Start listening
+    apiServer.onConnect([]() {
+      apiServer.broadcastConfig(pConfig.getConfig());
+      apiServer.broadcastState(stateUpdateMessage);
+    });
     apiServer.begin();
   }
 }
