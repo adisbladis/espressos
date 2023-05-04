@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include "../config.hpp"
@@ -9,7 +10,7 @@
 
 #define MSG_BUF_SIZE 128
 #define UUID_SIZE 16 // Note: Convert this to bytes and get it down to 16 bytes
-typedef Result<int, const char *> APIResult;
+typedef Result<std::nullptr_t, const char *> APIResult;
 typedef Command<UUID_SIZE> Cmd_t;
 
 class APIHandler {
@@ -78,8 +79,6 @@ private:
 
 public:
   APIHandler(PersistedConfig *pConfig) : pConfig(pConfig){};
-  //   this->pConfig
-  // };
 
   APIResult handle(EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf) {
     APIResult result;

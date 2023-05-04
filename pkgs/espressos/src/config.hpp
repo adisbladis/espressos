@@ -35,6 +35,8 @@ private:
   }
 
 public:
+  PersistedConfig() { initialise(); };
+
   bool save() {
     EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE> buf;
     auto status = config.serialize(buf);
@@ -74,8 +76,6 @@ public:
   void onChange(std::function<void(Config)> cb) { callbacks.push_back(cb); };
 
   void setup() {
-    initialise();
-
     File f = LittleFS.open(CONFIG_FILE, "r");
     if (!f) {
       initialise();

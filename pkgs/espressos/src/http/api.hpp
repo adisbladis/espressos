@@ -1,29 +1,38 @@
 #pragma once
-#include "boiler.hpp"
-#include "fsm/events.hpp"
-#include "fsm/rinse.hpp"
-#include "pressure.hpp"
-#include "proto/api.h"
-#include "proto/config.h"
-#include "websocket.hpp"
+
+#include <WebSocketsServer.h>
 #include <ReadBufferFixedSize.h>
 #include <WriteBufferFixedSize.h>
 
-#include "api/handler.hpp"
-#include "fsm/fsmlist.hpp"
-#include "logger.hpp"
+#include "../proto/api.h"
+#include "../proto/config.h"
+#include "../api/handler.hpp"
+#include "../fsm/fsmlist.hpp"
+#include "../logger.hpp"
 
 #define ERROR_MESSAGE_SIZE 128
 
 typedef LogMessage<LOG_MESSAGE_SIZE> LogMessage_t;
 
-class APIServer : public Logger {
+class WebServer : public WebSocketsServer {
+public:
+  WebServer(int port) : WebSocketsServer(port) {
+    this->_server->setNoDelay(true);
+  }
+
+  void handleNonWebsocketConnection(WSclient_t *client) override {
+    // TODO: Serve up web interface
+    Serial.println("Got non websocket connection");
+    clientDisconnect(client);
+  }
+};
+
+class APIWebServer : public Logger {
 private:
   WebServer server;
   APIHandler *handler;
   EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf;
   EmbeddedProto::WriteBufferFixedSize<MSG_BUF_SIZE> outBuf;
-  Cmd_t cmd;
   char logMessageBuf[LOG_MESSAGE_SIZE];
   std::function<void()> onConnectCallback;
 
@@ -54,7 +63,7 @@ private:
   }
 
 public:
-  APIServer(int port, APIHandler *handler)
+  APIWebServer(int port, APIHandler *handler)
       : server(port), handler(handler), onConnectCallback([]() {}) {
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,

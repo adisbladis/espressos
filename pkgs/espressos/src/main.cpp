@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <dimmable_light.h>
 
-#include "api.hpp"
+#include "http/api.hpp"
 #include "api/handler.hpp"
 #include "boiler.hpp"
 #include "cachedpin.hpp"
@@ -18,7 +18,6 @@
 #include "ota.hpp"
 #include "pressure.hpp"
 #include "proto/api.h"
-#include "websocket.hpp"
 
 // Hardware IO
 static BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN,
@@ -30,10 +29,10 @@ static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 
 static PersistedConfig pConfig;
 static APIHandler apiHandler(&pConfig);
-static APIServer apiServer = APIServer(HTTP_PORT, &apiHandler);
+static APIWebServer apiServer = APIWebServer(HTTP_PORT, &apiHandler);
 
 // Watch variables for change and propagate to hardware/API
-static Effects effects;
+static  Effects effects;
 static Effects apiEffects;
 
 // Re-use loop event on every iteration
