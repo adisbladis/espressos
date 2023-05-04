@@ -30,10 +30,10 @@ public:
     // tolerances so it's best to allow for some runtime recalibration of the
     // sensor range.
     //
-    // This sets the tolerance to the floor/ceiling +- 20%, it Works For Me™,
+    // This sets the tolerance to the floor/ceiling +- 30%, it Works For Me™,
     // YMMV.
-    minFloor = floor * 0.8;
-    maxCeil = ceil * 1.2;
+    minFloor = floor * 0.7;
+    maxCeil = ceil * 1.3;
   };
 
   PressureSensorResultRaw_t ReadRaw() {

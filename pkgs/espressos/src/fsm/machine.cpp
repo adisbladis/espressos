@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <tinyfsm.hpp>
 
 #include "backflush.hpp"
@@ -163,8 +164,8 @@ void MachineState::react(PowerOffEvent const &e) {
 // All modes are allowed to enter the panic state
 void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
 
-int MachineState::setpoint = 0;
-int MachineState::prevSetpoint = 0;
+std::uint16_t MachineState::setpoint = 0;
+std::uint16_t MachineState::prevSetpoint = 0;
 unsigned long MachineState::timeout = 0;
 unsigned long MachineState::timestamp = 0;
 

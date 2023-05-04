@@ -8,7 +8,7 @@ message PowerOn {
   // Setpoint represented as a hundredth of a degree celsius
   // i.e. you'll get the real decimal representation by multiplying
   // this number by 100.
-  int32 setpoint = 1;
+  uint32 setpoint = 1;
 }
 message PowerOff { }
 
@@ -22,7 +22,7 @@ message StartSteam {
   // Setpoint represented as a hundredth of a degree celsius
   // i.e. you'll get the real decimal representation by multiplying
   // this number by 100.
-  int32 setpoint = 1;
+  uint32 setpoint = 1;
 }
 message StopSteam { }
 
@@ -64,18 +64,15 @@ message Command {
 
 /* Events sent by the server */
 
-// An envelope for an arbitrary sensor that returns a float with an optional error
-message FloatSensorReading {
-  oneof value_or_error {
-    double value = 1;
-    string error = 2;
-  }
-};
-
-// An envelope for an arbitrary sensor that returns an integer with an optional error
 message Uint32Result {
   oneof result {
     uint32 value = 1;
+    string error = 2;
+  }
+};
+message Int32Result {
+  oneof result {
+    int32 value = 1;
     string error = 2;
   }
 };
@@ -110,7 +107,7 @@ message ShotTimer {
 
 message StateUpdate {
   MachineMode mode = 1;
-  FloatSensorReading boilerTemp = 2;
+  Int32Result boilerTemp = 2;
   Uint32Result pressure = 3;
   int32 setpoint = 4;
 

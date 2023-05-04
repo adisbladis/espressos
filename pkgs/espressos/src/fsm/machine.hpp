@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <cstdint>
 #include <tinyfsm.hpp>
 
 #include "../proto/api.h"
@@ -18,10 +19,10 @@ class Steaming;
 
 /* Events */
 struct PowerOnEvent : tinyfsm::Event {
-  int setpoint;
+  std::uint16_t setpoint;
 };
 struct StartSteamEvent : tinyfsm::Event {
-  int setpoint;
+  std::uint16_t setpoint;
 };
 
 struct PanicEvent : tinyfsm::Event {};
@@ -57,14 +58,14 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
 
 protected:
   // Boiler setpoint
-  static int setpoint;
+  static std::uint16_t setpoint;
 
   // Store the previous boiler setpoint when entering steam mode
   // so we can easily transition back into idle mode with the correct setpoint.
-  static int prevSetpoint;
+  static std::uint16_t prevSetpoint;
 
   // How often to emit state updates to clients
-  static long stateUpdateInterval;
+  static unsigned long stateUpdateInterval;
 
   // Timeout for the current state
   // It's up to each state to implement this themselves.
@@ -74,8 +75,8 @@ protected:
   static unsigned long timestamp;
 
 public:
-  int getSetPoint() { return setpoint; };
-  int getTimestamp() { return timestamp; };
+  std::uint16_t getSetPoint() { return setpoint; };
+  unsigned long getTimestamp() { return timestamp; };
   virtual PinStatus getSolenoid() { return LOW; }
   virtual uint8_t getPump() { return 0; }
   virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };

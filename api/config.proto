@@ -22,6 +22,6 @@ message BoilerConfig {
 message Config {
   BoilerConfig boiler = 1;
 
-  double setpoint = 2;
-  double steamSetPoint = 3;
+  uint32 setpoint = 2;
+  uint32 steamSetPoint = 3;
 }

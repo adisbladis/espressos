@@ -94,8 +94,8 @@ const Chart: Component = () => {
     },
   ];
 
-  const unpackSensorReading = (
-    x: FloatSensorReading["valueOrError"],
+  const unpackUint32Result = (
+    x: Uint32Result["result"],
   ): number => {
     switch (x.$case) {
       case "value":
@@ -107,8 +107,8 @@ const Chart: Component = () => {
     }
   };
 
-  const unpackUint32Result = (
-    x: Uint32Result["result"],
+  const unpackInt32Result = (
+    x: Int32Result["result"],
   ): number => {
     switch (x.$case) {
       case "value":
@@ -130,7 +130,7 @@ const Chart: Component = () => {
 
       switch (dataset.label) {
         case "Temp":
-          value = unpackSensorReading(state.boilerTemp.valueOrError);
+          value = unpackInt32Result(state.boilerTemp.result) / 100;
           break;
         case "Pressure":
           value = unpackUint32Result(state.pressure.result) / 1000;

@@ -4,7 +4,7 @@ import { StateUpdate } from "./proto/api";
 export const [state, setState] = createStore(
   StateUpdate.create({
     boilerTemp: {
-      valueOrError: {
+      result: {
         $case: "value",
         value: 0,
       },

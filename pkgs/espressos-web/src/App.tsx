@@ -34,7 +34,7 @@ client.onEvent("*", (event: Event) => {
     case "stateUpdate":
       setState(event.eventOneof.stateUpdate);
 
-      const temp = event.eventOneof.stateUpdate.boilerTemp.valueOrError;
+      const temp = event.eventOneof.stateUpdate.boilerTemp.result;
       if (temp.$case == "error") {
         console.error(temp);
       }
@@ -136,8 +136,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.BREWING
-                  ? client.stopBrew()
-                  : client.startBrew()
+                ? client.stopBrew()
+                : client.startBrew()
               }
             >
               {Symbols.BREWING}
@@ -147,8 +147,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.PUMPING
-                  ? client.stopPump()
-                  : client.startPump()
+                ? client.stopPump()
+                : client.startPump()
               }
             >
               {Symbols.PUMPING}
@@ -160,8 +160,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.STEAMING
-                  ? client.stopSteam()
-                  : client.startSteam(config.steamSetPoint)
+                ? client.stopSteam()
+                : client.startSteam(config.steamSetPoint)
               }
             >
               {Symbols.STEAMING}
@@ -171,8 +171,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
-                  ? client.powerOff()
-                  : client.powerOn(config.setpoint)
+                ? client.powerOff()
+                : client.powerOn(config.setpoint)
               }
             >
               {Symbols.POWER}
@@ -182,16 +182,16 @@ const App: Component = () => {
           <div>
             <button
               class="btn m-1 btn-lg"
-              onClick={() => client.powerOn(state.setpoint + 1)}
+              onClick={() => client.powerOn(((state.setpoint / 100) + 1) * 100)}
             >
               ➕
             </button>
 
-            {state.setpoint}
+            {state.setpoint / 100}
 
             <button
               class="btn m-1 btn-lg"
-              onClick={() => client.powerOn(state.setpoint - 1)}
+              onClick={() => client.powerOn(((state.setpoint / 100) - 1) * 100)}
             >
               ➖
             </button>
@@ -257,9 +257,9 @@ const App: Component = () => {
                   <li>
                     Temp:{" "}
                     {((): string => {
-                      switch (state.boilerTemp.valueOrError.$case) {
+                      switch (state.boilerTemp.result.$case) {
                         case "value":
-                          return `${state.boilerTemp.valueOrError.value.toFixed(
+                          return `${(state.boilerTemp.result.value / 100).toFixed(
                             2,
                           )}°C`;
                         case "error":

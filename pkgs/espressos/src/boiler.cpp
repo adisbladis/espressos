@@ -21,9 +21,7 @@ void BoilerPID::setup() {
 }
 
 void BoilerPID::SetSetPoint(double setPoint) {
-  if (setPoint != Setpoint) {
-    Setpoint = setPoint;
-  }
+  Setpoint = setPoint;
 }
 
 struct TempReading BoilerPID::getTemp() {
