@@ -16,16 +16,6 @@ message PIDTunings {
 message BoilerConfig {
   // PID tunings for this boiler.
   PIDTunings PID = 1;
-
-  // Value of Rref resistor.
-  // PT100 == 430.0
-  // PT1000 == 4300.0
-  double rref = 2;
-
-  // "Nominal" 0-degrees resistance of the sensor.
-  // PT100 == 100.0
-  // PT1000 == 1000.0
-  double rnominal = 3;
 }
 
 // Persisted configuration.

@@ -20,16 +20,13 @@ private:
     config = Config();
 
     auto boiler = config.mutable_boiler();
-    boiler.set_rref(BOILER_RREF);
-    boiler.set_rnominal(BOILER_RNOMINAL);
-
     auto pid = boiler.mutable_PID();
     pid.set_P(BOILER_PID_P);
     pid.set_I(BOILER_PID_I);
     pid.set_D(BOILER_PID_D);
     boiler.set_PID(pid);
-
     config.set_boiler(boiler);
+
     config.set_setpoint(BOILER_SETPOINT);
     config.set_steamSetPoint(BOILER_STEAM_SETPOINT);
   }
