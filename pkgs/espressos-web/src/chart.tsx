@@ -1,7 +1,7 @@
 import type { Component } from "solid-js";
 import { onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
-import { FloatSensorReading } from "./api/api";
+import { FloatSensorReading, Uint32Result } from "./api/api";
 import { state } from "./state";
 import { SolidChart, SolidChartProps } from "./SolidChart";
 
@@ -107,6 +107,19 @@ const Chart: Component = () => {
     }
   };
 
+  const unpackUint32Result = (
+    x: Uint32Result["result"],
+  ): number => {
+    switch (x.$case) {
+      case "value":
+        return x.value;
+      case "error":
+        return -1; // Sentinel error value
+      default:
+        throw new Error("Case unhandled");
+    }
+  };
+
   const interval = setInterval(() => {
     for (let i = 0; i < chart.data.datasets.length; i++) {
       const dataset = chart.data.datasets[i];
@@ -120,7 +133,7 @@ const Chart: Component = () => {
           value = unpackSensorReading(state.boilerTemp.valueOrError);
           break;
         case "Pressure":
-          value = unpackSensorReading(state.pressure.valueOrError);
+          value = unpackUint32Result(state.pressure.result) / 1000;
           break;
       }
 

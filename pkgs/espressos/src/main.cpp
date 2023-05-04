@@ -22,7 +22,7 @@
 // Hardware IO
 static BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN,
                         BOILER_SPI_CLASS);
-static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_BAR,
+static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_MBAR,
                                    PRESSURE_SENSOR_RANGE);
 static DimmableLight pump(PUMP_DIMMER_OUT);
 static CachedOutputPin solenoid(BREW_SOLENOID_PIN);

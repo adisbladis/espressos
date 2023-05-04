@@ -72,6 +72,14 @@ message FloatSensorReading {
   }
 };
 
+// An envelope for an arbitrary sensor that returns an integer with an optional error
+message Uint32Result {
+  oneof result {
+    uint32 value = 1;
+    string error = 2;
+  }
+};
+
 enum MachineMode {
   UNKNOWN = 0;
   PANIC = 1;
@@ -103,7 +111,7 @@ message ShotTimer {
 message StateUpdate {
   MachineMode mode = 1;
   FloatSensorReading boilerTemp = 2;
-  FloatSensorReading pressure = 3;
+  Uint32Result pressure = 3;
   int32 setpoint = 4;
 
   // Current time of machine since startup in milliseconds

@@ -39,7 +39,7 @@ client.onEvent("*", (event: Event) => {
         console.error(temp);
       }
 
-      const pressure = event.eventOneof.stateUpdate.pressure.valueOrError;
+      const pressure = event.eventOneof.stateUpdate.pressure.result;
       if (pressure.$case == "error") {
         console.error(pressure);
       }
@@ -271,9 +271,9 @@ const App: Component = () => {
                   <li>
                     Pressure:{" "}
                     {((): string => {
-                      switch (state.pressure.valueOrError.$case) {
+                      switch (state.pressure.result.$case) {
                         case "value":
-                          return `${state.pressure.valueOrError.value.toFixed(
+                          return `${(state.pressure.result.value / 1000).toFixed(
                             2,
                           )} bar`;
                         case "error":

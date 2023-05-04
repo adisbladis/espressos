@@ -10,7 +10,7 @@ export const [state, setState] = createStore(
       },
     },
     pressure: {
-      valueOrError: {
+      result: {
         $case: "value",
         value: 0,
       },
