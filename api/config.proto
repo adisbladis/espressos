@@ -3,13 +3,13 @@ syntax = "proto3";
 // PID gain tunings.
 message PIDTunings {
   // Proportional gain.
-  double P = 1;
+  float P = 1;
 
   // Integral gain.
-  double I = 2;
+  float I = 2;
 
   // Derivative gain.
-  double D = 3;
+  float D = 3;
 }
 
 // Hardware configuration for the boiler.
