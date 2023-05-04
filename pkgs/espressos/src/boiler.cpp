@@ -5,8 +5,7 @@
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 
-BoilerPID::BoilerPID(double relayPin, double max31865SPIPin,
-                     SPIClass *theSPI = &SPI)
+BoilerPID::BoilerPID(int relayPin, int max31865SPIPin, SPIClass *theSPI = &SPI)
     : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE),
       thermo(max31865SPIPin, theSPI), outputPin(relayPin){};
 
@@ -27,8 +26,6 @@ void BoilerPID::SetSetPoint(double setPoint) {
   }
 }
 
-double BoilerPID::GetSetPoint() { return Setpoint; }
-
 struct TempReading BoilerPID::getTemp() {
   return temp;
 }
@@ -37,7 +34,7 @@ void BoilerPID::SetTunings(double Kp, double Ki, double Kd) {
   pid.SetTunings(Kp, Ki, Kd);
 }
 
-bool BoilerPID::tick() {
+bool BoilerPID::loop(unsigned long now) {
   uint16_t rtd;
   bool cond = thermo.readRTDAsync(rtd);
 
@@ -63,8 +60,6 @@ bool BoilerPID::tick() {
   }
 
   pid.Compute();
-
-  auto now = millis();
 
   if (now - windowStartTime >= WindowSize) {
     windowStartTime += WindowSize;

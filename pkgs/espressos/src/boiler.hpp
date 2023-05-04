@@ -58,16 +58,14 @@ private:
   TempReading temp;
 
 public:
-  BoilerPID(double relayPin, double max31865SPIPin, SPIClass *theSPI);
+  BoilerPID(int relayPin, int max31865SPIPin, SPIClass *theSPI);
 
   void setup();
   void SetSetPoint(double setPoint);
-
-  double GetSetPoint();
 
   struct TempReading getTemp();
 
   void SetTunings(double Kp, double Ki, double Kd);
 
-  bool tick();
+  bool loop(unsigned long now);
 };

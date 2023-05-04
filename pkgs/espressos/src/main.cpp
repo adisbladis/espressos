@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <dimmable_light.h>
 
-#include "http/api.hpp"
 #include "api/handler.hpp"
 #include "boiler.hpp"
 #include "cachedpin.hpp"
@@ -12,6 +11,7 @@
 #include "fsm/brew.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
+#include "http/api.hpp"
 #include "lib/effects.hpp"
 #include "lib/interval_callback.hpp"
 #include "logger.hpp"
@@ -32,7 +32,7 @@ static APIHandler apiHandler(&pConfig);
 static APIWebServer apiServer = APIWebServer(HTTP_PORT, &apiHandler);
 
 // Watch variables for change and propagate to hardware/API
-static  Effects effects;
+static Effects effects;
 static Effects apiEffects;
 
 // Re-use loop event on every iteration
@@ -205,7 +205,7 @@ void loop() {
   apiEffects.loop();
 
   // Run boiler PID loop
-  boiler.tick();
+  boiler.loop(now);
 
   // Handle Arduino OTA
   handleOTA();
