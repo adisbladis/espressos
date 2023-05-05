@@ -11,18 +11,19 @@
 #include "WProgram.h"
 #endif
 
-#include <PID_v1.h>
+#include "PID_v1.h"
 
 /*Constructor (...)*********************************************************
  *    The parameters specified here are those for for which we can't set up
  *    reliable defaults, so we need to have the user set them.
  ***************************************************************************/
 PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
-         double Kd, int POn, int ControllerDirection) {
+         double Kd, PIDProportionalOn POn,
+         PIDControllerDirection ControllerDirection) {
   myOutput = Output;
   myInput = Input;
   mySetpoint = Setpoint;
-  inAuto = false;
+  mode = MANUAL;
 
   PID::SetOutputLimits(0, 255); // default output limit corresponds to
                                 // the arduino pwm limits
@@ -41,7 +42,7 @@ PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
  ***************************************************************************/
 
 PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
-         double Kd, int ControllerDirection)
+         double Kd, PIDControllerDirection ControllerDirection)
     : PID::PID(Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E,
                ControllerDirection) {}
 
@@ -53,8 +54,10 @@ PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
  *computed, false when nothing has been done.
  **********************************************************************************/
 bool PID::Compute() {
-  if (!inAuto)
+  if (mode != AUTOMATIC) {
     return false;
+  }
+
   unsigned long now = millis();
   unsigned long timeChange = (now - lastTime);
   if (timeChange >= SampleTime) {
@@ -65,7 +68,7 @@ bool PID::Compute() {
     outputSum += (ki * error);
 
     /*Add Proportional on Measurement, if P_ON_M is specified*/
-    if (!pOnE)
+    if (pOn == P_ON_M)
       outputSum -= kp * dInput;
 
     if (outputSum > outMax)
@@ -75,7 +78,7 @@ bool PID::Compute() {
 
     /*Add Proportional on Error, if P_ON_E is specified*/
     double output;
-    if (pOnE)
+    if (pOn == P_ON_E)
       output = kp * error;
     else
       output = 0;
@@ -102,12 +105,11 @@ bool PID::Compute() {
  * it's called automatically from the constructor, but tunings can also
  * be adjusted on the fly during normal operation
  ******************************************************************************/
-void PID::SetTunings(double Kp, double Ki, double Kd, int POn) {
+void PID::SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
   if (Kp < 0 || Ki < 0 || Kd < 0)
     return;
 
   pOn = POn;
-  pOnE = POn == P_ON_E;
 
   dispKp = Kp;
   dispKi = Ki;
@@ -158,7 +160,7 @@ void PID::SetOutputLimits(double Min, double Max) {
   outMin = Min;
   outMax = Max;
 
-  if (inAuto) {
+  if (mode == AUTOMATIC) {
     if (*myOutput > outMax)
       *myOutput = outMax;
     else if (*myOutput < outMin)
@@ -176,12 +178,13 @@ void PID::SetOutputLimits(double Min, double Max) {
  * when the transition from manual to auto occurs, the controller is
  * automatically initialized
  ******************************************************************************/
-void PID::SetMode(int Mode) {
-  bool newAuto = (Mode == AUTOMATIC);
-  if (newAuto && !inAuto) { /*we just went from manual to auto*/
+void PID::SetMode(PIDControllerMode Mode) {
+  /*we just went from manual to auto*/
+  if (Mode == AUTOMATIC && mode != AUTOMATIC) {
     PID::Initialize();
   }
-  inAuto = newAuto;
+
+  mode = Mode;
 }
 
 /* Initialize()****************************************************************
@@ -198,13 +201,13 @@ void PID::Initialize() {
 }
 
 /* SetControllerDirection(...)*************************************************
- * The PID will either be connected to a DIRECT acting process (+Output leads
- * to +Input) or a REVERSE acting process(+Output leads to -Input.)  we need to
- * know which one, because otherwise we may increase the output when we should
- * be decreasing.  This is called from the constructor.
+ * The PID will either be connected to a PIDControllerDirection::DIRECT acting
+ *process (+Output leads to +Input) or a REVERSE acting process(+Output leads to
+ *-Input.)  we need to know which one, because otherwise we may increase the
+ *output when we should be decreasing.  This is called from the constructor.
  ******************************************************************************/
-void PID::SetControllerDirection(int Direction) {
-  if (inAuto && Direction != controllerDirection) {
+void PID::SetControllerDirection(PIDControllerDirection Direction) {
+  if (mode == AUTOMATIC && Direction != controllerDirection) {
     kp = (0 - kp);
     ki = (0 - ki);
     kd = (0 - kd);
@@ -220,5 +223,5 @@ void PID::SetControllerDirection(int Direction) {
 double PID::GetKp() { return dispKp; }
 double PID::GetKi() { return dispKi; }
 double PID::GetKd() { return dispKd; }
-int PID::GetMode() { return inAuto ? AUTOMATIC : MANUAL; }
-int PID::GetDirection() { return controllerDirection; }
+PIDControllerMode PID::GetMode() { return mode; }
+PIDControllerDirection PID::GetDirection() { return controllerDirection; }

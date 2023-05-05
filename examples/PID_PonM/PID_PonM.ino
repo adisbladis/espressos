@@ -6,15 +6,17 @@
  * in certain processes like sous-vides.
  ********************************************************/
 
-#include <PID_v1.h>
+#include "PID_v1.h"
 
 // Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 
 // Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, P_ON_M,
-          DIRECT); // P_ON_M specifies that Proportional on Measurement be used
-                   // P_ON_E (Proportional on Error) is the default behavior
+PID myPID(
+    &Input, &Output, &Setpoint, 2, 5, 1, P_ON_M,
+    PIDControllerDirection::DIRECT); // P_ON_M specifies that Proportional on
+                                     // Measurement be used P_ON_E (Proportional
+                                     // on Error) is the default behavior
 
 void setup() {
   // initialize the variables we're linked to
@@ -22,7 +24,7 @@ void setup() {
   Setpoint = 100;
 
   // turn the PID on
-  myPID.SetMode(AUTOMATIC);
+  myPID.SetMode(PIDControllerMode::AUTOMATIC);
 }
 
 void loop() {
