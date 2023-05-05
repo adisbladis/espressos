@@ -12,7 +12,7 @@ BoilerPID::BoilerPID(int relayPin, int max31865SPIPin, SPIClass *theSPI = &SPI)
 void BoilerPID::setup() {
   outputPin.setup();
 
-  thermo.begin(MAX31865_2WIRE);
+  thermo.begin(MAX31865_3WIRE);
 
   windowStartTime = millis();
 
