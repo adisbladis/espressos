@@ -1,6 +1,4 @@
-#ifndef PID_v1_h
-#define PID_v1_h
-#define LIBRARY_VERSION 1.2.1
+#pragma once
 
 enum PIDControllerDirection { DIRECT, REVERSE };
 enum PIDControllerMode { MANUAL, AUTOMATIC };
@@ -21,6 +19,10 @@ public:
   PID(double *, double *, double *, double, double, double,
       PIDControllerDirection);
 
+  // Sets initial state relative to current time
+  void Begin(PIDControllerMode, unsigned long);
+  void Begin(unsigned long);
+
   // sets PID to either Manual (0) or Auto (non-0)
   void SetMode(PIDControllerMode Mode);
 
@@ -28,7 +30,7 @@ public:
   // called every time loop() cycles. ON/OFF and
   // calculation frequency can be set using SetMode
   // SetSampleTime respectively
-  bool Compute();
+  bool Compute(unsigned long);
 
   // clamps the output to a specific range. 0-255 by default, but
   // it's likely the user will want to change this depending on
@@ -94,4 +96,3 @@ private:
   unsigned long SampleTime;
   double outMin, outMax;
 };
-#endif

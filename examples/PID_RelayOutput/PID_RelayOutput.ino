@@ -40,12 +40,12 @@ void setup() {
   myPID.SetOutputLimits(0, WindowSize);
 
   // turn the PID on
-  myPID.SetMode(PIDControllerMode::AUTOMATIC);
+  myPID.Begint(PIDControllerMode::AUTOMATIC, millis());
 }
 
 void loop() {
   Input = analogRead(PIN_INPUT);
-  myPID.Compute();
+  myPID.Compute(millis());
 
   /************************************************
    * turn the output pin on/off based on pid output

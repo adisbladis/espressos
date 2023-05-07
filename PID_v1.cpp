@@ -5,12 +5,6 @@
  * This Library is licensed under the MIT License
  **********************************************************************************************/
 
-#if ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
-
 #include "PID_v1.h"
 
 // The parameters specified here are those for for which we can't set up
@@ -31,8 +25,6 @@ PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
 
   PID::SetControllerDirection(ControllerDirection);
   PID::SetTunings(Kp, Ki, Kd, POn);
-
-  lastTime = millis() - SampleTime;
 }
 
 // To allow backwards compatability for v1.1, or for people that just want to
@@ -42,17 +34,23 @@ PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
     : PID::PID(Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E,
                ControllerDirection) {}
 
+void PID::Begin(unsigned long now) { lastTime = now - SampleTime; }
+
+void PID::Begin(PIDControllerMode mode, unsigned long now) {
+  Begin(now);
+  SetMode(mode);
+}
+
 // This, as they say, is where the magic happens.
 // This function should be called every time "void loop()" executes.
 // The function will decide for itself whether a new pid Output needs to be
 // computed. returns true when the output is computed, false when nothing has
 // been done.
-bool PID::Compute() {
+bool PID::Compute(unsigned long now) {
   if (mode != AUTOMATIC) {
     return false;
   }
 
-  unsigned long now = millis();
   unsigned long timeChange = (now - lastTime);
   if (timeChange >= SampleTime) {
     /*Compute all the working error variables*/

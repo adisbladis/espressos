@@ -30,7 +30,7 @@ void setup() {
   Setpoint = 100;
 
   // turn the PID on
-  myPID.SetMode(AUTOMATIC);
+  myPID.Begin(AUTOMATIC, millis());
 }
 
 void loop() {
@@ -44,6 +44,6 @@ void loop() {
     myPID.SetTunings(aggKp, aggKi, aggKd);
   }
 
-  myPID.Compute();
+  myPID.Compute(millis());
   analogWrite(PIN_OUTPUT, Output);
 }

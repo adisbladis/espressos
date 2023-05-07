@@ -24,11 +24,11 @@ void setup() {
   Setpoint = 100;
 
   // turn the PID on
-  myPID.SetMode(PIDControllerMode::AUTOMATIC);
+  myPID.Begin(PIDControllerMode::AUTOMATIC, millis());
 }
 
 void loop() {
   Input = analogRead(0);
-  myPID.Compute();
+  myPID.Compute(millis());
   analogWrite(3, Output);
 }

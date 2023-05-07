@@ -13,7 +13,8 @@ double Setpoint, Input, Output;
 
 // Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd,
+          PIDControllerDirection::DIRECT);
 
 void setup() {
   // initialize the variables we're linked to
@@ -21,11 +22,11 @@ void setup() {
   Setpoint = 100;
 
   // turn the PID on
-  myPID.SetMode(AUTOMATIC);
+  myPID.Begin(PIDControllerMode::AUTOMATIC, millis());
 }
 
 void loop() {
   Input = analogRead(PIN_INPUT);
-  myPID.Compute();
+  myPID.Compute(millis());
   analogWrite(PIN_OUTPUT, Output);
 }
