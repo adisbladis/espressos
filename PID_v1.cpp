@@ -13,10 +13,8 @@
 
 #include "PID_v1.h"
 
-/*Constructor (...)*********************************************************
- *    The parameters specified here are those for for which we can't set up
- *    reliable defaults, so we need to have the user set them.
- ***************************************************************************/
+// The parameters specified here are those for for which we can't set up
+// reliable defaults, so we need to have the user set them.
 PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
          double Kd, PIDProportionalOn POn,
          PIDControllerDirection ControllerDirection) {
@@ -25,8 +23,9 @@ PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
   mySetpoint = Setpoint;
   mode = MANUAL;
 
-  PID::SetOutputLimits(0, 255); // default output limit corresponds to
-                                // the arduino pwm limits
+  // default output limit corresponds to
+  PID::SetOutputLimits(0, 255);
+  // the arduino pwm limits
 
   SampleTime = 100; // default Controller Sample Time is 0.1 seconds
 
@@ -36,23 +35,18 @@ PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
   lastTime = millis() - SampleTime;
 }
 
-/*Constructor (...)*********************************************************
- *    To allow backwards compatability for v1.1, or for people that just want
- *    to use Proportional on Error without explicitly saying so
- ***************************************************************************/
-
+// To allow backwards compatability for v1.1, or for people that just want to
+// use Proportional on Error without explicitly saying so
 PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
          double Kd, PIDControllerDirection ControllerDirection)
     : PID::PID(Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E,
                ControllerDirection) {}
 
-/* Compute()
- *********************************************************************** This,
- *as they say, is where the magic happens.  this function should be called every
- *time "void loop()" executes.  the function will decide for itself whether a
- *new pid Output needs to be computed.  returns true when the output is
- *computed, false when nothing has been done.
- **********************************************************************************/
+// This, as they say, is where the magic happens.
+// This function should be called every time "void loop()" executes.
+// The function will decide for itself whether a new pid Output needs to be
+// computed. returns true when the output is computed, false when nothing has
+// been done.
 bool PID::Compute() {
   if (mode != AUTOMATIC) {
     return false;
@@ -100,11 +94,9 @@ bool PID::Compute() {
     return false;
 }
 
-/* SetTunings(...)*************************************************************
- * This function allows the controller's dynamic performance to be adjusted.
- * it's called automatically from the constructor, but tunings can also
- * be adjusted on the fly during normal operation
- ******************************************************************************/
+// This function allows the controller's dynamic performance to be adjusted.
+// it's called automatically from the constructor, but tunings can also
+// be adjusted on the fly during normal operation
 void PID::SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
   if (Kp < 0 || Ki < 0 || Kd < 0)
     return;
@@ -127,16 +119,12 @@ void PID::SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
   }
 }
 
-/* SetTunings(...)*************************************************************
- * Set Tunings using the last-rembered POn setting
- ******************************************************************************/
+// Set Tunings using the last-rembered POn setting
 void PID::SetTunings(double Kp, double Ki, double Kd) {
   SetTunings(Kp, Ki, Kd, pOn);
 }
 
-/* SetSampleTime(...) *********************************************************
- * sets the period, in Milliseconds, at which the calculation is performed
- ******************************************************************************/
+// sets the period, in Milliseconds, at which the calculation is performed
 void PID::SetSampleTime(int NewSampleTime) {
   if (NewSampleTime > 0) {
     double ratio = (double)NewSampleTime / (double)SampleTime;
@@ -146,14 +134,12 @@ void PID::SetSampleTime(int NewSampleTime) {
   }
 }
 
-/* SetOutputLimits(...)****************************************************
- *     This function will be used far more often than SetInputLimits.  while
- *  the input to the controller will generally be in the 0-1023 range (which is
- *  the default already,)  the output will be a little different.  maybe they'll
- *  be doing a time window and will need 0-8000 or something.  or maybe they'll
- *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
- *  here.
- **************************************************************************/
+// This function will be used far more often than SetInputLimits.  while
+// the input to the controller will generally be in the 0-1023 range (which is
+// the default already,)  the output will be a little different.  maybe they'll
+// be doing a time window and will need 0-8000 or something.  or maybe they'll
+// want to clamp it from 0-125.  who knows.  at any rate, that can all be done
+// here.
 void PID::SetOutputLimits(double Min, double Max) {
   if (Min >= Max)
     return;
@@ -173,11 +159,9 @@ void PID::SetOutputLimits(double Min, double Max) {
   }
 }
 
-/* SetMode(...)****************************************************************
- * Allows the controller Mode to be set to manual (0) or Automatic (non-zero)
- * when the transition from manual to auto occurs, the controller is
- * automatically initialized
- ******************************************************************************/
+// Allows the controller Mode to be set to manual (0) or Automatic (non-zero)
+// when the transition from manual to auto occurs, the controller is
+// automatically initialized
 void PID::SetMode(PIDControllerMode Mode) {
   /*we just went from manual to auto*/
   if (Mode == AUTOMATIC && mode != AUTOMATIC) {
@@ -187,10 +171,8 @@ void PID::SetMode(PIDControllerMode Mode) {
   mode = Mode;
 }
 
-/* Initialize()****************************************************************
- *	does all the things that need to happen to ensure a bumpless transfer
- *  from manual to automatic mode.
- ******************************************************************************/
+// does all the things that need to happen to ensure a bumpless transfer
+// from manual to automatic mode.
 void PID::Initialize() {
   outputSum = *myOutput;
   lastInput = *myInput;
@@ -200,12 +182,10 @@ void PID::Initialize() {
     outputSum = outMin;
 }
 
-/* SetControllerDirection(...)*************************************************
- * The PID will either be connected to a PIDControllerDirection::DIRECT acting
- *process (+Output leads to +Input) or a REVERSE acting process(+Output leads to
- *-Input.)  we need to know which one, because otherwise we may increase the
- *output when we should be decreasing.  This is called from the constructor.
- ******************************************************************************/
+// The PID will either be connected to a PIDControllerDirection::DIRECT acting
+// process (+Output leads to +Input) or a REVERSE acting process(+Output leads
+// to -Input.)  we need to know which one, because otherwise we may increase the
+// output when we should be decreasing.  This is called from the constructor.
 void PID::SetControllerDirection(PIDControllerDirection Direction) {
   if (mode == AUTOMATIC && Direction != controllerDirection) {
     kp = (0 - kp);
@@ -215,11 +195,9 @@ void PID::SetControllerDirection(PIDControllerDirection Direction) {
   controllerDirection = Direction;
 }
 
-/* Status Funcions*************************************************************
- * Just because you set the Kp=-1 doesn't mean it actually happened.  these
- * functions query the internal state of the PID.  they're here for display
- * purposes.  this are the functions the PID Front-end uses for example
- ******************************************************************************/
+// Just because you set the Kp=-1 doesn't mean it actually happened.  these
+// functions query the internal state of the PID.  they're here for display
+// purposes.  this are the functions the PID Front-end uses for example
 double PID::GetKp() { return dispKp; }
 double PID::GetKi() { return dispKi; }
 double PID::GetKd() { return dispKd; }

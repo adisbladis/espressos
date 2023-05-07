@@ -14,7 +14,6 @@ double Setpoint, Input, Output;
 // Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
->>>>>>> 6b7c36a (Implement controller direction as an enum)
 
 void setup() {
   // initialize the variables we're linked to
