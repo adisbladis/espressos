@@ -3,5 +3,6 @@ let
 in pkgs.mkShell {
   packages = [
     pkgs.doctest
+    pkgs.clang-tools
   ];
 }
