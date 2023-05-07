@@ -58,9 +58,9 @@ public:
   // they were created mainly for the pid front-end,
   // where it's important to know what is actually
   // inside the PID.
-  double GetKp();
-  double GetKi();
-  double GetKd();
+  double GetKp() const;
+  double GetKi() const;
+  double GetKd() const;
   PIDControllerMode GetMode();
   PIDControllerDirection GetDirection();
 

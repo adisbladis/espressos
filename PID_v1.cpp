@@ -60,44 +60,49 @@ bool PID::Compute(unsigned long now) {
     outputSum += (ki * error);
 
     /*Add Proportional on Measurement, if P_ON_M is specified*/
-    if (pOn == P_ON_M)
+    if (pOn == P_ON_M) {
       outputSum -= kp * dInput;
+    }
 
-    if (outputSum > outMax)
+    if (outputSum > outMax) {
       outputSum = outMax;
-    else if (outputSum < outMin)
+    } else if (outputSum < outMin) {
       outputSum = outMin;
+    }
 
     /*Add Proportional on Error, if P_ON_E is specified*/
     double output;
-    if (pOn == P_ON_E)
+    if (pOn == P_ON_E) {
       output = kp * error;
-    else
+    } else {
       output = 0;
+    }
 
     /*Compute Rest of PID Output*/
     output += outputSum - kd * dInput;
 
-    if (output > outMax)
+    if (output > outMax) {
       output = outMax;
-    else if (output < outMin)
+    } else if (output < outMin) {
       output = outMin;
+    }
     *myOutput = output;
 
     /*Remember some variables for next time*/
     lastInput = input;
     lastTime = now;
     return true;
-  } else
-    return false;
+  }
+  return false;
 }
 
 // This function allows the controller's dynamic performance to be adjusted.
 // it's called automatically from the constructor, but tunings can also
 // be adjusted on the fly during normal operation
 void PID::SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
-  if (Kp < 0 || Ki < 0 || Kd < 0)
+  if (Kp < 0 || Ki < 0 || Kd < 0) {
     return;
+  }
 
   pOn = POn;
 
@@ -139,21 +144,24 @@ void PID::SetSampleTime(int NewSampleTime) {
 // want to clamp it from 0-125.  who knows.  at any rate, that can all be done
 // here.
 void PID::SetOutputLimits(double Min, double Max) {
-  if (Min >= Max)
+  if (Min >= Max) {
     return;
+  }
   outMin = Min;
   outMax = Max;
 
   if (mode == AUTOMATIC) {
-    if (*myOutput > outMax)
+    if (*myOutput > outMax) {
       *myOutput = outMax;
-    else if (*myOutput < outMin)
+    } else if (*myOutput < outMin) {
       *myOutput = outMin;
+    }
 
-    if (outputSum > outMax)
+    if (outputSum > outMax) {
       outputSum = outMax;
-    else if (outputSum < outMin)
+    } else if (outputSum < outMin) {
       outputSum = outMin;
+    }
   }
 }
 
@@ -174,10 +182,11 @@ void PID::SetMode(PIDControllerMode Mode) {
 void PID::Initialize() {
   outputSum = *myOutput;
   lastInput = *myInput;
-  if (outputSum > outMax)
+  if (outputSum > outMax) {
     outputSum = outMax;
-  else if (outputSum < outMin)
+  } else if (outputSum < outMin) {
     outputSum = outMin;
+  }
 }
 
 // The PID will either be connected to a PIDControllerDirection::DIRECT acting
@@ -196,8 +205,8 @@ void PID::SetControllerDirection(PIDControllerDirection Direction) {
 // Just because you set the Kp=-1 doesn't mean it actually happened.  these
 // functions query the internal state of the PID.  they're here for display
 // purposes.  this are the functions the PID Front-end uses for example
-double PID::GetKp() { return dispKp; }
-double PID::GetKi() { return dispKi; }
-double PID::GetKd() { return dispKd; }
+double PID::GetKp() const { return dispKp; }
+double PID::GetKi() const { return dispKi; }
+double PID::GetKd() const { return dispKd; }
 PIDControllerMode PID::GetMode() { return mode; }
 PIDControllerDirection PID::GetDirection() { return controllerDirection; }
