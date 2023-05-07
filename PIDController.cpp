@@ -113,7 +113,7 @@ void PIDController::SetTunings(double Kp, double Ki, double Kd,
   dispKi = Ki;
   dispKd = Kd;
 
-  double SampleTimeInSec = ((double)SampleTime) / 1000;
+  double SampleTimeInSec = (static_cast<double>(SampleTime)) / 1000;
   kp = Kp;
   ki = Ki * SampleTimeInSec;
   kd = Kd / SampleTimeInSec;
@@ -133,10 +133,11 @@ void PIDController::SetTunings(double Kp, double Ki, double Kd) {
 // sets the period, in Milliseconds, at which the calculation is performed
 void PIDController::SetSampleTime(int NewSampleTime) {
   if (NewSampleTime > 0) {
-    double ratio = (double)NewSampleTime / (double)SampleTime;
+    double ratio =
+        static_cast<double>(NewSampleTime) / static_cast<double>(SampleTime);
     ki *= ratio;
     kd /= ratio;
-    SampleTime = (unsigned long)NewSampleTime;
+    SampleTime = static_cast<unsigned long>(NewSampleTime);
   }
 }
 
