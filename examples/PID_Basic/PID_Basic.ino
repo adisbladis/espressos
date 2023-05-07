@@ -3,7 +3,7 @@
  * Reading analog input 0 to control analog PWM output 3
  ********************************************************/
 
-#include "PID_v1.h"
+#include "PIDController.hpp"
 
 #define PIN_INPUT 0
 #define PIN_OUTPUT 3
@@ -13,8 +13,8 @@ double Setpoint, Input, Output;
 
 // Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd,
-          PIDControllerDirection::DIRECT);
+PIDController myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd,
+                    PIDControllerDirection::DIRECT);
 
 void setup() {
   // initialize the variables we're linked to

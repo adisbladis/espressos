@@ -6,13 +6,13 @@
  * in certain processes like sous-vides.
  ********************************************************/
 
-#include "PID_v1.h"
+#include "PIDController.hpp"
 
 // Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 
 // Specify the links and initial tuning parameters
-PID myPID(
+PIDController myPID(
     &Input, &Output, &Setpoint, 2, 5, 1, P_ON_M,
     PIDControllerDirection::DIRECT); // P_ON_M specifies that Proportional on
                                      // Measurement be used P_ON_E (Proportional

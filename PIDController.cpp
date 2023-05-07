@@ -5,38 +5,40 @@
  * This Library is licensed under the MIT License
  **********************************************************************************************/
 
-#include "PID_v1.h"
+#include "PIDController.hpp"
 
 // The parameters specified here are those for for which we can't set up
 // reliable defaults, so we need to have the user set them.
-PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
-         double Kd, PIDProportionalOn POn,
-         PIDControllerDirection ControllerDirection) {
+PIDController::PIDController(double *Input, double *Output, double *Setpoint,
+                             double Kp, double Ki, double Kd,
+                             PIDProportionalOn POn,
+                             PIDControllerDirection ControllerDirection) {
   myOutput = Output;
   myInput = Input;
   mySetpoint = Setpoint;
   mode = MANUAL;
 
   // default output limit corresponds to
-  PID::SetOutputLimits(0, 255);
+  PIDController::SetOutputLimits(0, 255);
   // the arduino pwm limits
 
   SampleTime = 100; // default Controller Sample Time is 0.1 seconds
 
-  PID::SetControllerDirection(ControllerDirection);
-  PID::SetTunings(Kp, Ki, Kd, POn);
+  PIDController::SetControllerDirection(ControllerDirection);
+  PIDController::SetTunings(Kp, Ki, Kd, POn);
 }
 
 // To allow backwards compatability for v1.1, or for people that just want to
 // use Proportional on Error without explicitly saying so
-PID::PID(double *Input, double *Output, double *Setpoint, double Kp, double Ki,
-         double Kd, PIDControllerDirection ControllerDirection)
-    : PID::PID(Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E,
-               ControllerDirection) {}
+PIDController::PIDController(double *Input, double *Output, double *Setpoint,
+                             double Kp, double Ki, double Kd,
+                             PIDControllerDirection ControllerDirection)
+    : PIDController::PIDController(Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E,
+                                   ControllerDirection) {}
 
-void PID::Begin(unsigned long now) { lastTime = now - SampleTime; }
+void PIDController::Begin(unsigned long now) { lastTime = now - SampleTime; }
 
-void PID::Begin(PIDControllerMode mode, unsigned long now) {
+void PIDController::Begin(PIDControllerMode mode, unsigned long now) {
   Begin(now);
   SetMode(mode);
 }
@@ -46,7 +48,7 @@ void PID::Begin(PIDControllerMode mode, unsigned long now) {
 // The function will decide for itself whether a new pid Output needs to be
 // computed. returns true when the output is computed, false when nothing has
 // been done.
-bool PID::Compute(unsigned long now) {
+bool PIDController::Compute(unsigned long now) {
   if (mode != AUTOMATIC) {
     return false;
   }
@@ -99,7 +101,8 @@ bool PID::Compute(unsigned long now) {
 // This function allows the controller's dynamic performance to be adjusted.
 // it's called automatically from the constructor, but tunings can also
 // be adjusted on the fly during normal operation
-void PID::SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
+void PIDController::SetTunings(double Kp, double Ki, double Kd,
+                               PIDProportionalOn POn) {
   if (Kp < 0 || Ki < 0 || Kd < 0) {
     return;
   }
@@ -123,12 +126,12 @@ void PID::SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
 }
 
 // Set Tunings using the last-rembered POn setting
-void PID::SetTunings(double Kp, double Ki, double Kd) {
+void PIDController::SetTunings(double Kp, double Ki, double Kd) {
   SetTunings(Kp, Ki, Kd, pOn);
 }
 
 // sets the period, in Milliseconds, at which the calculation is performed
-void PID::SetSampleTime(int NewSampleTime) {
+void PIDController::SetSampleTime(int NewSampleTime) {
   if (NewSampleTime > 0) {
     double ratio = (double)NewSampleTime / (double)SampleTime;
     ki *= ratio;
@@ -143,7 +146,7 @@ void PID::SetSampleTime(int NewSampleTime) {
 // be doing a time window and will need 0-8000 or something.  or maybe they'll
 // want to clamp it from 0-125.  who knows.  at any rate, that can all be done
 // here.
-void PID::SetOutputLimits(double Min, double Max) {
+void PIDController::SetOutputLimits(double Min, double Max) {
   if (Min >= Max) {
     return;
   }
@@ -168,10 +171,10 @@ void PID::SetOutputLimits(double Min, double Max) {
 // Allows the controller Mode to be set to manual (0) or Automatic (non-zero)
 // when the transition from manual to auto occurs, the controller is
 // automatically initialized
-void PID::SetMode(PIDControllerMode Mode) {
+void PIDController::SetMode(PIDControllerMode Mode) {
   /*we just went from manual to auto*/
   if (Mode == AUTOMATIC && mode != AUTOMATIC) {
-    PID::Initialize();
+    PIDController::Initialize();
   }
 
   mode = Mode;
@@ -179,7 +182,7 @@ void PID::SetMode(PIDControllerMode Mode) {
 
 // does all the things that need to happen to ensure a bumpless transfer
 // from manual to automatic mode.
-void PID::Initialize() {
+void PIDController::Initialize() {
   outputSum = *myOutput;
   lastInput = *myInput;
   if (outputSum > outMax) {
@@ -193,7 +196,7 @@ void PID::Initialize() {
 // process (+Output leads to +Input) or a REVERSE acting process(+Output leads
 // to -Input.)  we need to know which one, because otherwise we may increase the
 // output when we should be decreasing.  This is called from the constructor.
-void PID::SetControllerDirection(PIDControllerDirection Direction) {
+void PIDController::SetControllerDirection(PIDControllerDirection Direction) {
   if (mode == AUTOMATIC && Direction != controllerDirection) {
     kp = (0 - kp);
     ki = (0 - ki);
@@ -205,8 +208,10 @@ void PID::SetControllerDirection(PIDControllerDirection Direction) {
 // Just because you set the Kp=-1 doesn't mean it actually happened.  these
 // functions query the internal state of the PID.  they're here for display
 // purposes.  this are the functions the PID Front-end uses for example
-double PID::GetKp() const { return dispKp; }
-double PID::GetKi() const { return dispKi; }
-double PID::GetKd() const { return dispKd; }
-PIDControllerMode PID::GetMode() { return mode; }
-PIDControllerDirection PID::GetDirection() { return controllerDirection; }
+double PIDController::GetKp() const { return dispKp; }
+double PIDController::GetKi() const { return dispKi; }
+double PIDController::GetKd() const { return dispKd; }
+PIDControllerMode PIDController::GetMode() { return mode; }
+PIDControllerDirection PIDController::GetDirection() {
+  return controllerDirection;
+}

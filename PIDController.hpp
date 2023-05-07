@@ -4,24 +4,25 @@ enum PIDControllerDirection { DIRECT, REVERSE };
 enum PIDControllerMode { MANUAL, AUTOMATIC };
 enum PIDProportionalOn { P_ON_M, P_ON_E };
 
-class PID {
+class PIDController {
 
 public:
   // constructor.  links the PID to the Input, Output, and
   // Setpoint.  Initial tuning parameters are
   // also set here. (overload for specifying proportional mode)
-  PID(double *, double *, double *, double, double, double, PIDProportionalOn,
-      PIDControllerDirection);
+  PIDController(double *, double *, double *, double, double, double,
+                PIDProportionalOn, PIDControllerDirection);
 
   // constructor.  links the PID to the Input, Output, and
   // Setpoint.  Initial tuning parameters are
   // also set here
-  PID(double *, double *, double *, double, double, double,
-      PIDControllerDirection);
+  PIDController(double *, double *, double *, double, double, double,
+                PIDControllerDirection);
 
   // Sets initial state relative to current time
-  void Begin(PIDControllerMode, unsigned long);
   void Begin(unsigned long);
+  // Begin in mode with timestamp
+  void Begin(PIDControllerMode, unsigned long);
 
   // sets PID to either Manual (0) or Auto (non-0)
   void SetMode(PIDControllerMode Mode);

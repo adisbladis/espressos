@@ -1,16 +1,17 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-// Test cases adapted from https://github.com/br3ttb/Arduino-PID-Library/pull/107
+// Test cases adapted from
+// https://github.com/br3ttb/Arduino-PID-Library/pull/107
 
-#include "PID_v1.h"
+#include "PIDController.hpp"
 
 TEST_CASE("direct") {
   // Define Variables we'll be connecting to
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, DIRECT);
+  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, DIRECT);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -36,7 +37,7 @@ TEST_CASE("reverse") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -62,7 +63,7 @@ TEST_CASE("mode") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -83,14 +84,13 @@ TEST_CASE("mode") {
   CHECK(50 == round(Input));
 }
 
-
 TEST_CASE("getFunctions") {
 
   // Define Variables we'll be connecting to
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -113,7 +113,7 @@ TEST_CASE("sampleTimeWorks") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -122,7 +122,6 @@ TEST_CASE("sampleTimeWorks") {
   unsigned long ms = 0;
 
   bool flag = false;
-
 
   // turn the PID on
   myPID.SetMode(AUTOMATIC);
@@ -144,7 +143,7 @@ TEST_CASE("sampleTimeNotWorks") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PID myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;

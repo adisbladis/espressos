@@ -9,7 +9,7 @@
  * Parameters when we're farther away.
  ********************************************************/
 
-#include <PID_v1.h>
+#include <PIDController.hpp>
 
 #define PIN_INPUT 0
 #define PIN_OUTPUT 3
@@ -22,7 +22,7 @@ double aggKp = 4, aggKi = 0.2, aggKd = 1;
 double consKp = 1, consKi = 0.05, consKd = 0.25;
 
 // Specify the links and initial tuning parameters
-PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
+PIDController myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
 
 void setup() {
   // initialize the variables we're linked to
