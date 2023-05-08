@@ -1,15 +1,15 @@
 #include <Adafruit_MAX31865.h>
 #include <Arduino.h>
-#include <PID_v1.h>
+#include <PIDController.hpp>
 
 #include "boiler.hpp"
 #include "cachedpin.hpp"
 
 BoilerPID::BoilerPID(int relayPin, int max31865SPIPin, SPIClass *theSPI = &SPI)
-    : pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE),
+    : pid(0, Kp, Ki, Kd, REVERSE),
       thermo(max31865SPIPin, theSPI), outputPin(relayPin){};
 
-void BoilerPID::setup() {
+void BoilerPID::setup(unsigned long now) {
   outputPin.setup();
 
   thermo.begin(MAX31865_3WIRE);
@@ -17,12 +17,10 @@ void BoilerPID::setup() {
   windowStartTime = millis();
 
   pid.SetOutputLimits(0, WindowSize); // PID output range
-  pid.SetMode(AUTOMATIC);
+  pid.Begin(AUTOMATIC, now);
 }
 
-void BoilerPID::SetSetPoint(double setPoint) {
-  Setpoint = setPoint;
-}
+void BoilerPID::SetSetPoint(double setPoint) { pid.SetSetpoint(setPoint); }
 
 struct TempReading BoilerPID::getTemp() {
   return temp;
@@ -53,11 +51,9 @@ bool BoilerPID::loop(unsigned long now) {
     if (pid.GetMode() != AUTOMATIC) {
       pid.SetMode(AUTOMATIC);
     }
-
-    Input = temp.temp;
   }
 
-  pid.Compute();
+  pid.Compute(now, temp.temp, &Output);
 
   if (now - windowStartTime >= WindowSize) {
     windowStartTime += WindowSize;

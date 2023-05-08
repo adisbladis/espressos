@@ -4,8 +4,7 @@
   "description": "A PID controller seeks to keep some input variable close to a desired setpoint by adjusting an output. The way in which it does this can be 'tuned' by adjusting three parameters (P,I,D).",
   "url": "",
   "include": "PIDController",
-  "authors":
-  [
+  "authors": [
     {
       "name": "Brett Beauregard"
     },
@@ -13,10 +12,12 @@
       "name": "adisbladis"
     }
   ],
-  "repository":
-  {
+  "repository": {
     "type": "git",
     "url": "https://github.com/adisbladis/espressos.git"
   },
-  "frameworks": "arduino"
+  "frameworks": "*",
+  "build": {
+    "srcFilter": "-**/PIDController_test.cpp"
+  }
 }

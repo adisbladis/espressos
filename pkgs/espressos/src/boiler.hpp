@@ -2,7 +2,7 @@
 
 #include "cachedpin.hpp"
 #include <Adafruit_MAX31865.h>
-#include <PID_v1.h>
+#include <PIDController.hpp>
 
 struct TempReading {
   double temp;
@@ -50,17 +50,17 @@ class BoilerPID {
 private:
   CachedOutputPin outputPin;
   Adafruit_MAX31865 thermo;
-  double Setpoint, Input, Output;
+  double Output;
   double Kp = BOILER_PID_P, Ki = BOILER_PID_I, Kd = BOILER_PID_D;
   int WindowSize = 100;
   unsigned long windowStartTime;
-  PID pid;
+  PIDController<double, double, unsigned long> pid;
   TempReading temp;
 
 public:
   BoilerPID(int relayPin, int max31865SPIPin, SPIClass *theSPI);
 
-  void setup();
+  void setup(unsigned long now);
   void SetSetPoint(double setPoint);
 
   struct TempReading getTemp();

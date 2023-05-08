@@ -60,8 +60,10 @@ void setup() {
   // Initialise the FSM
   fsm_list::start();
 
+  unsigned long now = millis();
+
   // Boiler
-  boiler.setup();
+  boiler.setup(now);
   effects.createEffect<std::uint16_t>(
       []() { return MachineState::current_state_ptr->getSetPoint(); },
       [](std::uint16_t setpoint) { boiler.SetSetPoint(setpoint / 100); });
