@@ -36,10 +36,11 @@ public:
   // The parameters specified here are those for for which we can't set up
   // reliable defaults, so we need to have the user set them.
   PIDController(IOT Setpoint, TuningT Kp, TuningT Ki, TuningT Kd,
-                PIDProportionalOn POn,
+                PIDControllerProportionalOn POn,
                 PIDControllerDirection ControllerDirection)
       : mode(MANUAL), // Start disabled
-        setpoint(Setpoint), lastTime(0), outputSum(0), lastInput(0),
+        setpoint(Setpoint), lastTime(0), outputSum(0), lastOutput(0),
+        lastInput(0),
         SampleTime(100) // // default Controller Sample Time is 0.1 seconds
   {
     // default output limit corresponds to
@@ -140,7 +141,9 @@ public:
 
       /*Remember some variables for next time*/
       lastInput = Input;
+      lastOutput = output;
       lastTime = now;
+
       return true;
     }
 
@@ -268,8 +271,8 @@ private:
   // does all the things that need to happen to ensure a bumpless transfer
   // from manual to automatic mode.
   void Initialize() {
-    // outputSum = *myOutput;
-    // lastInput = *myInput;
+    outputSum = lastOutput;
+
     if (outputSum > outMax) {
       outputSum = outMax;
     } else if (outputSum < outMin) {
@@ -294,7 +297,7 @@ private:
   IOT setpoint;
 
   TimestampT lastTime;
-  IOT outputSum, lastInput;
+  IOT outputSum, lastOutput, lastInput;
 
   TimestampT SampleTime;
   IOT outMin, outMax;
