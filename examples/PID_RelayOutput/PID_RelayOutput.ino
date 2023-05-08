@@ -20,11 +20,12 @@
 #define RELAY_PIN 6
 
 // Define Variables we'll be connecting to
-double Setpoint, Input, Output;
+double Input, Output;
+static constexpr double Setpoint = 100;
 
 // Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
-PIDController<double, double> myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd,
+PIDController<double, double> myPID(Setpoint, Kp, Ki, Kd,
                                     PIDControllerDirection::DIRECT);
 
 int WindowSize = 5000;
@@ -32,9 +33,6 @@ unsigned long windowStartTime;
 
 void setup() {
   windowStartTime = millis();
-
-  // initialize the variables we're linked to
-  Setpoint = 100;
 
   // tell the PID to range between 0 and the full window size
   myPID.SetOutputLimits(0, WindowSize);
@@ -45,7 +43,7 @@ void setup() {
 
 void loop() {
   Input = analogRead(PIN_INPUT);
-  myPID.Compute(millis());
+  myPID.Compute(millis(), Input, &Output);
 
   /************************************************
    * turn the output pin on/off based on pid output
@@ -54,8 +52,9 @@ void loop() {
       WindowSize) { // time to shift the Relay Window
     windowStartTime += WindowSize;
   }
-  if (Output < millis() - windowStartTime)
+  if (Output < millis() - windowStartTime) {
     digitalWrite(RELAY_PIN, HIGH);
-  else
+  } else {
     digitalWrite(RELAY_PIN, LOW);
+  }
 }

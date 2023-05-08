@@ -9,10 +9,11 @@
 #include "PIDController.hpp"
 
 // Define Variables we'll be connecting to
-double Setpoint, Input, Output;
+double Input, Output;
+static constexpr double Setpoint = 100;
 
 // Specify the links and initial tuning parameters
-PIDController<double, double> myPID(
+PIDController<double, double, unsigned long> myPID(
     &Input, &Output, &Setpoint, 2, 5, 1, P_ON_M,
     PIDControllerDirection::DIRECT); // P_ON_M specifies that Proportional on
                                      // Measurement be used P_ON_E (Proportional
@@ -21,7 +22,6 @@ PIDController<double, double> myPID(
 void setup() {
   // initialize the variables we're linked to
   Input = analogRead(0);
-  Setpoint = 100;
 
   // turn the PID on
   myPID.Begin(PIDControllerMode::AUTOMATIC, millis());

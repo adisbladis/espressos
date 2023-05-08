@@ -15,20 +15,20 @@
 #define PIN_OUTPUT 3
 
 // Define Variables we'll be connecting to
-double Setpoint, Input, Output;
+double Input, Output;
+static constexpr double Setpoint = 100;
 
 // Define the aggressive and conservative Tuning Parameters
 double aggKp = 4, aggKi = 0.2, aggKd = 1;
 double consKp = 1, consKi = 0.05, consKd = 0.25;
 
 // Specify the links and initial tuning parameters
-PIDController<double, double> myPID(&Input, &Output, &Setpoint, consKp, consKi,
-                                    consKd, DIRECT);
+PIDController<double, double, unsigned long> myPID(Setpoint, consKp, consKi,
+                                                   consKd, DIRECT);
 
 void setup() {
   // initialize the variables we're linked to
   Input = analogRead(PIN_INPUT);
-  Setpoint = 100;
 
   // turn the PID on
   myPID.Begin(AUTOMATIC, millis());
@@ -45,6 +45,6 @@ void loop() {
     myPID.SetTunings(aggKp, aggKi, aggKd);
   }
 
-  myPID.Compute(millis());
+  myPID.Compute(millis(), Input, &Output);
   analogWrite(PIN_OUTPUT, Output);
 }

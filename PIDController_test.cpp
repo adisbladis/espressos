@@ -9,14 +9,14 @@ typedef PIDController<double, double, unsigned long> TestController;
 
 TEST_CASE("direct") {
   // Define Variables we'll be connecting to
-  double Setpoint, Input, Output;
+  constexpr double Setpoint = 100;
+  double Input, Output;
 
   // Specify the links and initial tuning parameters
-  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, DIRECT);
+  TestController myPID(Setpoint, 2, 5, 1, DIRECT);
 
   // initialize the variables we're linked to
   Input = 50;
-  Setpoint = 100;
 
   unsigned long ms = 0;
 
@@ -25,7 +25,7 @@ TEST_CASE("direct") {
   for (int i = 0; i < 1000; i++) {
     ms += 200;
 
-    if (myPID.Compute(ms)) {
+    if (myPID.Compute(ms, Input, &Output)) {
       Input = Input + (Output - Input) / 25.6;
     }
   }
@@ -35,14 +35,14 @@ TEST_CASE("direct") {
 
 TEST_CASE("reverse") {
   // Define Variables we'll be connecting to
-  double Setpoint, Input, Output;
+  constexpr double Setpoint = 100;
+  double Input, Output;
 
   // Specify the links and initial tuning parameters
-  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
-  Setpoint = 100;
 
   unsigned long ms = 0;
 
@@ -51,7 +51,7 @@ TEST_CASE("reverse") {
   for (int i = 0; i < 1000; i++) {
     ms += 200;
 
-    if (myPID.Compute(ms)) {
+    if (myPID.Compute(ms, Input, &Output)) {
       Input = Input + (Input - Output) / 25.6;
     }
   }
@@ -61,14 +61,14 @@ TEST_CASE("reverse") {
 
 TEST_CASE("mode") {
   // Define Variables we'll be connecting to
-  double Setpoint, Input, Output;
+  constexpr double Setpoint = 100;
+  double Input, Output;
 
   // Specify the links and initial tuning parameters
-  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
-  Setpoint = 100;
 
   unsigned long ms = 0;
 
@@ -77,7 +77,7 @@ TEST_CASE("mode") {
   for (int i = 0; i < 1000; i++) {
     ms += 200;
 
-    if (myPID.Compute(ms)) {
+    if (myPID.Compute(ms, Input, &Output)) {
       Input = Input + (Input - Output) / 25.6;
     }
   }
@@ -86,21 +86,14 @@ TEST_CASE("mode") {
 }
 
 TEST_CASE("getFunctions") {
-
-  // Define Variables we'll be connecting to
-  double Setpoint, Input, Output;
+  constexpr double Setpoint = 100;
 
   // Specify the links and initial tuning parameters
-  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
-
-  // initialize the variables we're linked to
-  Input = 50;
-  Setpoint = 100;
+  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
 
   // turn the PID on
   myPID.SetMode(AUTOMATIC);
 
-  // std::cout << "Input = " << Input << "; Output = " << Output << std::endl;
   CHECK(2 == myPID.GetKp());
   CHECK(5 == myPID.GetKi());
   CHECK(1 == myPID.GetKd());
@@ -109,16 +102,15 @@ TEST_CASE("getFunctions") {
 }
 
 TEST_CASE("sampleTimeWorks") {
-
   // Define Variables we'll be connecting to
-  double Setpoint, Input, Output;
+  constexpr double Setpoint = 100;
+  double Input, Output;
 
   // Specify the links and initial tuning parameters
-  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
-  Setpoint = 100;
 
   unsigned long ms = 0;
 
@@ -129,7 +121,7 @@ TEST_CASE("sampleTimeWorks") {
   for (int i = 0; i < 1000; i++) {
     ms += 200;
 
-    if (myPID.Compute(ms)) {
+    if (myPID.Compute(ms, Input, &Output)) {
       flag = true;
       Input = Input + (Input - Output) / 25.6;
     }
@@ -139,16 +131,15 @@ TEST_CASE("sampleTimeWorks") {
 }
 
 TEST_CASE("sampleTimeNotWorks") {
-
   // Define Variables we'll be connecting to
-  double Setpoint, Input, Output;
+  constexpr double Setpoint = 100;
+  double Input, Output;
 
   // Specify the links and initial tuning parameters
-  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
-  Setpoint = 100;
 
   unsigned long ms = 0;
 
@@ -158,7 +149,7 @@ TEST_CASE("sampleTimeNotWorks") {
   myPID.Begin(MANUAL, ms);
   for (int i = 0; i < 1000; i++) {
     ms += 199;
-    if (myPID.Compute(ms)) {
+    if (myPID.Compute(ms, Input, &Output)) {
       flag = true;
       Input = Input + (Input - Output) / 25.6;
     }

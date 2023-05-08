@@ -1,11 +1,11 @@
 .PHONY: test format
 
 test:
-	$(CXX) *.cpp -g -Wall -o test
+	$(CXX) *.cpp -g -Wall -Werror -o test
 	./test
 
 format:
-	clang-format -i *.{hpp,cpp}
+	clang-format -i examples/*/*.ino *.{hpp,cpp}
 
 clean:
 	rm -f test

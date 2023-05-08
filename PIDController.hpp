@@ -14,20 +14,16 @@ public:
   //
   // The parameters specified here are those for for which we can't set up
   // reliable defaults, so we need to have the user set them.
-  PIDController(IOT *Input, IOT *Output, IOT *Setpoint, TuningT Kp, TuningT Ki,
-                TuningT Kd, PIDProportionalOn POn,
+  PIDController(IOT Setpoint, TuningT Kp, TuningT Ki, TuningT Kd,
+                PIDProportionalOn POn,
                 PIDControllerDirection ControllerDirection)
-      : lastTime(0) {
-    myOutput = Output;
-    myInput = Input;
-    mySetpoint = Setpoint;
-    mode = MANUAL;
-
+      : mode(MANUAL), // Start disabled
+        setpoint(Setpoint), lastTime(0), outputSum(0), lastInput(0),
+        SampleTime(100) // // default Controller Sample Time is 0.1 seconds
+  {
     // default output limit corresponds to
     // the arduino pwm limits
     PIDController::SetOutputLimits(0, 255);
-
-    SampleTime = 100; // default Controller Sample Time is 0.1 seconds
 
     PIDController::SetControllerDirection(ControllerDirection);
     PIDController::SetTunings(Kp, Ki, Kd, POn);
@@ -39,10 +35,10 @@ public:
   //
   // To allow backwards compatability for v1.1, or for people that just want to
   // use Proportional on Error without explicitly saying so
-  PIDController(IOT *Input, IOT *Output, IOT *Setpoint, TuningT Kp, TuningT Ki,
-                TuningT Kd, PIDControllerDirection ControllerDirection)
-      : PIDController::PIDController(Input, Output, Setpoint, Kp, Ki, Kd,
-                                     P_ON_E, ControllerDirection) {}
+  PIDController(IOT Setpoint, TuningT Kp, TuningT Ki, TuningT Kd,
+                PIDControllerDirection ControllerDirection)
+      : PIDController::PIDController(Setpoint, Kp, Ki, Kd, P_ON_E,
+                                     ControllerDirection) {}
 
   // Sets initial state relative to current time
   void Begin(TimestampT now) { lastTime = now - SampleTime; };
@@ -66,6 +62,9 @@ public:
     mode = Mode;
   };
 
+  void SetSetpoint(IOT Setpoint) { setpoint = Setpoint; };
+  IOT GetSetpoint(IOT Setpoint) { return setpoint; };
+
   // performs the PID calculation.  it should be
   // called every time loop() cycles. ON/OFF and
   // calculation frequency can be set using SetMode
@@ -76,7 +75,7 @@ public:
   // The function will decide for itself whether a new pid Output needs to be
   // computed. returns true when the output is computed, false when nothing has
   // been done.
-  bool Compute(TimestampT now) {
+  bool Compute(TimestampT now, IOT Input, IOT *Output) {
     if (mode != AUTOMATIC) {
       return false;
     }
@@ -84,9 +83,8 @@ public:
     TimestampT timeChange = (now - lastTime);
     if (timeChange >= SampleTime) {
       /*Compute all the working error variables*/
-      IOT input = *myInput;
-      IOT error = *mySetpoint - input;
-      IOT dInput = (input - lastInput);
+      IOT error = setpoint - Input;
+      IOT dInput = (Input - lastInput);
       outputSum += (ki * error);
 
       /*Add Proportional on Measurement, if P_ON_M is specified*/
@@ -116,13 +114,14 @@ public:
       } else if (output < outMin) {
         output = outMin;
       }
-      *myOutput = output;
+      *Output = output;
 
       /*Remember some variables for next time*/
-      lastInput = input;
+      lastInput = Input;
       lastTime = now;
       return true;
     }
+
     return false;
   };
 
@@ -144,12 +143,6 @@ public:
     outMax = Max;
 
     if (mode == AUTOMATIC) {
-      if (*myOutput > outMax) {
-        *myOutput = outMax;
-      } else if (*myOutput < outMin) {
-        *myOutput = outMin;
-      }
-
       if (outputSum > outMax) {
         outputSum = outMax;
       } else if (outputSum < outMin) {
@@ -245,8 +238,8 @@ private:
   // does all the things that need to happen to ensure a bumpless transfer
   // from manual to automatic mode.
   void Initialize() {
-    outputSum = *myOutput;
-    lastInput = *myInput;
+    // outputSum = *myOutput;
+    // lastInput = *myInput;
     if (outputSum > outMax) {
       outputSum = outMax;
     } else if (outputSum < outMin) {
@@ -268,14 +261,7 @@ private:
   PIDProportionalOn pOn;
   PIDControllerMode mode;
 
-  // Pointers to the Input, Output, and Setpoint variables
-  // This creates a hard link between the variables and the
-  IOT *myInput;
-  IOT *myOutput;
-
-  // PID, freeing the user from having to constantly tell us
-  // what these values are.  with pointers we'll just know.
-  IOT *mySetpoint;
+  IOT setpoint;
 
   TimestampT lastTime;
   IOT outputSum, lastInput;
