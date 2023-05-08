@@ -228,11 +228,11 @@ public:
   // Just because you set the Kp=-1 doesn't mean it actually happened.  these
   // functions query the internal state of the PID.  they're here for display
   // purposes.  this are the functions the PID Front-end uses for example
-  TuningT GetKp() const { return dispKp; };
-  TuningT GetKi() const { return dispKi; };
-  TuningT GetKd() const { return dispKd; };
-  PIDControllerMode GetMode() { return mode; };
-  PIDControllerDirection GetDirection() { return controllerDirection; };
+  inline TuningT GetKp() const { return dispKp; };
+  inline TuningT GetKi() const { return dispKi; };
+  inline TuningT GetKd() const { return dispKd; };
+  inline PIDControllerMode GetMode() { return mode; };
+  inline PIDControllerDirection GetDirection() { return controllerDirection; };
 
 private:
   // does all the things that need to happen to ensure a bumpless transfer
