@@ -4,6 +4,7 @@ enum PIDControllerDirection { DIRECT, REVERSE };
 enum PIDControllerMode { MANUAL, AUTOMATIC };
 enum PIDProportionalOn { P_ON_M, P_ON_E };
 
+template <typename IOT, typename TuningT, typename TimestampT>
 class PIDController {
 
 public:
@@ -13,9 +14,10 @@ public:
   //
   // The parameters specified here are those for for which we can't set up
   // reliable defaults, so we need to have the user set them.
-  PIDController(double *Input, double *Output, double *Setpoint, double Kp,
-                double Ki, double Kd, PIDProportionalOn POn,
-                PIDControllerDirection ControllerDirection) {
+  PIDController(IOT *Input, IOT *Output, IOT *Setpoint, TuningT Kp, TuningT Ki,
+                TuningT Kd, PIDProportionalOn POn,
+                PIDControllerDirection ControllerDirection)
+      : lastTime(0) {
     myOutput = Output;
     myInput = Input;
     mySetpoint = Setpoint;
@@ -37,16 +39,15 @@ public:
   //
   // To allow backwards compatability for v1.1, or for people that just want to
   // use Proportional on Error without explicitly saying so
-  PIDController(double *Input, double *Output, double *Setpoint, double Kp,
-                double Ki, double Kd,
-                PIDControllerDirection ControllerDirection)
+  PIDController(IOT *Input, IOT *Output, IOT *Setpoint, TuningT Kp, TuningT Ki,
+                TuningT Kd, PIDControllerDirection ControllerDirection)
       : PIDController::PIDController(Input, Output, Setpoint, Kp, Ki, Kd,
                                      P_ON_E, ControllerDirection) {}
 
   // Sets initial state relative to current time
-  void Begin(unsigned long now) { lastTime = now - SampleTime; };
+  void Begin(TimestampT now) { lastTime = now - SampleTime; };
   // Begin in mode with timestamp
-  void Begin(PIDControllerMode mode, unsigned long now) {
+  void Begin(PIDControllerMode mode, TimestampT now) {
     Begin(now);
     SetMode(mode);
   };
@@ -75,17 +76,17 @@ public:
   // The function will decide for itself whether a new pid Output needs to be
   // computed. returns true when the output is computed, false when nothing has
   // been done.
-  bool Compute(unsigned long now) {
+  bool Compute(TimestampT now) {
     if (mode != AUTOMATIC) {
       return false;
     }
 
-    unsigned long timeChange = (now - lastTime);
+    TimestampT timeChange = (now - lastTime);
     if (timeChange >= SampleTime) {
       /*Compute all the working error variables*/
-      double input = *myInput;
-      double error = *mySetpoint - input;
-      double dInput = (input - lastInput);
+      IOT input = *myInput;
+      IOT error = *mySetpoint - input;
+      IOT dInput = (input - lastInput);
       outputSum += (ki * error);
 
       /*Add Proportional on Measurement, if P_ON_M is specified*/
@@ -100,7 +101,7 @@ public:
       }
 
       /*Add Proportional on Error, if P_ON_E is specified*/
-      double output;
+      IOT output;
       if (pOn == P_ON_E) {
         output = kp * error;
       } else {
@@ -135,7 +136,7 @@ public:
   // they'll be doing a time window and will need 0-8000 or something.  or maybe
   // they'll want to clamp it from 0-125.  who knows.  at any rate, that can all
   // be done here.
-  void SetOutputLimits(double Min, double Max) {
+  void SetOutputLimits(TuningT Min, TuningT Max) {
     if (Min >= Max) {
       return;
     }
@@ -162,7 +163,7 @@ public:
   // of changing tunings during runtime for Adaptive control
   //
   // Set Tunings using the last-rembered POn setting
-  void SetTunings(double Kp, double Ki, double Kd) {
+  void SetTunings(TuningT Kp, TuningT Ki, TuningT Kd) {
     SetTunings(Kp, Ki, Kd, pOn);
   };
   // overload for specifying proportional mode
@@ -170,7 +171,7 @@ public:
   // This function allows the controller's dynamic performance to be adjusted.
   // it's called automatically from the constructor, but tunings can also
   // be adjusted on the fly during normal operation
-  void SetTunings(double Kp, double Ki, double Kd, PIDProportionalOn POn) {
+  void SetTunings(TuningT Kp, TuningT Ki, TuningT Kd, PIDProportionalOn POn) {
     if (Kp < 0 || Ki < 0 || Kd < 0) {
       return;
     }
@@ -181,7 +182,7 @@ public:
     dispKi = Ki;
     dispKd = Kd;
 
-    double SampleTimeInSec = (static_cast<double>(SampleTime)) / 1000;
+    TuningT SampleTimeInSec = (static_cast<TuningT>(SampleTime)) / 1000;
     kp = Kp;
     ki = Ki * SampleTimeInSec;
     kd = Kd / SampleTimeInSec;
@@ -218,11 +219,11 @@ public:
   // sets the period, in Milliseconds, at which the calculation is performed
   void SetSampleTime(int NewSampleTime) {
     if (NewSampleTime > 0) {
-      double ratio =
-          static_cast<double>(NewSampleTime) / static_cast<double>(SampleTime);
+      TuningT ratio = static_cast<TuningT>(NewSampleTime) /
+                      static_cast<TuningT>(SampleTime);
       ki *= ratio;
       kd /= ratio;
-      SampleTime = static_cast<unsigned long>(NewSampleTime);
+      SampleTime = static_cast<TimestampT>(NewSampleTime);
     }
   };
 
@@ -234,9 +235,9 @@ public:
   // Just because you set the Kp=-1 doesn't mean it actually happened.  these
   // functions query the internal state of the PID.  they're here for display
   // purposes.  this are the functions the PID Front-end uses for example
-  double GetKp() const { return dispKp; };
-  double GetKi() const { return dispKi; };
-  double GetKd() const { return dispKd; };
+  TuningT GetKp() const { return dispKp; };
+  TuningT GetKi() const { return dispKi; };
+  TuningT GetKd() const { return dispKd; };
   PIDControllerMode GetMode() { return mode; };
   PIDControllerDirection GetDirection() { return controllerDirection; };
 
@@ -255,13 +256,13 @@ private:
 
   // we'll hold on to the tuning parameters in user-entered format for display
   // purposes
-  double dispKp;
-  double dispKi;
-  double dispKd;
+  TuningT dispKp;
+  TuningT dispKi;
+  TuningT dispKd;
 
-  double kp; // (P)roportional Tuning Parameter
-  double ki; // (I)ntegral Tuning Parameter
-  double kd; // (D)erivative Tuning Parameter
+  TuningT kp; // (P)roportional Tuning Parameter
+  TuningT ki; // (I)ntegral Tuning Parameter
+  TuningT kd; // (D)erivative Tuning Parameter
 
   PIDControllerDirection controllerDirection;
   PIDProportionalOn pOn;
@@ -269,16 +270,16 @@ private:
 
   // Pointers to the Input, Output, and Setpoint variables
   // This creates a hard link between the variables and the
-  double *myInput;
-  double *myOutput;
+  IOT *myInput;
+  IOT *myOutput;
 
   // PID, freeing the user from having to constantly tell us
   // what these values are.  with pointers we'll just know.
-  double *mySetpoint;
+  IOT *mySetpoint;
 
-  unsigned long lastTime;
-  double outputSum, lastInput;
+  TimestampT lastTime;
+  IOT outputSum, lastInput;
 
-  unsigned long SampleTime;
-  double outMin, outMax;
+  TimestampT SampleTime;
+  IOT outMin, outMax;
 };

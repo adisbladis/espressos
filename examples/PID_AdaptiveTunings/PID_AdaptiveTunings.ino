@@ -22,7 +22,8 @@ double aggKp = 4, aggKi = 0.2, aggKd = 1;
 double consKp = 1, consKi = 0.05, consKd = 0.25;
 
 // Specify the links and initial tuning parameters
-PIDController myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
+PIDController<double, double> myPID(&Input, &Output, &Setpoint, consKp, consKi,
+                                    consKd, DIRECT);
 
 void setup() {
   // initialize the variables we're linked to

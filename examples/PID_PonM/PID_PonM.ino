@@ -12,7 +12,7 @@
 double Setpoint, Input, Output;
 
 // Specify the links and initial tuning parameters
-PIDController myPID(
+PIDController<double, double> myPID(
     &Input, &Output, &Setpoint, 2, 5, 1, P_ON_M,
     PIDControllerDirection::DIRECT); // P_ON_M specifies that Proportional on
                                      // Measurement be used P_ON_E (Proportional

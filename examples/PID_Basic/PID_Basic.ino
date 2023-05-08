@@ -13,8 +13,8 @@ double Setpoint, Input, Output;
 
 // Specify the links and initial tuning parameters
 double Kp = 2, Ki = 5, Kd = 1;
-PIDController myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd,
-                    PIDControllerDirection::DIRECT);
+PIDController<double, double> myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd,
+                                    PIDControllerDirection::DIRECT);
 
 void setup() {
   // initialize the variables we're linked to

@@ -5,13 +5,14 @@
 // https://github.com/br3ttb/Arduino-PID-Library/pull/107
 
 #include "PIDController.hpp"
+typedef PIDController<double, double, unsigned long> TestController;
 
 TEST_CASE("direct") {
   // Define Variables we'll be connecting to
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, DIRECT);
+  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, DIRECT);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -37,7 +38,7 @@ TEST_CASE("reverse") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -63,7 +64,7 @@ TEST_CASE("mode") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -90,7 +91,7 @@ TEST_CASE("getFunctions") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -113,7 +114,7 @@ TEST_CASE("sampleTimeWorks") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
@@ -143,7 +144,7 @@ TEST_CASE("sampleTimeNotWorks") {
   double Setpoint, Input, Output;
 
   // Specify the links and initial tuning parameters
-  PIDController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
+  TestController myPID(&Input, &Output, &Setpoint, 2, 5, 1, REVERSE);
 
   // initialize the variables we're linked to
   Input = 50;
