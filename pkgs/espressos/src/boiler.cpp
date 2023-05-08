@@ -20,13 +20,13 @@ void BoilerPID::setup(unsigned long now) {
   pid.Begin(AUTOMATIC, now);
 }
 
-void BoilerPID::SetSetPoint(double setPoint) { pid.SetSetpoint(setPoint); }
+void BoilerPID::SetSetPoint(float setPoint) { pid.SetSetpoint(setPoint); }
 
 struct TempReading BoilerPID::getTemp() {
   return temp;
 }
 
-void BoilerPID::SetTunings(double Kp, double Ki, double Kd) {
+void BoilerPID::SetTunings(float Kp, float Ki, float Kd) {
   pid.SetTunings(Kp, Ki, Kd);
 }
 
