@@ -86,6 +86,7 @@ pkgs.mkShell {
     pkgs.platformio
     pkgs.clang-tools # clang-format
     pkgs.nodejs
+    pkgs.doctest
 
     pythonEnv
 
