@@ -34,6 +34,8 @@ unsigned long windowStartTime;
 void setup() {
   windowStartTime = millis();
 
+  pinMode(RELAY_PIN, OUTPUT);
+
   // tell the PID to range between 0 and the full window size
   myPID.SetOutputLimits(0, WindowSize);
 
@@ -48,7 +50,7 @@ void loop() {
   /************************************************
    * turn the output pin on/off based on pid output
    ************************************************/
-  if (millis() - windowStartTime >
+  if (millis() - windowStartTime >=
       WindowSize) { // time to shift the Relay Window
     windowStartTime += WindowSize;
   }
