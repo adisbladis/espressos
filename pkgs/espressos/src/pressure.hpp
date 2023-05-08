@@ -27,8 +27,7 @@ public:
     ceil = 1024 - floor;
 
     // We can calculate the floor nicely, but in reality these values have some
-    // tolerances so it's best to allow for some runtime recalibration of the
-    // sensor range.
+    // tolerances so it's best to allow for some reads outside of the measured range.
     //
     // This sets the tolerance to the floor/ceiling +- 30%, it Works For Me™,
     // YMMV.
@@ -37,17 +36,16 @@ public:
   };
 
   PressureSensorResultRaw_t ReadRaw() {
-    PressureSensorResultRaw_t result;
-
     int value = analogRead(inputPin);
 
-    // Runtime recalibrate the floor if within allowed recalibration range
+    // Clamp values outside of range to their respective max values
     if (value < floor && value >= minFloor) {
-      floor = value;
+      value = floor;
     } else if (value > ceil && value <= maxCeil) {
-      ceil = value;
+      value = ceil;
     }
 
+    PressureSensorResultRaw_t result;
     if (value < floor || value > ceil) {
       result.setError(PressureSensorError::OUT_OF_BOUNDS);
     } else {
