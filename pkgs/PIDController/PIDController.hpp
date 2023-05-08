@@ -104,6 +104,7 @@ public:
     }
 
     TimestampT timeChange = (now - lastTime);
+
     if (timeChange >= SampleTime) {
       /*Compute all the working error variables*/
       IOT error = setpoint - Input;
@@ -146,6 +147,8 @@ public:
 
       return true;
     }
+
+    *Output = lastOutput;
 
     return false;
   };
