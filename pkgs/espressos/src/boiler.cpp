@@ -6,15 +6,15 @@
 #include "cachedpin.hpp"
 
 BoilerPID::BoilerPID(int relayPin, int max31865SPIPin, SPIClass *theSPI = &SPI)
-    : pid(0, Kp, Ki, Kd, REVERSE),
-      thermo(max31865SPIPin, theSPI), outputPin(relayPin){};
+    : pid(0, Kp, Ki, Kd, REVERSE), thermo(max31865SPIPin, theSPI),
+      outputPin(relayPin){};
 
 void BoilerPID::setup(unsigned long now) {
   outputPin.setup();
 
   thermo.begin(MAX31865_3WIRE);
 
-  windowStartTime = millis();
+  windowStartTime = now;
 
   pid.SetOutputLimits(0, WindowSize); // PID output range
   pid.Begin(AUTOMATIC, now);
@@ -36,7 +36,8 @@ bool BoilerPID::loop(unsigned long now) {
 
   if (cond) {
     temp.fault = thermo.readFault();
-    temp.temp = thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF);
+    temp.temp =
+        thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100;
 
     thermo.clearFault();
 

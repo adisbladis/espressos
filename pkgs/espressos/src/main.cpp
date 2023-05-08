@@ -66,7 +66,7 @@ void setup() {
   boiler.setup(now);
   effects.createEffect<std::uint16_t>(
       []() { return MachineState::current_state_ptr->getSetPoint(); },
-      [](std::uint16_t setpoint) { boiler.SetSetPoint(setpoint / 100); });
+      [](std::uint16_t setpoint) { boiler.SetSetPoint(setpoint); });
 
   // Solenoid
   solenoid.setup();
@@ -102,7 +102,7 @@ void setup() {
             fs.set(errorMessage, strlen(errorMessage));
             boilerTempMsg.set_error(fs);
           } else {
-            boilerTempMsg.set_value(temp.temp * 100);
+            boilerTempMsg.set_value(temp.temp);
           }
 
           stateUpdateMessage.set_boilerTemp(boilerTempMsg);

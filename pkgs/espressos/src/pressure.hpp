@@ -27,7 +27,8 @@ public:
     ceil = 1024 - floor;
 
     // We can calculate the floor nicely, but in reality these values have some
-    // tolerances so it's best to allow for some reads outside of the measured range.
+    // tolerances so it's best to allow for some reads outside of the measured
+    // range.
     //
     // This sets the tolerance to the floor/ceiling +- 30%, it Works For Me™,
     // YMMV.

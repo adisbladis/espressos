@@ -3,9 +3,10 @@
 #include "cachedpin.hpp"
 #include <Adafruit_MAX31865.h>
 #include <PIDController.hpp>
+#include <cstdint>
 
 struct TempReading {
-  float temp;
+  int16_t temp;
   uint8_t fault; // Fault identifier
 
   bool operator==(TempReading const &rhs) const {
@@ -50,11 +51,11 @@ class BoilerPID {
 private:
   CachedOutputPin outputPin;
   Adafruit_MAX31865 thermo;
-  float Output;
   float Kp = BOILER_PID_P, Ki = BOILER_PID_I, Kd = BOILER_PID_D;
   int WindowSize = 100;
   unsigned long windowStartTime;
-  PIDController<float, float, unsigned long> pid;
+  int32_t Output;
+  PIDController<int32_t, float, unsigned long> pid;
   TempReading temp;
 
 public:
