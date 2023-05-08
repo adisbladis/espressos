@@ -14,7 +14,7 @@ static constexpr double Setpoint = 100;
 
 // Specify the links and initial tuning parameters
 PIDController<double, double, unsigned long> myPID(
-    &Input, &Output, &Setpoint, 2, 5, 1, P_ON_M,
+    Setpoint, 2, 5, 1, P_ON_M,
     PIDControllerDirection::DIRECT); // P_ON_M specifies that Proportional on
                                      // Measurement be used P_ON_E (Proportional
                                      // on Error) is the default behavior
@@ -29,6 +29,6 @@ void setup() {
 
 void loop() {
   Input = analogRead(0);
-  myPID.Compute(millis());
+  myPID.Compute(millis(), Input, &Output);
   analogWrite(3, Output);
 }

@@ -2,7 +2,28 @@
 
 enum PIDControllerDirection { DIRECT, REVERSE };
 enum PIDControllerMode { MANUAL, AUTOMATIC };
-enum PIDProportionalOn { P_ON_M, P_ON_E };
+enum PIDControllerProportionalOn { P_ON_M, P_ON_E };
+
+template <typename T> struct PIDControllerTunings {
+public:
+  T kp; // (P)roportional Tuning Parameter
+  T ki; // (I)ntegral Tuning Parameter
+  T kd; // (D)erivative Tuning Parameter
+};
+
+// A lightweight version of std::pair that works on embedded
+template <typename M, typename N> struct PIDControllerPair {
+  M lhs;
+  N rhs;
+
+  PIDControllerPair(M lhs, N rhs) : lhs(lhs), rhs(rhs){};
+
+  M first() { return lhs; };
+  M first() const { return lhs; };
+
+  M second() { return lhs; };
+  M second() const { return lhs; };
+};
 
 template <typename IOT, typename TuningT, typename TimestampT>
 class PIDController {
@@ -61,6 +82,7 @@ public:
 
     mode = Mode;
   };
+  inline PIDControllerMode GetMode() { return mode; };
 
   void SetSetpoint(IOT Setpoint) { setpoint = Setpoint; };
   IOT GetSetpoint(IOT Setpoint) { return setpoint; };
@@ -151,6 +173,10 @@ public:
     }
   };
 
+  PIDControllerPair<TuningT, TuningT> GetOutputLimits() {
+    return PIDControllerPair<TuningT, TuningT>(outMin, outMax);
+  };
+
   // While most users will set the tunings once in the
   // constructor, this function gives the user the option
   // of changing tunings during runtime for Adaptive control
@@ -159,12 +185,14 @@ public:
   void SetTunings(TuningT Kp, TuningT Ki, TuningT Kd) {
     SetTunings(Kp, Ki, Kd, pOn);
   };
+
   // overload for specifying proportional mode
   //
   // This function allows the controller's dynamic performance to be adjusted.
   // it's called automatically from the constructor, but tunings can also
   // be adjusted on the fly during normal operation
-  void SetTunings(TuningT Kp, TuningT Ki, TuningT Kd, PIDProportionalOn POn) {
+  void SetTunings(TuningT Kp, TuningT Ki, TuningT Kd,
+                  PIDControllerProportionalOn POn) {
     if (Kp < 0 || Ki < 0 || Kd < 0) {
       return;
     }
@@ -187,6 +215,18 @@ public:
     }
   };
 
+  // This function query the pid for interal values.
+  // it was created mainly for the pid front-end,
+  // where it's important to know what is actually
+  // inside the PID.
+  //
+  // Just because you set the Kp=-1 doesn't mean it actually happened.  these
+  // functions query the internal state of the PID.  they're here for display
+  // purposes.  this are the functions the PID Front-end uses for example
+  inline PIDControllerTunings<TuningT> GetTunings() const {
+    return PIDControllerTunings<TuningT>{dispKp, dispKi, dispKd};
+  };
+
   // Sets the Direction, or "Action" of the controller. DIRECT
   // means the output will increase when error is positive. REVERSE
   // means the opposite.  it's very unlikely that this will be
@@ -205,6 +245,9 @@ public:
     }
     controllerDirection = Direction;
   };
+  inline PIDControllerDirection GetDirection() const {
+    return controllerDirection;
+  };
 
   // sets the frequency, in Milliseconds, with which
   // the PID calculation is performed.  default is 100
@@ -219,20 +262,7 @@ public:
       SampleTime = static_cast<TimestampT>(NewSampleTime);
     }
   };
-
-  // These functions query the pid for interal values.
-  // they were created mainly for the pid front-end,
-  // where it's important to know what is actually
-  // inside the PID.
-  //
-  // Just because you set the Kp=-1 doesn't mean it actually happened.  these
-  // functions query the internal state of the PID.  they're here for display
-  // purposes.  this are the functions the PID Front-end uses for example
-  inline TuningT GetKp() const { return dispKp; };
-  inline TuningT GetKi() const { return dispKi; };
-  inline TuningT GetKd() const { return dispKd; };
-  inline PIDControllerMode GetMode() { return mode; };
-  inline PIDControllerDirection GetDirection() { return controllerDirection; };
+  inline TimestampT GetSampleTime() const { return SampleTime; };
 
 private:
   // does all the things that need to happen to ensure a bumpless transfer
@@ -258,7 +288,7 @@ private:
   TuningT kd; // (D)erivative Tuning Parameter
 
   PIDControllerDirection controllerDirection;
-  PIDProportionalOn pOn;
+  PIDControllerProportionalOn pOn;
   PIDControllerMode mode;
 
   IOT setpoint;

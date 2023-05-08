@@ -94,9 +94,11 @@ TEST_CASE("getFunctions") {
   // turn the PID on
   myPID.SetMode(AUTOMATIC);
 
-  CHECK(2 == myPID.GetKp());
-  CHECK(5 == myPID.GetKi());
-  CHECK(1 == myPID.GetKd());
+  auto tunings = myPID.GetTunings();
+
+  CHECK(2 == tunings.kp);
+  CHECK(5 == tunings.ki);
+  CHECK(1 == tunings.kd);
   CHECK(REVERSE == myPID.GetDirection());
   CHECK(AUTOMATIC == myPID.GetMode());
 }
