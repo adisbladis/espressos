@@ -24,6 +24,8 @@ A websocket API using protobuf for communication with the machine.
 - Web interface
 This is not yet embedded into the machine, but at some point I will get to this too.
 
+- Pressure profiling
+
 ### On what platform does it run?
 It runs on the rp2040 based Raspberry Pi Pico W board.
 
