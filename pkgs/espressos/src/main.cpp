@@ -1,10 +1,10 @@
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
 #include <PIDController.hpp>
+#include <SimpleKalmanFilter.h>
 #include <WiFi.h>
 #include <cstdint>
 #include <dimmable_light.h>
-#include <SimpleKalmanFilter.h>
 
 #include "api/handler.hpp"
 #include "boiler.hpp"
@@ -19,6 +19,7 @@
 #include "lib/effects.hpp"
 #include "lib/interval_callback.hpp"
 #include "lib/map.hpp"
+#include "lib/timers.hpp"
 #include "logger.hpp"
 #include "ota.hpp"
 #include "pressure.hpp"
@@ -39,6 +40,7 @@ static APIWebServer apiServer = APIWebServer(HTTP_PORT, &apiHandler);
 // Watch variables for change and propagate to hardware/API
 static Effects effects;
 static Effects apiEffects;
+static Timers timers;
 
 // Re-use loop event on every iteration
 static LoopEvent loopEvent;
@@ -79,17 +81,15 @@ void setup() {
     static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
     static uint16_t smoothPressure = 0;
 
-    effects.createEffect<PressureSensorResult_t>(
-        []() { return brewPressure.Read(); },
-        [](PressureSensorResult_t pressure) {
-          if (pressure.hasError()) {
-            send_event(PanicEvent());
-            return;
-          }
+    timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
+      auto pressure = brewPressure.Read();
+      if (pressure.hasError()) {
+        send_event(PanicEvent());
+        return;
+      }
 
-          smoothPressure =
-              pressureKalmanFilter.updateEstimate(pressure.getValue());
-        });
+      smoothPressure = pressureKalmanFilter.updateEstimate(pressure.getValue());
+    });
 
     effects.createEffect<uint16_t>([]() { return smoothPressure; },
                                    [](uint16_t pressure) {
@@ -295,6 +295,10 @@ void setup() {
 void loop() {
   // Run FSM & reconcile hardware with FSM state
   effects.loop();
+
+  unsigned long now = MachineState::current_state_ptr->getTimestamp();
+
+  timers.loop(now);
 
   // Set API states
   apiEffects.loop();
