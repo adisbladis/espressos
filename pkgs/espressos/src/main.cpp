@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <cstdint>
 #include <dimmable_light.h>
+#include <SimpleKalmanFilter.h>
 
 #include "api/handler.hpp"
 #include "boiler.hpp"
@@ -74,18 +75,29 @@ void setup() {
   });
 
   // Pressure sensor
-  effects.createEffect<PressureSensorResult_t>(
-      []() { return brewPressure.Read(); },
-      [](PressureSensorResult_t pressure) {
-        if (pressure.hasError()) {
-          send_event(PanicEvent());
-          return;
-        }
+  {
+    static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
+    static uint16_t smoothPressure = 0;
 
-        PressureEvent event;
-        event.pressure = pressure.getValue();
-        send_event(event);
-      });
+    effects.createEffect<PressureSensorResult_t>(
+        []() { return brewPressure.Read(); },
+        [](PressureSensorResult_t pressure) {
+          if (pressure.hasError()) {
+            send_event(PanicEvent());
+            return;
+          }
+
+          smoothPressure =
+              pressureKalmanFilter.updateEstimate(pressure.getValue());
+        });
+
+    effects.createEffect<uint16_t>([]() { return smoothPressure; },
+                                   [](uint16_t pressure) {
+                                     PressureEvent event;
+                                     event.pressure = pressure;
+                                     send_event(event);
+                                   });
+  }
 
   // Boiler
   boiler.setup(millis());
