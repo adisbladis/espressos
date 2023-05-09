@@ -53,6 +53,7 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(RinseStartEvent const &){};
   virtual void react(RinseStopEvent const &){};
   void react(TimeEvent const &e) { timestamp = e.timestamp; };
+  void react(PressureEvent const &e) { pressure = e.pressure; };
 
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
@@ -75,9 +76,13 @@ protected:
   // Current timestamp
   static unsigned long timestamp;
 
+  // Current pressure
+  static std::uint16_t pressure;
+
 public:
   std::uint16_t getSetPoint() { return setpoint; };
   unsigned long getTimestamp() { return timestamp; };
+  std::uint16_t getPressure() { return pressure; };
   virtual PinStatus getSolenoid() { return LOW; }
   virtual PumpTarget getPump() { return (PumpTarget){POWER, 0}; }
   virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };

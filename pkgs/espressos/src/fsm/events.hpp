@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <tinyfsm.hpp>
 
 // This event is dispatcehd with a timestamp on every call to loop()
@@ -13,6 +14,11 @@ struct LoopEvent : tinyfsm::Event {
 // to the current time to be able to update their internal timestamps.
 struct TimeEvent : tinyfsm::Event {
   unsigned long timestamp;
+};
+
+// When the machine pressure changes a pressure event is emitted
+struct PressureEvent : tinyfsm::Event {
+  uint16_t pressure;
 };
 
 struct BackflushStartEvent : tinyfsm::Event {};

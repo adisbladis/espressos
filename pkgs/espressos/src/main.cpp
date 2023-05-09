@@ -9,6 +9,7 @@
 #include "cachedpin.hpp"
 #include "config.hpp"
 #include "fsm/brew.hpp"
+#include "fsm/events.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
 #include "fsm/pump.hpp"
@@ -71,6 +72,20 @@ void setup() {
     send_event(loopEvent);
   });
 
+  // Pressure sensor
+  effects.createEffect<PressureSensorResult_t>(
+      []() { return brewPressure.Read(); },
+      [](PressureSensorResult_t pressure) {
+        if (pressure.hasError()) {
+          send_event(PanicEvent());
+          return;
+        }
+
+        PressureEvent event;
+        event.pressure = pressure.getValue();
+        send_event(event);
+      });
+
   // Boiler
   boiler.setup(millis());
   effects.createEffect<std::uint16_t>(
@@ -98,6 +113,7 @@ void setup() {
         case POWER:
           // Remap value into uint8 range used by dimmer and apply
           pump.setBrightness(map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255));
+          break;
         default:
           // We don't know what we're doing, the only safe thing to do is to
           // stop.
