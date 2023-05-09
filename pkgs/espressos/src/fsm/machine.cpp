@@ -5,6 +5,7 @@
 #include "events.hpp"
 #include "fsmlist.hpp"
 #include "machine.hpp"
+#include "pump.hpp"
 #include "rinse.hpp"
 
 /* Forward declarations */
@@ -72,7 +73,7 @@ class Brewing : public MachineState {
 
 public:
   PinStatus getSolenoid() override { return HIGH; }
-  uint8_t getPump() override { return 255; }
+  PumpTarget getPump() override { return (PumpTarget){POWER, PumpMax}; }
   long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 };
 
@@ -92,11 +93,11 @@ public:
     }
   }
 
-  uint8_t getPump() override {
+  PumpTarget getPump() override {
     if (BackflushState::current_state_ptr->active()) {
-      return 255;
+      return (PumpTarget){POWER, PumpMax};
     } else {
-      return 0;
+      return (PumpTarget){POWER, PumpMin};
     }
   }
 };
@@ -117,11 +118,11 @@ public:
     }
   }
 
-  uint8_t getPump() override {
+  PumpTarget getPump() override {
     if (RinseState::current_state_ptr->active()) {
-      return 255;
+      return (PumpTarget){POWER, PumpMax};
     } else {
-      return 0;
+      return (PumpTarget){POWER, PumpMin};
     }
   }
 };
@@ -130,7 +131,8 @@ class Pumping : public MachineState {
   void react(StopPumpEvent const &e) override { transit<Idle>(); }
 
 public:
-  uint8_t getPump() override { return 255; }
+  PumpTarget getPump() override { return (PumpTarget){POWER, PumpMax}; };
+
   MachineMode getMode() override { return MachineMode::PUMPING; };
 };
 

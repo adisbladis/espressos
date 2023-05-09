@@ -11,9 +11,11 @@
 #include "fsm/brew.hpp"
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
+#include "fsm/pump.hpp"
 #include "http/api.hpp"
 #include "lib/effects.hpp"
 #include "lib/interval_callback.hpp"
+#include "lib/map.hpp"
 #include "logger.hpp"
 #include "ota.hpp"
 #include "pressure.hpp"
@@ -89,9 +91,19 @@ void setup() {
   // Pump dimming
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
   DimmableLight::begin();
-  effects.createEffect<uint8_t>(
+  effects.createEffect<PumpTarget>(
       []() { return MachineState::current_state_ptr->getPump(); },
-      [](uint8_t pumpIntensity) { pump.setBrightness(pumpIntensity); });
+      [](PumpTarget pumpTarget) {
+        switch (pumpTarget.mode) {
+        case POWER:
+          // Remap value into uint8 range used by dimmer and apply
+          pump.setBrightness(map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255));
+        default:
+          // We don't know what we're doing, the only safe thing to do is to
+          // stop.
+          send_event(PanicEvent());
+        }
+      });
 
   // Set API server states
   {

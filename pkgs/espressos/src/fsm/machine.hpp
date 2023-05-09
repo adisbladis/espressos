@@ -8,6 +8,7 @@
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
+#include "pump.hpp"
 #include "rinse.hpp"
 
 /* Forward declarations */
@@ -78,7 +79,7 @@ public:
   std::uint16_t getSetPoint() { return setpoint; };
   unsigned long getTimestamp() { return timestamp; };
   virtual PinStatus getSolenoid() { return LOW; }
-  virtual uint8_t getPump() { return 0; }
+  virtual PumpTarget getPump() { return (PumpTarget){POWER, 0}; }
   virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
   virtual MachineMode getMode() { return MachineMode::UNKNOWN; };
 };
