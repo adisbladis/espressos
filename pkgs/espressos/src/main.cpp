@@ -60,13 +60,25 @@ void setup() {
   // Initialise the FSM
   fsm_list::start();
 
-  unsigned long now = millis();
+  // Run FSM loops on millisecond change
+  effects.createEffect<unsigned long>(millis, [](unsigned long now) {
+    timeEvent.timestamp = now;
+    send_event(timeEvent);
+
+    loopEvent.timestamp = now;
+    send_event(loopEvent);
+  });
 
   // Boiler
-  boiler.setup(now);
+  boiler.setup(millis());
   effects.createEffect<std::uint16_t>(
       []() { return MachineState::current_state_ptr->getSetPoint(); },
       [](std::uint16_t setpoint) { boiler.SetSetPoint(setpoint); });
+  effects.createEffect<unsigned long>(
+      []() { return MachineState::current_state_ptr->getTimestamp(); },
+      [](unsigned long now) {
+        boiler.loop(now); // Run boiler PID loop
+      });
 
   // Solenoid
   solenoid.setup();
@@ -159,7 +171,7 @@ void setup() {
         [](unsigned long timestamp) {
           stateUpdateMessage.set_millis(timestamp);
         },
-        false); // The update interval is irrelevant to the API server
+        false); // Update cadence too high to use as a message trigger
 
     // Set mode in API server
     apiEffects.createEffect<MachineMode>(
@@ -167,6 +179,13 @@ void setup() {
         [](MachineMode mode) { stateUpdateMessage.set_mode(mode); });
 
     // If any watched effects triggered send update to clients
+    apiEffects.createEffect<unsigned long>(
+        []() { return MachineState::current_state_ptr->getTimestamp(); },
+        [](unsigned long timestamp) {
+          apiServerBroadcastCallback.loop(timestamp);
+        },
+        false); // Update cadence too high to use as a message trigger (also it
+                // would be weird as the trigger is to broadcast the message)
     apiEffects.onTriggered([]() { apiServerBroadcastCallback.reset(); });
 
     // Set up state broadcast callback
@@ -192,29 +211,15 @@ void setup() {
 }
 
 void loop() {
-  unsigned long now = millis();
-
-  // Run FSM loops
-  timeEvent.timestamp = now;
-  send_event(timeEvent);
-  loopEvent.timestamp = now;
-  send_event(loopEvent);
-
-  // Reconcile hardware with FSM state
+  // Run FSM & reconcile hardware with FSM state
   effects.loop();
 
   // Set API states
   apiEffects.loop();
 
-  // Run boiler PID loop
-  boiler.loop(now);
-
-  // Handle Arduino OTA
-  handleOTA();
-
   // Handle websocket API
   apiServer.loop();
 
-  // Send state updates on value change/interval
-  apiServerBroadcastCallback.loop(now);
+  // Handle Arduino OTA
+  handleOTA();
 }
