@@ -1,5 +1,6 @@
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
+#include <PIDController.hpp>
 #include <WiFi.h>
 #include <cstdint>
 #include <dimmable_light.h>
@@ -104,22 +105,63 @@ void setup() {
       [](PinStatus pinStatus) { solenoid.digitalWrite(pinStatus); });
 
   // Pump dimming
-  DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
-  DimmableLight::begin();
-  effects.createEffect<PumpTarget>(
-      []() { return MachineState::current_state_ptr->getPump(); },
-      [](PumpTarget pumpTarget) {
-        switch (pumpTarget.mode) {
-        case POWER:
-          // Remap value into uint8 range used by dimmer and apply
-          pump.setBrightness(map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255));
-          break;
-        default:
-          // We don't know what we're doing, the only safe thing to do is to
-          // stop.
-          send_event(PanicEvent());
-        }
-      });
+  {
+    DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
+    DimmableLight::begin();
+
+    static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
+    static PIDController<int32_t, float, unsigned long> pressureProfilePID(
+        0, 1, 7, 0, DIRECT);
+
+    pressureProfilePID.Begin(AUTOMATIC, millis());
+
+    static uint8_t pumpPower = 0;
+
+    effects.createEffect<uint8_t>(
+        []() { return pumpPower; },
+        [](uint8_t power) { pump.setBrightness(power); });
+
+    // TODO: Reset PID internals on mode switch
+
+    // React to state machine pump changes
+    effects.createEffect<PumpTarget>(
+        []() { return MachineState::current_state_ptr->getPump(); },
+        [](PumpTarget pumpTarget) {
+          switch (pumpTarget.mode) {
+          case POWER:
+            // Remap value into uint8 range used by dimmer and apply
+            pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
+            break;
+
+          case PRESSURE:
+            pressureProfilePID.SetSetpoint(pumpTarget.value);
+            break;
+
+          default:
+            // We don't know what we're doing, the only safe thing to do is to
+            // stop.
+            send_event(PanicEvent());
+          }
+
+          lastPumpTarget = pumpTarget;
+        });
+
+    // Run pump pressure profiling PID loop
+    effects.createEffect<unsigned long>(
+        []() { return MachineState::current_state_ptr->getTimestamp(); },
+        [](unsigned long timestamp) {
+          if (lastPumpTarget.mode != PumpMode::PRESSURE) {
+            return;
+          }
+
+          int32_t output;
+          if (pressureProfilePID.Compute(
+                  timestamp, MachineState::current_state_ptr->getPressure(),
+                  &output)) {
+            pumpPower = output;
+          }
+        });
+  }
 
   // Set API server states
   {
