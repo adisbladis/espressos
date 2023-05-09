@@ -17,7 +17,6 @@
 #include "fsm/pump.hpp"
 #include "http/api.hpp"
 #include "lib/effects.hpp"
-#include "lib/interval_callback.hpp"
 #include "lib/map.hpp"
 #include "lib/timers.hpp"
 #include "logger.hpp"
@@ -41,13 +40,13 @@ static APIWebServer apiServer = APIWebServer(HTTP_PORT, &apiHandler);
 static Effects effects;
 static Effects apiEffects;
 static Timers timers;
+static Timers apiTimers;
 
 // Re-use loop event on every iteration
 static LoopEvent loopEvent;
 static TimeEvent timeEvent;
 
 static StateUpdate<ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE> stateUpdateMessage;
-static IntervalCallback apiServerBroadcastCallback(STATE_UPDATE_INTERVAL);
 
 void setup() {
   // Turn on board power LED
@@ -238,12 +237,17 @@ void setup() {
         });
 
     // Set state update interval
+    static auto stateUpdateTimer =
+        apiTimers.createInterval(STATE_UPDATE_INTERVAL, []() {
+          apiServer.broadcastState(stateUpdateMessage);
+        });
+
     apiEffects.createEffect<unsigned long>(
         []() {
           return MachineState::current_state_ptr->getStateUpdateInterval();
         },
         [](unsigned long updateInterval) {
-          apiServerBroadcastCallback.setInterval(updateInterval);
+          stateUpdateTimer->interval = updateInterval;
         },
         false); // The update interval is irrelevant to the API server
 
@@ -261,18 +265,7 @@ void setup() {
         [](MachineMode mode) { stateUpdateMessage.set_mode(mode); });
 
     // If any watched effects triggered send update to clients
-    apiEffects.createEffect<unsigned long>(
-        []() { return MachineState::current_state_ptr->getTimestamp(); },
-        [](unsigned long timestamp) {
-          apiServerBroadcastCallback.loop(timestamp);
-        },
-        false); // Update cadence too high to use as a message trigger (also it
-                // would be weird as the trigger is to broadcast the message)
-    apiEffects.onTriggered([]() { apiServerBroadcastCallback.reset(); });
-
-    // Set up state broadcast callback
-    apiServerBroadcastCallback.setCallback(
-        []() { apiServer.broadcastState(stateUpdateMessage); });
+    apiEffects.onTriggered([]() { stateUpdateTimer->last = 0; });
 
     pConfig.setup();
     pConfig.onChange([](Config config) { apiServer.broadcastConfig(config); });
@@ -296,12 +289,16 @@ void loop() {
   // Run FSM & reconcile hardware with FSM state
   effects.loop();
 
-  unsigned long now = MachineState::current_state_ptr->getTimestamp();
-
-  timers.loop(now);
-
   // Set API states
   apiEffects.loop();
+
+  {
+    unsigned long now = MachineState::current_state_ptr->getTimestamp();
+
+    timers.loop(now);
+
+    apiTimers.loop(now);
+  }
 
   // Handle websocket API
   apiServer.loop();
