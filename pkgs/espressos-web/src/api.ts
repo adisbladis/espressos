@@ -72,7 +72,7 @@ export class APIClient {
       throw new Error(`socket not connected, status ${this.socket.readyState}`);
     }
 
-    console.log("Sending command", msg);
+    console.log("Sending command", msg.commandOneof.$case, msg);
 
     const bytes = Command.encode(msg).finish();
     this.socket.send(bytes);

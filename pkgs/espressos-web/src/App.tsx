@@ -1,8 +1,14 @@
 import type { Component } from "solid-js";
-import { onCleanup, createMemo, createSignal } from "solid-js";
+import { onCleanup, createMemo } from "solid-js";
+import { produce } from "solid-js/store";
 
 import { APIClient } from "./api";
-import { Event, LogMessage_LogLevel, MachineMode } from "./proto/api";
+import {
+  BrewTargetMode,
+  Event,
+  LogMessage_LogLevel,
+  MachineMode,
+} from "./proto/api";
 import { state, setState } from "./state";
 import { config, setConfig } from "./config";
 
@@ -145,6 +151,13 @@ const App: Component = () => {
 
   // A timer used to pace the setting of pressure
   const setTargetPressure = createPacedSetter(50, (pressure: number) => {
+    setState(
+      produce((s) => {
+        s.brewTarget.mode = BrewTargetMode.PRESSURE;
+        s.brewTarget.value = pressure;
+      }),
+    );
+
     client.targetSetPressure(pressure);
   });
 
@@ -157,8 +170,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
-                ? client.powerOff()
-                : client.powerOn(config.setpoint)
+                  ? client.powerOff()
+                  : client.powerOn(config.setpoint)
               }
             >
               {Symbols.POWER}
@@ -170,8 +183,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.BREWING
-                ? client.stopBrew()
-                : client.startBrew()
+                  ? client.stopBrew()
+                  : client.startBrew()
               }
             >
               {Symbols.BREWING}
@@ -183,8 +196,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.PUMPING
-                ? client.stopPump()
-                : client.startPump()
+                  ? client.stopPump()
+                  : client.startPump()
               }
             >
               {Symbols.PUMPING}
@@ -196,8 +209,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.STEAMING
-                ? client.stopSteam()
-                : client.startSteam(config.steamSetPoint)
+                  ? client.stopSteam()
+                  : client.startSteam(config.steamSetPoint)
               }
             >
               {Symbols.STEAMING}
@@ -254,7 +267,7 @@ const App: Component = () => {
                   type="range"
                   min="0"
                   max="10000" /* 10000 mBar */
-                  value="8500"
+                  value={state.brewTarget.value}
                   class="range-sm"
                   onInput={(e) => setTargetPressure(Number(e.target.value))}
                 />
