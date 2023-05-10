@@ -151,10 +151,6 @@ const App: Component = () => {
   return (
     <>
       <div class="flex">
-        <div class="flex-auto">
-          <Chart />
-        </div>
-
         <div class="flex-col">
           <div>
             <button
@@ -207,24 +203,6 @@ const App: Component = () => {
           <div>
             <button
               class="btn m-1 btn-lg"
-              onClick={() => client.powerOn((state.setpoint / 100 + 1) * 100)}
-            >
-              ➕
-            </button>
-
-            {state.setpoint / 100}
-
-            <button
-              class="btn m-1 btn-lg"
-              onClick={() => client.powerOn((state.setpoint / 100 - 1) * 100)}
-            >
-              ➖
-            </button>
-          </div>
-
-          <div>
-            <button
-              class="btn m-1 btn-lg"
               onClick={() => client.backflushStart()}
             >
               {Symbols.BACKFLUSHING}
@@ -233,10 +211,37 @@ const App: Component = () => {
               {Symbols.RINSING}
             </button>
           </div>
+        </div>
 
+        <div class="flex-auto">
+          <Chart />
+        </div>
+
+        <div class="flex-col">
           <div>
             <div class="card  bg-base-100 shadow-xl">
               <div class="card-body">
+                <div>
+                  <button
+                    class="btn m-1 btn-lg"
+                    onClick={() =>
+                      client.powerOn((state.setpoint / 100 + 1) * 100)
+                    }
+                  >
+                    ➕
+                  </button>
+
+                  {state.setpoint / 100}
+
+                  <button
+                    class="btn m-1 btn-lg"
+                    onClick={() =>
+                      client.powerOn((state.setpoint / 100 - 1) * 100)
+                    }
+                  >
+                    ➖
+                  </button>
+                </div>
                 {state.brewTarget.value / 1000} bar
                 <input
                   type="range"

@@ -149,8 +149,8 @@ const Chart: Component = () => {
     <SolidChart
       {...chart}
       canvasOptions={{
-        width: 300,
-        height: 600,
+        width: 100,
+        height: 100,
       }}
     />
   );
