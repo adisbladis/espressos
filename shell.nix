@@ -84,9 +84,11 @@ in
 pkgs.mkShell {
   packages = [
     pkgs.platformio
-    pkgs.clang-tools # clang-format
     pkgs.nodejs
     pkgs.doctest
+
+    pkgs.treefmt
+    pkgs.clang-tools # clang-format
 
     pythonEnv
 

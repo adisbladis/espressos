@@ -2,9 +2,6 @@
 
 all: generate build
 
-format:
-	clang-format -i `find src -type f`
-
 build:
 	pio run
 

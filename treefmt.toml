@@ -1,0 +1,4 @@
+[formatter.cpp]
+command = "clang-format"
+options = ["-i"]
+includes = ["*.h", "*.c", "*.hpp", "*.cpp", "*.ino"]
