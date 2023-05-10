@@ -5,8 +5,8 @@
 
 #include "../config.hpp"
 #include "../fsm/fsmlist.hpp"
+#include "../lib/result.hpp"
 #include "../proto/api.h"
-#include "../result.hpp"
 
 #define MSG_BUF_SIZE 128
 #define UUID_SIZE 16 // Note: Convert this to bytes and get it down to 16 bytes

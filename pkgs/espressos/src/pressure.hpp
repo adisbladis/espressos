@@ -1,6 +1,6 @@
 #pragma once
 
-#include "result.hpp"
+#include "lib/result.hpp"
 #include <Arduino.h>
 #include <cstdint>
 
