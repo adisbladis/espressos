@@ -156,20 +156,35 @@ const App: Component = () => {
             <button
               class="btn m-1 btn-lg"
               onClick={() =>
+                state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
+                ? client.powerOff()
+                : client.powerOn(config.setpoint)
+              }
+            >
+              {Symbols.POWER}
+            </button>
+          </div>
+
+          <div>
+            <button
+              class="btn m-1 btn-lg"
+              onClick={() =>
                 state.mode == MachineMode.BREWING
-                  ? client.stopBrew()
-                  : client.startBrew()
+                ? client.stopBrew()
+                : client.startBrew()
               }
             >
               {Symbols.BREWING}
             </button>
+          </div>
 
+          <div>
             <button
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.PUMPING
-                  ? client.stopPump()
-                  : client.startPump()
+                ? client.stopPump()
+                : client.startPump()
               }
             >
               {Symbols.PUMPING}
@@ -181,22 +196,11 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.STEAMING
-                  ? client.stopSteam()
-                  : client.startSteam(config.steamSetPoint)
+                ? client.stopSteam()
+                : client.startSteam(config.steamSetPoint)
               }
             >
               {Symbols.STEAMING}
-            </button>
-
-            <button
-              class="btn m-1 btn-lg"
-              onClick={() =>
-                state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
-                  ? client.powerOff()
-                  : client.powerOn(config.setpoint)
-              }
-            >
-              {Symbols.POWER}
             </button>
           </div>
 
@@ -207,6 +211,9 @@ const App: Component = () => {
             >
               {Symbols.BACKFLUSHING}
             </button>
+          </div>
+
+          <div>
             <button class="btn m-1 btn-lg" onClick={() => client.rinseStart()}>
               {Symbols.RINSING}
             </button>
