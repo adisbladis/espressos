@@ -73,7 +73,7 @@ class Brewing : public MachineState {
 
 public:
   PinStatus getSolenoid() override { return HIGH; }
-  PumpTarget getPump() override { return (PumpTarget){PRESSURE, 6000}; }
+  PumpTarget getPump() override { return (PumpTarget){PRESSURE, 8500}; }
   long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 };
 
