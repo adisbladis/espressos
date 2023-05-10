@@ -19,3 +19,7 @@ includes = [
     "*.tsx",
     "*.yaml",
 ]
+
+[formatter.nix]
+command = "nixpkgs-fmt"
+includes = ["*.nix"]

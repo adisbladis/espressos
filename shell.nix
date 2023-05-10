@@ -74,7 +74,7 @@ let
     { };
 
 
-  pythonEnv = pkgs.python3.withPackages(ps: [
+  pythonEnv = pkgs.python3.withPackages (ps: [
     ps.brotli
     ps.python-magic
     ps.ipython
@@ -85,10 +85,11 @@ pkgs.mkShell {
   packages = [
     pkgs.platformio
     pkgs.nodejs
-    pkgs.doctest
+    pkgs.doctest # C++ tests
 
     pkgs.treefmt
     pkgs.clang-tools # clang-format
+    pkgs.nixpkgs-fmt
 
     pythonEnv
 
