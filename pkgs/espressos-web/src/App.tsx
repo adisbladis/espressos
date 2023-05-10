@@ -136,8 +136,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.BREWING
-                ? client.stopBrew()
-                : client.startBrew()
+                  ? client.stopBrew()
+                  : client.startBrew()
               }
             >
               {Symbols.BREWING}
@@ -147,8 +147,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.PUMPING
-                ? client.stopPump()
-                : client.startPump()
+                  ? client.stopPump()
+                  : client.startPump()
               }
             >
               {Symbols.PUMPING}
@@ -160,8 +160,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode == MachineMode.STEAMING
-                ? client.stopSteam()
-                : client.startSteam(config.steamSetPoint)
+                  ? client.stopSteam()
+                  : client.startSteam(config.steamSetPoint)
               }
             >
               {Symbols.STEAMING}
@@ -171,8 +171,8 @@ const App: Component = () => {
               class="btn m-1 btn-lg"
               onClick={() =>
                 state.mode != MachineMode.OFF && state.mode != MachineMode.PANIC
-                ? client.powerOff()
-                : client.powerOn(config.setpoint)
+                  ? client.powerOff()
+                  : client.powerOn(config.setpoint)
               }
             >
               {Symbols.POWER}
@@ -182,7 +182,7 @@ const App: Component = () => {
           <div>
             <button
               class="btn m-1 btn-lg"
-              onClick={() => client.powerOn(((state.setpoint / 100) + 1) * 100)}
+              onClick={() => client.powerOn((state.setpoint / 100 + 1) * 100)}
             >
               ➕
             </button>
@@ -191,7 +191,7 @@ const App: Component = () => {
 
             <button
               class="btn m-1 btn-lg"
-              onClick={() => client.powerOn(((state.setpoint / 100) - 1) * 100)}
+              onClick={() => client.powerOn((state.setpoint / 100 - 1) * 100)}
             >
               ➖
             </button>
@@ -259,9 +259,9 @@ const App: Component = () => {
                     {((): string => {
                       switch (state.boilerTemp.result.$case) {
                         case "value":
-                          return `${(state.boilerTemp.result.value / 100).toFixed(
-                            2,
-                          )}°C`;
+                          return `${(
+                            state.boilerTemp.result.value / 100
+                          ).toFixed(2)}°C`;
                         case "error":
                           return "ERR";
                       }
@@ -273,9 +273,9 @@ const App: Component = () => {
                     {((): string => {
                       switch (state.pressure.result.$case) {
                         case "value":
-                          return `${(state.pressure.result.value / 1000).toFixed(
-                            2,
-                          )} bar`;
+                          return `${(
+                            state.pressure.result.value / 1000
+                          ).toFixed(2)} bar`;
                         case "error":
                           return "ERR";
                       }

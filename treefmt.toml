@@ -2,3 +2,20 @@
 command = "clang-format"
 options = ["-i"]
 includes = ["*.h", "*.c", "*.hpp", "*.cpp", "*.ino"]
+
+[formatter.prettier]
+command = "prettier"
+options = ["--write"]
+includes = [
+    "*.css",
+    "*.html",
+    "*.js",
+    "*.json",
+    "*.jsx",
+    "*.md",
+    "*.mdx",
+    "*.scss",
+    "*.ts",
+    "*.tsx",
+    "*.yaml",
+]

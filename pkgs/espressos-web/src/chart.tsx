@@ -94,9 +94,7 @@ const Chart: Component = () => {
     },
   ];
 
-  const unpackUint32Result = (
-    x: Uint32Result["result"],
-  ): number => {
+  const unpackUint32Result = (x: Uint32Result["result"]): number => {
     switch (x.$case) {
       case "value":
         return x.value;
@@ -107,9 +105,7 @@ const Chart: Component = () => {
     }
   };
 
-  const unpackInt32Result = (
-    x: Int32Result["result"],
-  ): number => {
+  const unpackInt32Result = (x: Int32Result["result"]): number => {
     switch (x.$case) {
       case "value":
         return x.value;
