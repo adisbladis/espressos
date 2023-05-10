@@ -27,7 +27,7 @@ let
         src = fetchFromGitHub {
           repo = "EmbeddedProto";
           owner = "Embedded-AMS";
-          rev = "ddebda1f03aeee87b0d5d124300ad2c533f23fd9";  # develop
+          rev = "ddebda1f03aeee87b0d5d124300ad2c533f23fd9"; # develop
           sha256 = "sha256-Lw3Q9gCNLNLyLfwCgFYl/sQeyAvYYJppI7wgFkKTsCU=";
         };
 
