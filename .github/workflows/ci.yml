@@ -23,6 +23,11 @@ jobs:
     - uses: cachix/install-nix-action@v20
       with:
         nix_path: nixpkgs=channel:nixos-unstable
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.platformio/.cache
+        key: ${{ runner.os }}-pio
     - uses: actions/checkout@v3
     - name: Build shell
       run: nix-shell --run true
