@@ -73,6 +73,22 @@ private:
     send_event(RinseStopEvent());
   };
 
+  void handle(const uint8_t *requestID, BrewTarget cmd) {
+    BrewTargetEvent brewTargetEvent;
+    brewTargetEvent.value = cmd.get_value();
+
+    switch (cmd.get_mode()) {
+    case BrewTargetMode::POWER:
+      brewTargetEvent.mode = BrewTargetEventMode::POWER;
+      break;
+    case BrewTargetMode::PRESSURE:
+      brewTargetEvent.mode = BrewTargetEventMode::PRESSURE;
+      break;
+    }
+
+    send_event(brewTargetEvent);
+  };
+
   void handle(const uint8_t *requestID, Config config) {
     this->pConfig->setConfig(config);
   };
@@ -169,6 +185,8 @@ public:
       break;
     case Cmd_t::FieldNumber::RINSE_STOP:
       handle(requestID, cmd.get_rinse_stop());
+    case Cmd_t::FieldNumber::BREW_TARGET_SET:
+      handle(requestID, cmd.get_brew_target_set());
       break;
     default:
       result.setError("Logic error: Unhandled switch case");

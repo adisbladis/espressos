@@ -3,6 +3,7 @@
 #include "brew.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
+#include "pump.hpp"
 
 class BrewActive;
 
@@ -27,5 +28,6 @@ void BrewState::react(BrewStopEvent const &e) {
 unsigned long BrewState::shotStartTime = 0;
 unsigned long BrewState::shotStopTime = 0;
 unsigned long BrewState::timestamp = 0;
+BrewStateTarget BrewState::target = {};
 
 FSM_INITIAL_STATE(BrewState, BrewDone)

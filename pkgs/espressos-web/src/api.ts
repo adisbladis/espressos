@@ -11,6 +11,8 @@ import {
   StartSteam,
   StopSteam,
   Event,
+  BrewTarget,
+  BrewTargetMode,
 } from "./proto/api";
 
 const mkRequestId = (): Uint8Array => new Uint8Array(uuidv4(null, []));
@@ -173,6 +175,40 @@ export class APIClient {
     await this.sendCommand({
       requestId: mkRequestId(),
       commandOneof: { $case: "rinseStop", rinseStop: <RinseStop>{} },
+    });
+  }
+
+  async targetSetPower(power: number): Promise<void> {
+    if (power < 0 || power > 65535) {
+      throw new Error("Power value out of bounds");
+    }
+
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: {
+        $case: "brewTargetSet",
+        brewTargetSet: <BrewTarget>{
+          mode: BrewTargetMode.POWER,
+          value: power,
+        },
+      },
+    });
+  }
+
+  async targetSetPressure(pressure: number): Promise<void> {
+    if (pressure < 0 || pressure > 65535) {
+      throw new Error("Power value out of bounds");
+    }
+
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: {
+        $case: "brewTargetSet",
+        brewTargetSet: <BrewTarget>{
+          mode: BrewTargetMode.PRESSURE,
+          value: pressure,
+        },
+      },
     });
   }
 }

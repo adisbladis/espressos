@@ -3,6 +3,14 @@ syntax = "proto3";
 import "config.proto";
 
 /* Commands sent by the client */
+enum BrewTargetMode {
+  POWER = 0;
+  PRESSURE = 1;
+}
+message BrewTarget {
+  BrewTargetMode mode = 1;
+  uint32 value = 2;
+}
 
 message PowerOn {
   // Setpoint represented as a hundredth of a degree celsius
@@ -12,7 +20,10 @@ message PowerOn {
 }
 message PowerOff { }
 
-message StartBrew { }
+message StartBrew {
+  // The desired pressure in millibar
+  uint32 pressure = 1;
+}
 message StopBrew { }
 
 message StartPump { }
@@ -59,6 +70,8 @@ message Command {
 
     RinseStart rinse_start = 13;
     RinseStop rinse_stop = 14;
+
+    BrewTarget brew_target_set = 15;
   }
 };
 
@@ -122,6 +135,7 @@ message StateUpdate {
   uint32 millis = 5;
 
   ShotTimer shot_timer = 6;
+  BrewTarget brew_target = 7;
 }
 
 message LogMessage {

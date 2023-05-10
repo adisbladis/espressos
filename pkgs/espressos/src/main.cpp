@@ -139,12 +139,12 @@ void setup() {
         []() { return MachineState::current_state_ptr->getPump(); },
         [](PumpTarget pumpTarget) {
           switch (pumpTarget.mode) {
-          case POWER:
+          case PumpMode::POWER:
             // Remap value into uint8 range used by dimmer and apply
             pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
             break;
 
-          case PRESSURE:
+          case PumpMode::PRESSURE:
             pressureProfilePID.SetSetpoint(pumpTarget.value);
             break;
 
@@ -250,6 +250,26 @@ void setup() {
           stateUpdateTimer->interval = updateInterval;
         },
         false); // The update interval is irrelevant to the API server
+
+    // Set current brew target
+    apiEffects.createEffect<BrewStateTarget>(
+        []() { return BrewState::current_state_ptr->getTarget(); },
+        [](BrewStateTarget target) {
+          auto brewTarget = stateUpdateMessage.mutable_brew_target();
+          brewTarget.set_value(target.value);
+
+          switch (target.mode) {
+          case BrewStateMode::POWER:
+            brewTarget.set_mode(BrewTargetMode::POWER);
+            break;
+          case BrewStateMode::PRESSURE:
+            brewTarget.set_mode(BrewTargetMode::PRESSURE);
+            break;
+          }
+
+          stateUpdateMessage.set_brew_target(brewTarget);
+        },
+        false); // Update cadence too high to use as a message trigger
 
     // Set current time
     apiEffects.createEffect<unsigned long>(

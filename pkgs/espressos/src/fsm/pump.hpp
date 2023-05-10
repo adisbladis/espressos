@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-enum PumpMode {
+enum struct PumpMode {
   // In POWER we're controlling the dimmer somewhat directly.
   // It has a range between 0 to 65535 and says how much power we should
   // deliver to the pump.

@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { onCleanup, createMemo } from "solid-js";
+import { onCleanup, createMemo, createSignal } from "solid-js";
 
 import { APIClient } from "./api";
 import { Event, LogMessage_LogLevel, MachineMode } from "./proto/api";
@@ -28,6 +28,26 @@ const client = new APIClient(
     window.location.host +
     "/api",
 );
+
+// Allows to set a value with the setter being called at most once per maxInterval
+function createPacedSetter<Type>(interval: number, cb: (value: Type) => void) {
+  let next: number = performance.now();
+  let value: Type;
+
+  return (newValue: Type) => {
+    const now = performance.now();
+
+    value = newValue;
+
+    // Schedule timer
+    if (now >= next) {
+      next = now + interval;
+      setTimeout(() => {
+        cb(value);
+      }, interval);
+    }
+  };
+}
 
 client.onEvent("*", (event: Event) => {
   switch (event.eventOneof.$case) {
@@ -123,6 +143,11 @@ const App: Component = () => {
     return s + (s ? " " : "") + `${seconds}s`;
   });
 
+  // A timer used to pace the setting of pressure
+  const setTargetPressure = createPacedSetter(50, (pressure: number) => {
+    client.targetSetPressure(pressure);
+  });
+
   return (
     <>
       <div class="flex">
@@ -207,6 +232,22 @@ const App: Component = () => {
             <button class="btn m-1 btn-lg" onClick={() => client.rinseStart()}>
               {Symbols.RINSING}
             </button>
+          </div>
+
+          <div>
+            <div class="card  bg-base-100 shadow-xl">
+              <div class="card-body">
+                {state.brewTarget.value / 1000} bar
+                <input
+                  type="range"
+                  min="0"
+                  max="10000" /* 10000 mBar */
+                  value="8500"
+                  class="range-sm"
+                  onInput={(e) => setTargetPressure(Number(e.target.value))}
+                />
+              </div>
+            </div>
           </div>
 
           <div>

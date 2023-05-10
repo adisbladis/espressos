@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { StateUpdate } from "./proto/api";
+import { BrewTarget, StateUpdate } from "./proto/api";
 
 export const [state, setState] = createStore(
   StateUpdate.create({
@@ -15,5 +15,6 @@ export const [state, setState] = createStore(
         value: 0,
       },
     },
+    brewTarget: BrewTarget.create({}),
   }),
 );

@@ -5,6 +5,11 @@
 
 #include "events.hpp"
 
+// Alias BrewTargetEvent as the data is the same, but the storage lifetime is
+// different
+using BrewStateTarget = BrewTargetEvent;
+using BrewStateMode = BrewTargetEventMode;
+
 class BrewState : public tinyfsm::Fsm<BrewState> {
   friend class tinyfsm::Fsm<BrewState>;
 
@@ -17,6 +22,11 @@ class BrewState : public tinyfsm::Fsm<BrewState> {
 
   virtual void react(BrewStartEvent const &){};
   void react(BrewStopEvent const &);
+
+  void react(BrewTargetEvent const &e) {
+    target.mode = e.mode;
+    target.value = e.value;
+  };
 
   void react(TimeEvent const &e) { timestamp = e.timestamp; };
 
@@ -33,7 +43,11 @@ protected:
   // Current timestamp
   static unsigned long timestamp;
 
+  // Current target
+  static BrewStateTarget target;
+
 public:
+  BrewStateTarget getTarget() { return target; };
   uint32_t getShotStartTime() { return shotStartTime; };
   uint32_t getShotStopTime() { return shotStopTime; };
 };

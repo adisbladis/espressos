@@ -2,6 +2,7 @@
 #include <tinyfsm.hpp>
 
 #include "backflush.hpp"
+#include "brew.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
 #include "machine.hpp"
@@ -73,7 +74,19 @@ class Brewing : public MachineState {
 
 public:
   PinStatus getSolenoid() override { return HIGH; }
-  PumpTarget getPump() override { return (PumpTarget){PRESSURE, 8500}; }
+  PumpTarget getPump() override {
+    auto target = BrewState::current_state_ptr->getTarget();
+
+    switch (target.mode) {
+    case BrewStateMode::POWER:
+      return (PumpTarget){PumpMode::POWER, target.value};
+
+    case BrewStateMode::PRESSURE:
+      return (PumpTarget){PumpMode::PRESSURE, target.value};
+    };
+
+    return (PumpTarget){PumpMode::POWER, 0};
+  }
   long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 };
 
@@ -95,9 +108,9 @@ public:
 
   PumpTarget getPump() override {
     if (BackflushState::current_state_ptr->active()) {
-      return (PumpTarget){POWER, PumpMax};
+      return (PumpTarget){PumpMode::POWER, PumpMax};
     } else {
-      return (PumpTarget){POWER, PumpMin};
+      return (PumpTarget){PumpMode::POWER, PumpMin};
     }
   }
 };
@@ -120,9 +133,9 @@ public:
 
   PumpTarget getPump() override {
     if (RinseState::current_state_ptr->active()) {
-      return (PumpTarget){POWER, PumpMax};
+      return (PumpTarget){PumpMode::POWER, PumpMax};
     } else {
-      return (PumpTarget){POWER, PumpMin};
+      return (PumpTarget){PumpMode::POWER, PumpMin};
     }
   }
 };
@@ -131,7 +144,9 @@ class Pumping : public MachineState {
   void react(StopPumpEvent const &e) override { transit<Idle>(); }
 
 public:
-  PumpTarget getPump() override { return (PumpTarget){POWER, PumpMax}; };
+  PumpTarget getPump() override {
+    return (PumpTarget){PumpMode::POWER, PumpMax};
+  };
 
   MachineMode getMode() override { return MachineMode::PUMPING; };
 };

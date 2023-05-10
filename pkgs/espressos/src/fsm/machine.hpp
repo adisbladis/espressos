@@ -84,7 +84,7 @@ public:
   unsigned long getTimestamp() { return timestamp; };
   std::uint16_t getPressure() { return pressure; };
   virtual PinStatus getSolenoid() { return LOW; }
-  virtual PumpTarget getPump() { return (PumpTarget){POWER, 0}; }
+  virtual PumpTarget getPump() { return (PumpTarget){PumpMode::POWER, 0}; }
   virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
   virtual MachineMode getMode() { return MachineMode::UNKNOWN; };
 };

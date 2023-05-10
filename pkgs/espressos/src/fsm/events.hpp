@@ -26,3 +26,15 @@ struct BackflushStopEvent : tinyfsm::Event {};
 
 struct BrewStartEvent : tinyfsm::Event {};
 struct BrewStopEvent : tinyfsm::Event {};
+
+enum struct BrewTargetEventMode { POWER, PRESSURE };
+struct BrewTargetEvent : tinyfsm::Event {
+  BrewTargetEventMode mode;
+  uint16_t value;
+
+  bool operator==(BrewTargetEvent const &rhs) const {
+    return mode == rhs.mode && value == rhs.value;
+  }
+
+  bool operator!=(BrewTargetEvent const &rhs) const { return !(*this == rhs); }
+};
