@@ -66,7 +66,5 @@ public:
 
   struct TempReading getTemp();
 
-  void SetTunings(float Kp, float Ki, float Kd);
-
   bool loop(unsigned long now);
 };

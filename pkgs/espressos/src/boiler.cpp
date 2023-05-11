@@ -26,10 +26,6 @@ struct TempReading BoilerPID::getTemp() {
   return temp;
 }
 
-void BoilerPID::SetTunings(float Kp, float Ki, float Kd) {
-  pid.SetTunings(Kp, Ki, Kd);
-}
-
 bool BoilerPID::loop(unsigned long now) {
   uint16_t rtd;
   bool cond = thermo.readRTDAsync(rtd);
