@@ -138,6 +138,8 @@ public:
         break;
       }
 
+      cmd.clear();
+
       return result;
     }
 
@@ -185,6 +187,7 @@ public:
       break;
     case Cmd_t::FieldNumber::RINSE_STOP:
       handle(requestID, cmd.get_rinse_stop());
+      break;
     case Cmd_t::FieldNumber::BREW_TARGET_SET:
       handle(requestID, cmd.get_brew_target_set());
       break;
