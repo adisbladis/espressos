@@ -186,6 +186,7 @@ std::uint16_t MachineState::prevSetpoint = 0;
 unsigned long MachineState::timeout = 0;
 unsigned long MachineState::timestamp = 0;
 std::uint16_t MachineState::pressure = 0;
+std::int16_t MachineState::temp = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

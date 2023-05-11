@@ -1,3 +1,4 @@
+#include <Adafruit_MAX31865.h>
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
 #include <PIDController.hpp>
@@ -7,7 +8,6 @@
 #include <dimmable_light.h>
 
 #include "api/handler.hpp"
-#include "boiler.hpp"
 #include "cachedpin.hpp"
 #include "config.hpp"
 #include "fsm/brew.hpp"
@@ -25,8 +25,6 @@
 #include "proto/api.h"
 
 // Hardware IO
-static BoilerPID boiler(BOILER_SSR_PIN, BOILER_MAX31865_SPI_PIN,
-                        BOILER_SPI_CLASS);
 static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_MBAR,
                                    PRESSURE_SENSOR_RANGE);
 static DimmableLight pump(PUMP_DIMMER_OUT);
@@ -98,16 +96,67 @@ void setup() {
                                    });
   }
 
+  // Read temp sensor
+  {
+    static Adafruit_MAX31865 thermo(BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
+    thermo.begin();
+
+    static constexpr int WindowSize = 100;
+    static PIDController<int32_t, float, unsigned long> boilerPID(
+        0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
+    boilerPID.Begin(AUTOMATIC, millis());
+
+    // Read temp and issue events
+    timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
+      uint16_t rtd;
+      bool cond = thermo.readRTDAsync(rtd);
+
+      if (cond) {
+        auto fault = thermo.readFault();
+
+        if (fault) {
+          thermo.clearFault();
+          send_event(PanicEvent());
+          return;
+        }
+
+        TempEvent tempEvent;
+        tempEvent.temp =
+            thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100;
+        send_event(tempEvent);
+      }
+    });
+
+    // Run PID loop
+    static unsigned long windowStartTime = millis();
+
+    effects.createEffect<std::uint16_t>(
+        []() { return MachineState::current_state_ptr->getSetPoint(); },
+        [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
+
+    static CachedOutputPin outputPin(BOILER_SSR_PIN);
+    outputPin.setup();
+
+    timers.createInterval(1, []() {
+      unsigned long now = MachineState::current_state_ptr->getTimestamp();
+      std::int16_t temp = MachineState::current_state_ptr->getTemp();
+      std::int32_t Output;
+
+      boilerPID.Compute(now, temp, &Output);
+
+      if (now - windowStartTime >= WindowSize) {
+        windowStartTime += WindowSize;
+      }
+
+      if (Output < now - windowStartTime) {
+        outputPin.digitalWrite(HIGH);
+      } else {
+        outputPin.digitalWrite(LOW);
+      }
+    });
+  }
+
   // Boiler
-  boiler.setup(millis());
-  effects.createEffect<std::uint16_t>(
-      []() { return MachineState::current_state_ptr->getSetPoint(); },
-      [](std::uint16_t setpoint) { boiler.SetSetPoint(setpoint); });
-  effects.createEffect<unsigned long>(
-      []() { return MachineState::current_state_ptr->getTimestamp(); },
-      [](unsigned long now) {
-        boiler.loop(now); // Run boiler PID loop
-      });
 
   // Solenoid
   solenoid.setup();
@@ -132,7 +181,7 @@ void setup() {
         []() { return pumpPower; },
         [](uint8_t power) { pump.setBrightness(power); });
 
-    // TODO: Reset PID internals on mode switch
+    // effects.createEffect<int16_t, const char *>()
 
     // React to state machine pump changes
     effects.createEffect<PumpTarget>(
@@ -183,21 +232,11 @@ void setup() {
         [](int setpoint) { stateUpdateMessage.set_setpoint(setpoint); });
 
     // Set boiler temp in API server
-    apiEffects.createEffect<TempReading>(
-        []() { return boiler.getTemp(); },
-        [](TempReading temp) {
+    apiEffects.createEffect<std::int16_t>(
+        []() { return MachineState::current_state_ptr->getTemp(); },
+        [](std::int16_t temp) {
           auto boilerTempMsg = stateUpdateMessage.mutable_boilerTemp();
-
-          if (temp.fault) {
-            auto fs = boilerTempMsg.get_error();
-
-            auto errorMessage = temp.errorMessage();
-            fs.set(errorMessage, strlen(errorMessage));
-            boilerTempMsg.set_error(fs);
-          } else {
-            boilerTempMsg.set_value(temp.temp);
-          }
-
+          boilerTempMsg.set_value(temp);
           stateUpdateMessage.set_boilerTemp(boilerTempMsg);
         },
         false); // Update cadence too high to use as update trigger

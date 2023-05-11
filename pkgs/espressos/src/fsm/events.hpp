@@ -21,6 +21,10 @@ struct PressureEvent : tinyfsm::Event {
   uint16_t pressure;
 };
 
+struct TempEvent : tinyfsm::Event {
+  int16_t temp;
+};
+
 struct BackflushStartEvent : tinyfsm::Event {};
 struct BackflushStopEvent : tinyfsm::Event {};
 
