@@ -1,4 +1,3 @@
-#include <Adafruit_MAX31865.h>
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
 #include <PIDController.hpp>
@@ -74,33 +73,8 @@ void setup() {
     send_event(loopEvent);
   });
 
-  // Read temp sensor
+  // Run boiler PID
   {
-    static Adafruit_MAX31865 thermo(BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
-    thermo.begin();
-
-    // Read temp and issue events
-    timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
-      uint16_t rtd;
-      bool cond = thermo.readRTDAsync(rtd);
-
-      if (cond) {
-        auto fault = thermo.readFault();
-
-        if (fault) {
-          thermo.clearFault();
-          send_event(PanicEvent());
-          return;
-        }
-
-        TempEvent tempEvent;
-        tempEvent.temp =
-            thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100;
-        send_event(tempEvent);
-      }
-    });
-
-    // Run PID loop
     static constexpr int WindowSize = 100;
     static PIDController<int32_t, float, unsigned long> boilerPID(
         0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
@@ -132,8 +106,6 @@ void setup() {
       }
     });
   }
-
-  // Boiler
 
   // Solenoid
   solenoid.setup();

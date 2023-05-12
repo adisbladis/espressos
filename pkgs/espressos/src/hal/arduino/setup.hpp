@@ -2,12 +2,14 @@
 
 #include "../../fsm//fsmlist.hpp"
 #include <Arduino.h>
+#include <Adafruit_MAX31865.h>
 #include <SimpleKalmanFilter.h>
 #include <cstdint>
 
 #include "../../lib/timers.hpp"
 
 void setupArduinoPressureSensor(Timers &timers) {
+  // TODO: Don't hardcode filter values and consider where this filter actually belongs
   static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
 
   // Calculate the usable range of values from the ADC
@@ -48,4 +50,33 @@ void setupArduinoPressureSensor(Timers &timers) {
   });
 }
 
-void setupHAL(Timers &timers) { setupArduinoPressureSensor(timers); }
+void setupArduinoTempSensor(Timers &timers) {
+  static Adafruit_MAX31865 thermo(BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
+  thermo.begin();
+
+  // Read temp and issue events
+  timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
+    uint16_t rtd;
+    bool cond = thermo.readRTDAsync(rtd);
+
+    if (cond) {
+      auto fault = thermo.readFault();
+
+      if (fault) {
+        thermo.clearFault();
+        send_event(PanicEvent());
+        return;
+      }
+
+      TempEvent tempEvent;
+      tempEvent.temp =
+          thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100;
+      send_event(tempEvent);
+    }
+  });
+}
+
+void setupHAL(Timers &timers) {
+  setupArduinoPressureSensor(timers);
+  setupArduinoTempSensor(timers);
+}
