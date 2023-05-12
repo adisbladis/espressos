@@ -2,15 +2,21 @@
 
 #include <Adafruit_MAX31865.h>
 #include <Arduino.h>
+#include <LittleFS.h>
 #include <PIDController.hpp>
 #include <SimpleKalmanFilter.h>
+#include <WiFi.h>
 #include <cstdint>
 #include <dimmable_light.h>
 
+#include "../../api/handler.hpp"
 #include "../../fsm//fsmlist.hpp"
 #include "../../lib/effects.hpp"
+#include "../../lib/loops.hpp"
 #include "../../lib/map.hpp"
 #include "../../lib/timers.hpp"
+#include "ota.hpp"
+#include "webserver.hpp"
 
 void setupArduinoPressureSensor(Timers &timers) {
   // TODO: Don't hardcode filter values and consider where this filter actually
@@ -193,4 +199,51 @@ void setupHAL(Timers &timers, Effects &effects) {
   setupArduinoSolenoid(effects);
   setupArduinoPump(effects);
   setupArduinoBoiler(effects, timers);
+}
+
+void setupAPI(APIHandler &handler, Timers &timers, Effects &effects,
+              Loops &loops, PersistedConfig &pConfig,
+              StateUpdateMessage_t &stateUpdateMessage) {
+  // Turn on board power LED
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  LittleFS.begin();
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(SSID_NAME, SSID_PASWORD);
+
+  beginArduinoOTA(2040);
+  loops.addFunc(handleArduinoOTA);
+
+  static APIWebServer apiServer = APIWebServer(HTTP_PORT, &handler);
+  apiServer.begin();
+  loops.addFunc([]() { apiServer.loop(); });
+
+  // Set state update interval
+  {
+    static auto stateUpdateTimer =
+        timers.createInterval(STATE_UPDATE_INTERVAL, [&stateUpdateMessage]() {
+          apiServer.broadcastState(stateUpdateMessage);
+        });
+
+    effects.createEffect<unsigned long>(
+        []() {
+          return MachineState::current_state_ptr->getStateUpdateInterval();
+        },
+        [](unsigned long updateInterval) {
+          stateUpdateTimer->interval = updateInterval;
+        },
+        false); // The update interval is irrelevant to the API server
+
+    // If any watched effects triggered send update to clients
+    effects.onTriggered([]() { stateUpdateTimer->last = 0; });
+  }
+
+  pConfig.onChange([](Config config) { apiServer.broadcastConfig(config); });
+
+  apiServer.onConnect([&pConfig, &stateUpdateMessage]() {
+    apiServer.broadcastConfig(pConfig.getConfig());
+    apiServer.broadcastState(stateUpdateMessage);
+  });
 }

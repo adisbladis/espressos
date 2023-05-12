@@ -1,9 +1,9 @@
 #pragma once
 
-#include "logger.hpp"
+#include "../../logger.hpp"
 #include <ArduinoOTA.h>
 
-void beginOTA(int otaPort) {
+void beginArduinoOTA(int otaPort) {
   ArduinoOTA.setPort(2040);
 
   ArduinoOTA.onStart([]() { logger->log(LogLevel::DEBUG, "OTA start"); });
@@ -33,4 +33,4 @@ void beginOTA(int otaPort) {
   ArduinoOTA.begin();
 }
 
-void handleOTA() { ArduinoOTA.handle(); }
+void handleArduinoOTA() { ArduinoOTA.handle(); }
