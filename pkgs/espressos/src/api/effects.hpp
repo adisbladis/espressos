@@ -4,6 +4,7 @@
 #include "../lib/effects.hpp"
 #include "types.hpp"
 
+// Set up effects that update the API state
 void setupAPIEffects(Effects &effects,
                      StateUpdateMessage_t &stateUpdateMessage) {
   effects.createEffect<int>(

@@ -77,6 +77,8 @@ public:
   void onChange(std::function<void(Config)> cb) { callbacks.push_back(cb); };
 
   void setup() {
+    initialise();
+
     File f = LittleFS.open(CONFIG_FILE, "r");
     if (!f) {
       initialise();

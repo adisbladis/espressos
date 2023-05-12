@@ -7,19 +7,6 @@
 
 enum LogLevel { ERROR, INFO, DEBUG };
 
-static const char *logLevelName(LogLevel level) {
-  switch (level) {
-  case LogLevel::ERROR:
-    return "ERROR";
-  case LogLevel::INFO:
-    return "INFO";
-  case LogLevel::DEBUG:
-    return "DEBUG";
-  default:
-    return String(level).c_str();
-  }
-}
-
 // A logger that discards all messages
 class Logger {
 public:

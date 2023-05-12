@@ -12,7 +12,6 @@
 #include "../../api/handler.hpp"
 #include "../../fsm//fsmlist.hpp"
 #include "../../lib/effects.hpp"
-#include "../../lib/loops.hpp"
 #include "../../lib/map.hpp"
 #include "../../lib/timers.hpp"
 #include "ota.hpp"
@@ -193,7 +192,11 @@ void setupArduinoBoiler(Effects &effects, Timers &timers) {
   });
 };
 
-void setupHAL(Timers &timers, Effects &effects) {
+void setupArduinoHAL(Timers &timers, Effects &effects) {
+  // Turn on board power LED
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   setupArduinoPressureSensor(timers);
   setupArduinoTempSensor(timers);
   setupArduinoSolenoid(effects);
@@ -201,24 +204,20 @@ void setupHAL(Timers &timers, Effects &effects) {
   setupArduinoBoiler(effects, timers);
 }
 
-void setupAPI(APIHandler &handler, Timers &timers, Effects &effects,
-              Loops &loops, PersistedConfig &pConfig,
-              StateUpdateMessage_t &stateUpdateMessage) {
-  // Turn on board power LED
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
-
+void setupArduinoAPI(APIHandler &handler, Timers &timers, Effects &effects,
+                     PersistedConfig &pConfig,
+                     StateUpdateMessage_t &stateUpdateMessage) {
   LittleFS.begin();
+
+  Serial.begin(115200);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID_NAME, SSID_PASWORD);
 
   beginArduinoOTA(2040);
-  loops.addFunc(handleArduinoOTA);
 
   static APIWebServer apiServer = APIWebServer(HTTP_PORT, &handler);
   apiServer.begin();
-  loops.addFunc([]() { apiServer.loop(); });
 
   // Set state update interval
   {
@@ -240,10 +239,18 @@ void setupAPI(APIHandler &handler, Timers &timers, Effects &effects,
     effects.onTriggered([]() { stateUpdateTimer->last = 0; });
   }
 
+  // Broadcast config on change
   pConfig.onChange([](Config config) { apiServer.broadcastConfig(config); });
 
+  // Broadcaste config/state on new connections
   apiServer.onConnect([&pConfig, &stateUpdateMessage]() {
     apiServer.broadcastConfig(pConfig.getConfig());
     apiServer.broadcastState(stateUpdateMessage);
+  });
+
+  // Run loop functions on every loop() call
+  timers.createInterval(0, []() {
+    handleArduinoOTA();
+    apiServer.loop();
   });
 }

@@ -9,7 +9,7 @@
 struct Timer {
   unsigned long last;
   unsigned long interval;
-  std::function<void()> callback;
+  std::function<void(unsigned long)> callback;
 };
 
 // Provides a way to run a function at an interval
@@ -20,6 +20,14 @@ private:
 public:
   std::shared_ptr<Timer> createInterval(unsigned long interval,
                                         std::function<void()> callback) {
+    return createInterval(interval, [=](unsigned long) { callback(); });
+  };
+
+  // Create a timer that's called at a certain interval.
+  // If the interval is 0 it will be called on every loop cycle.
+  std::shared_ptr<Timer>
+  createInterval(unsigned long interval,
+                 std::function<void(unsigned long)> callback) {
     std::shared_ptr<Timer> timer =
         std::make_shared<Timer>((Timer){0, interval, callback});
 
@@ -28,7 +36,7 @@ public:
         return;
       }
 
-      callback();
+      timer->callback(now);
 
       timer->last = now;
     });
