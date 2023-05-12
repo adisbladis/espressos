@@ -35,14 +35,7 @@ static StateUpdateMessage_t stateUpdateMessage;
 
 void setup() {
   // Set up logging
-  {
-    Serial.begin(115200);
-
-    auto multiLogger = new MultiLogger();
-    multiLogger->add(new SerialLogger());
-    // multiLogger->add(&apiServer);
-    setLogger(multiLogger);
-  }
+  Serial.begin(115200);
 
   // Initialise the FSM
   fsm_list::start();
