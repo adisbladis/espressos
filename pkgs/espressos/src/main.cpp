@@ -17,41 +17,43 @@
 #include "logger.hpp"
 #include "proto/api.h"
 
-// Watch variables for change and propagate to hardware/API
-static Effects effects;
-static Effects apiEffects;
-static Timers timers;
-static Timers apiTimers;
+static Loops loops;
 static Loops apiLoops;
 
-// Re-use loop event on every iteration
-static LoopEvent loopEvent;
-static TimeEvent timeEvent;
-
-static StateUpdateMessage_t stateUpdateMessage;
-
 void setup() {
-  // Set up logging
-  Serial.begin(115200);
-
-  // Initialise the FSM
-  fsm_list::start();
-
-  // Run FSM loops on millisecond change
-  effects.createEffect<unsigned long>(millis, [](unsigned long now) {
-    timeEvent.timestamp = now;
-    send_event(timeEvent);
-
-    loopEvent.timestamp = now;
-    send_event(loopEvent);
-
-    timers.loop(now);
-  });
-
-  setupHAL(timers, effects);
-
-  // Set API server states
   {
+    static Effects effects;
+    static Timers timers;
+    static LoopEvent loopEvent;
+    static TimeEvent timeEvent;
+
+    // Initialise the FSM
+    fsm_list::start();
+
+    // Run FSM loops on millisecond change
+    effects.createEffect<unsigned long>(millis, [](unsigned long now) {
+      timeEvent.timestamp = now;
+      send_event(timeEvent);
+
+      loopEvent.timestamp = now;
+      send_event(loopEvent);
+
+      timers.loop(now);
+    });
+
+    setupHAL(timers, effects);
+
+    loops.addFunc([]() { effects.loop(); });
+  }
+
+  // Set up user IO
+  {
+    Serial.begin(115200);
+
+    static Effects apiEffects;
+    static Timers apiTimers;
+    static StateUpdateMessage_t stateUpdateMessage;
+
     static PersistedConfig pConfig;
     static APIHandler apiHandler(&pConfig);
 
@@ -63,15 +65,12 @@ void setup() {
     apiEffects.createEffect<unsigned long>(
         []() { return MachineState::current_state_ptr->getTimestamp(); },
         [](unsigned long now) { apiTimers.loop(now); }, false);
+
+    apiLoops.addFunc([]() { apiEffects.loop(); });
   }
 }
 
 void loop() {
-  // Run FSM & reconcile hardware with FSM state
-  effects.loop();
-
-  // Set API states
-  apiEffects.loop();
-
+  loops.loop();
   apiLoops.loop();
 }
