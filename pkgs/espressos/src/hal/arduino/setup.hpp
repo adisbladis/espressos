@@ -1,11 +1,14 @@
 #pragma once
 
-#include "../../fsm//fsmlist.hpp"
 #include <Adafruit_MAX31865.h>
 #include <Arduino.h>
 #include <SimpleKalmanFilter.h>
 #include <cstdint>
+#include <dimmable_light.h>
 
+#include "../../fsm//fsmlist.hpp"
+#include "../../lib/effects.hpp"
+#include "../../lib/map.hpp"
 #include "../../lib/timers.hpp"
 
 void setupArduinoPressureSensor(Timers &timers) {
@@ -77,17 +80,75 @@ void setupArduinoTempSensor(Timers &timers) {
   });
 }
 
-void setupArduinoSolenoid() {
+void setupArduinoSolenoid(Effects &effects) {
   pinMode(BREW_SOLENOID_PIN, OUTPUT);
-
-  solenoid.setup();
   effects.createEffect<PinStatus>(
       []() { return MachineState::current_state_ptr->getSolenoid(); },
-      [](PinStatus pinStatus) { digitalWrite(solenoid, pinStatus); });
+      [](PinStatus pinStatus) { digitalWrite(BREW_SOLENOID_PIN, pinStatus); });
 }
 
-void setupHAL(Timers &timers) {
+void setupArduinoPump(Effects &effects) {
+  static DimmableLight pump(PUMP_DIMMER_OUT);
+
+  DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
+  DimmableLight::begin();
+
+  static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
+  static PIDController<int32_t, float, unsigned long> pressureProfilePID(
+      0, 1, 7, 0, DIRECT);
+
+  pressureProfilePID.Begin(AUTOMATIC, millis());
+
+  static uint8_t pumpPower = 0;
+
+  // React to state machine pump changes
+  effects.createEffect<PumpTarget>(
+      []() { return MachineState::current_state_ptr->getPump(); },
+      [](PumpTarget pumpTarget) {
+        switch (pumpTarget.mode) {
+        case PumpMode::POWER:
+          // Remap value into uint8 range used by dimmer and apply
+          pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
+          break;
+
+        case PumpMode::PRESSURE:
+          pressureProfilePID.SetSetpoint(pumpTarget.value);
+          break;
+
+        default:
+          // We don't know what we're doing, the only safe thing to do is to
+          // stop.
+          send_event(PanicEvent());
+        }
+
+        lastPumpTarget = pumpTarget;
+      });
+
+  // Run pump pressure profiling PID loop
+  effects.createEffect<unsigned long>(
+      []() { return MachineState::current_state_ptr->getTimestamp(); },
+      [](unsigned long timestamp) {
+        if (lastPumpTarget.mode != PumpMode::PRESSURE) {
+          return;
+        }
+
+        int32_t output;
+        if (pressureProfilePID.Compute(
+                timestamp, MachineState::current_state_ptr->getPressure(),
+                &output)) {
+          pumpPower = output;
+        }
+      });
+
+  // Write pump power
+  effects.createEffect<uint8_t>(
+      []() { return pumpPower; },
+      [](uint8_t power) { pump.setBrightness(power); });
+}
+
+void setupHAL(Timers &timers, Effects &effects) {
   setupArduinoPressureSensor(timers);
   setupArduinoTempSensor(timers);
-  setupArduinoSolenoid();
+  setupArduinoSolenoid(effects);
+  setupArduinoPump(effects);
 }

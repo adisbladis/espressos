@@ -3,7 +3,6 @@
 #include <PIDController.hpp>
 #include <WiFi.h>
 #include <cstdint>
-#include <dimmable_light.h>
 
 #include "api/handler.hpp"
 #include "cachedpin.hpp"
@@ -13,6 +12,7 @@
 #include "fsm/fsmlist.hpp"
 #include "fsm/machine.hpp"
 #include "fsm/pump.hpp"
+#include "hal/setup.hpp"
 #include "http/api.hpp"
 #include "lib/effects.hpp"
 #include "lib/map.hpp"
@@ -20,10 +20,6 @@
 #include "logger.hpp"
 #include "ota.hpp"
 #include "proto/api.h"
-#include "hal/setup.hpp"
-
-// Hardware IO
-static DimmableLight pump(PUMP_DIMMER_OUT);
 
 static PersistedConfig pConfig;
 static APIHandler apiHandler(&pConfig);
@@ -59,8 +55,6 @@ void setup() {
   // Initialise the FSM
   fsm_list::start();
 
-  setupHAL(timers);
-
   // Run FSM loops on millisecond change
   effects.createEffect<unsigned long>(millis, [](unsigned long now) {
     timeEvent.timestamp = now;
@@ -69,6 +63,8 @@ void setup() {
     loopEvent.timestamp = now;
     send_event(loopEvent);
   });
+
+  setupHAL(timers, effects);
 
   // Run boiler PID
   {
@@ -102,63 +98,6 @@ void setup() {
         outputPin.digitalWrite(LOW);
       }
     });
-  }
-
-  // Pump dimming
-  {
-    DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
-    DimmableLight::begin();
-
-    static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
-    static PIDController<int32_t, float, unsigned long> pressureProfilePID(
-        0, 1, 7, 0, DIRECT);
-
-    pressureProfilePID.Begin(AUTOMATIC, millis());
-
-    static uint8_t pumpPower = 0;
-
-    effects.createEffect<uint8_t>(
-        []() { return pumpPower; },
-        [](uint8_t power) { pump.setBrightness(power); });
-
-    // React to state machine pump changes
-    effects.createEffect<PumpTarget>(
-        []() { return MachineState::current_state_ptr->getPump(); },
-        [](PumpTarget pumpTarget) {
-          switch (pumpTarget.mode) {
-          case PumpMode::POWER:
-            // Remap value into uint8 range used by dimmer and apply
-            pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
-            break;
-
-          case PumpMode::PRESSURE:
-            pressureProfilePID.SetSetpoint(pumpTarget.value);
-            break;
-
-          default:
-            // We don't know what we're doing, the only safe thing to do is to
-            // stop.
-            send_event(PanicEvent());
-          }
-
-          lastPumpTarget = pumpTarget;
-        });
-
-    // Run pump pressure profiling PID loop
-    effects.createEffect<unsigned long>(
-        []() { return MachineState::current_state_ptr->getTimestamp(); },
-        [](unsigned long timestamp) {
-          if (lastPumpTarget.mode != PumpMode::PRESSURE) {
-            return;
-          }
-
-          int32_t output;
-          if (pressureProfilePID.Compute(
-                  timestamp, MachineState::current_state_ptr->getPressure(),
-                  &output)) {
-            pumpPower = output;
-          }
-        });
   }
 
   // Set API server states
