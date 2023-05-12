@@ -17,9 +17,6 @@
 #include "logger.hpp"
 #include "proto/api.h"
 
-static PersistedConfig pConfig;
-static APIHandler apiHandler(&pConfig);
-
 // Watch variables for change and propagate to hardware/API
 static Effects effects;
 static Effects apiEffects;
@@ -47,17 +44,25 @@ void setup() {
 
     loopEvent.timestamp = now;
     send_event(loopEvent);
+
+    timers.loop(now);
   });
 
   setupHAL(timers, effects);
 
   // Set API server states
   {
-    pConfig.setup();
+    static PersistedConfig pConfig;
+    static APIHandler apiHandler(&pConfig);
 
+    pConfig.setup();
     setupAPI(apiHandler, apiTimers, apiEffects, apiLoops, pConfig,
              stateUpdateMessage);
     setupAPIEffects(apiEffects, stateUpdateMessage);
+
+    apiEffects.createEffect<unsigned long>(
+        []() { return MachineState::current_state_ptr->getTimestamp(); },
+        [](unsigned long now) { apiTimers.loop(now); }, false);
   }
 }
 
@@ -67,14 +72,6 @@ void loop() {
 
   // Set API states
   apiEffects.loop();
-
-  {
-    unsigned long now = MachineState::current_state_ptr->getTimestamp();
-
-    timers.loop(now);
-
-    apiTimers.loop(now);
-  }
 
   apiLoops.loop();
 }
