@@ -34,6 +34,23 @@ jobs:
     - name: Build
       run: nix-shell --run "cd pkgs/espressos && make"
 
+  espressos-test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: cachix/install-nix-action@v20
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.platformio/.cache
+        key: ${{ runner.os }}-pio
+    - uses: actions/checkout@v3
+    - name: Build shell
+      run: nix-shell --run true
+    - name: Build
+      run: nix-shell --run "cd pkgs/espressos && make test"
+
   espressos-web:
     runs-on: ubuntu-22.04
     steps:
