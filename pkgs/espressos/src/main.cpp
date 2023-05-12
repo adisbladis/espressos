@@ -20,13 +20,10 @@
 #include "logger.hpp"
 #include "ota.hpp"
 #include "proto/api.h"
-
-#include "hal/arduino/io.hpp"
-#include "hal/arduino/setup.hpp"
+#include "hal/setup.hpp"
 
 // Hardware IO
 static DimmableLight pump(PUMP_DIMMER_OUT);
-static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 
 static PersistedConfig pConfig;
 static APIHandler apiHandler(&pConfig);
@@ -106,12 +103,6 @@ void setup() {
       }
     });
   }
-
-  // Solenoid
-  solenoid.setup();
-  effects.createEffect<PinStatus>(
-      []() { return MachineState::current_state_ptr->getSolenoid(); },
-      [](PinStatus pinStatus) { solenoid.digitalWrite(pinStatus); });
 
   // Pump dimming
   {

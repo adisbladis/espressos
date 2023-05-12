@@ -1,15 +1,16 @@
 #pragma once
 
 #include "../../fsm//fsmlist.hpp"
-#include <Arduino.h>
 #include <Adafruit_MAX31865.h>
+#include <Arduino.h>
 #include <SimpleKalmanFilter.h>
 #include <cstdint>
 
 #include "../../lib/timers.hpp"
 
 void setupArduinoPressureSensor(Timers &timers) {
-  // TODO: Don't hardcode filter values and consider where this filter actually belongs
+  // TODO: Don't hardcode filter values and consider where this filter actually
+  // belongs
   static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
 
   // Calculate the usable range of values from the ADC
@@ -76,7 +77,17 @@ void setupArduinoTempSensor(Timers &timers) {
   });
 }
 
+void setupArduinoSolenoid() {
+  pinMode(BREW_SOLENOID_PIN, OUTPUT);
+
+  solenoid.setup();
+  effects.createEffect<PinStatus>(
+      []() { return MachineState::current_state_ptr->getSolenoid(); },
+      [](PinStatus pinStatus) { digitalWrite(solenoid, pinStatus); });
+}
+
 void setupHAL(Timers &timers) {
   setupArduinoPressureSensor(timers);
   setupArduinoTempSensor(timers);
+  setupArduinoSolenoid();
 }
