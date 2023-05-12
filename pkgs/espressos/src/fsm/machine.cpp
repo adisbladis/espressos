@@ -73,7 +73,7 @@ class Brewing : public MachineState {
   void react(BrewStopEvent const &e) override { transit<Idle>(); }
 
 public:
-  PinStatus getSolenoid() override { return HIGH; }
+  bool getSolenoid() override { return true; }
   PumpTarget getPump() override {
     auto target = BrewState::current_state_ptr->getTarget();
 
@@ -98,11 +98,11 @@ public:
 
   long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 
-  PinStatus getSolenoid() override {
+  bool getSolenoid() override {
     if (BackflushState::current_state_ptr->active()) {
-      return HIGH;
+      return true;
     } else {
-      return LOW;
+      return false;
     }
   }
 
@@ -123,11 +123,11 @@ public:
 
   long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
 
-  PinStatus getSolenoid() override {
+  bool getSolenoid() override {
     if (RinseState::current_state_ptr->active()) {
-      return HIGH;
+      return true;
     } else {
-      return LOW;
+      return false;
     }
   }
 

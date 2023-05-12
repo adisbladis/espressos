@@ -89,9 +89,9 @@ void setupArduinoTempSensor(Timers &timers) {
 
 void setupArduinoSolenoid(Effects &effects) {
   pinMode(BREW_SOLENOID_PIN, OUTPUT);
-  effects.createEffect<PinStatus>(
+  effects.createEffect<bool>(
       []() { return MachineState::current_state_ptr->getSolenoid(); },
-      [](PinStatus pinStatus) { digitalWrite(BREW_SOLENOID_PIN, pinStatus); });
+      [](bool pinStatus) { digitalWrite(BREW_SOLENOID_PIN, pinStatus); });
 }
 
 void setupArduinoPump(Effects &effects) {
