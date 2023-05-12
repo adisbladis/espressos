@@ -2,7 +2,6 @@
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
 #include <PIDController.hpp>
-#include <SimpleKalmanFilter.h>
 #include <WiFi.h>
 #include <cstdint>
 #include <dimmable_light.h>
@@ -21,12 +20,12 @@
 #include "lib/timers.hpp"
 #include "logger.hpp"
 #include "ota.hpp"
-#include "pressure.hpp"
 #include "proto/api.h"
 
+#include "hal/arduino/io.hpp"
+#include "hal/arduino/setup.hpp"
+
 // Hardware IO
-static PressureSensor brewPressure(PRESSURE_SENSOR_PIN, PRESSURE_SENSOR_MBAR,
-                                   PRESSURE_SENSOR_RANGE);
 static DimmableLight pump(PUMP_DIMMER_OUT);
 static CachedOutputPin solenoid(BREW_SOLENOID_PIN);
 
@@ -64,6 +63,8 @@ void setup() {
   // Initialise the FSM
   fsm_list::start();
 
+  setupHAL(timers);
+
   // Run FSM loops on millisecond change
   effects.createEffect<unsigned long>(millis, [](unsigned long now) {
     timeEvent.timestamp = now;
@@ -73,38 +74,10 @@ void setup() {
     send_event(loopEvent);
   });
 
-  // Pressure sensor
-  {
-    static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
-    static uint16_t smoothPressure = 0;
-
-    timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
-      auto pressure = brewPressure.Read();
-      if (pressure.hasError()) {
-        send_event(PanicEvent());
-        return;
-      }
-
-      smoothPressure = pressureKalmanFilter.updateEstimate(pressure.getValue());
-    });
-
-    effects.createEffect<uint16_t>([]() { return smoothPressure; },
-                                   [](uint16_t pressure) {
-                                     PressureEvent event;
-                                     event.pressure = pressure;
-                                     send_event(event);
-                                   });
-  }
-
   // Read temp sensor
   {
     static Adafruit_MAX31865 thermo(BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
     thermo.begin();
-
-    static constexpr int WindowSize = 100;
-    static PIDController<int32_t, float, unsigned long> boilerPID(
-        0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
-    boilerPID.Begin(AUTOMATIC, millis());
 
     // Read temp and issue events
     timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
@@ -128,6 +101,10 @@ void setup() {
     });
 
     // Run PID loop
+    static constexpr int WindowSize = 100;
+    static PIDController<int32_t, float, unsigned long> boilerPID(
+        0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
+    boilerPID.Begin(AUTOMATIC, millis());
     static unsigned long windowStartTime = millis();
 
     effects.createEffect<std::uint16_t>(
@@ -180,8 +157,6 @@ void setup() {
     effects.createEffect<uint8_t>(
         []() { return pumpPower; },
         [](uint8_t power) { pump.setBrightness(power); });
-
-    // effects.createEffect<int16_t, const char *>()
 
     // React to state machine pump changes
     effects.createEffect<PumpTarget>(
@@ -242,19 +217,11 @@ void setup() {
         false); // Update cadence too high to use as update trigger
 
     // Set pressure in API server
-    apiEffects.createEffect<PressureSensorResult_t>(
-        []() { return brewPressure.Read(); },
-        [](PressureSensorResult_t pressure) {
+    apiEffects.createEffect<std::uint16_t>(
+        []() { return MachineState::current_state_ptr->getPressure(); },
+        [](std::uint16_t pressure) {
           auto pressureMsg = stateUpdateMessage.mutable_pressure();
-
-          if (pressure.hasError()) {
-            auto fs = pressureMsg.get_error();
-            fs.set("Value out of bounds", 19);
-            pressureMsg.set_error(fs);
-          } else {
-            pressureMsg.set_value(pressure.getValue());
-          }
-
+          pressureMsg.set_value(pressure);
           stateUpdateMessage.set_pressure(pressureMsg);
         },
         false); // Update cadence too high to use as update trigger
