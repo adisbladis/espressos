@@ -1,11 +1,9 @@
 #include <ArduinoOTA.h>
 #include <LittleFS.h>
-#include <PIDController.hpp>
 #include <WiFi.h>
 #include <cstdint>
 
 #include "api/handler.hpp"
-#include "cachedpin.hpp"
 #include "config.hpp"
 #include "fsm/brew.hpp"
 #include "fsm/events.hpp"
@@ -65,40 +63,6 @@ void setup() {
   });
 
   setupHAL(timers, effects);
-
-  // Run boiler PID
-  {
-    static constexpr int WindowSize = 100;
-    static PIDController<int32_t, float, unsigned long> boilerPID(
-        0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
-    boilerPID.Begin(AUTOMATIC, millis());
-    static unsigned long windowStartTime = millis();
-
-    effects.createEffect<std::uint16_t>(
-        []() { return MachineState::current_state_ptr->getSetPoint(); },
-        [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
-
-    static CachedOutputPin outputPin(BOILER_SSR_PIN);
-    outputPin.setup();
-
-    timers.createInterval(1, []() {
-      unsigned long now = MachineState::current_state_ptr->getTimestamp();
-      std::int16_t temp = MachineState::current_state_ptr->getTemp();
-      std::int32_t Output;
-
-      boilerPID.Compute(now, temp, &Output);
-
-      if (now - windowStartTime >= WindowSize) {
-        windowStartTime += WindowSize;
-      }
-
-      if (Output < now - windowStartTime) {
-        outputPin.digitalWrite(HIGH);
-      } else {
-        outputPin.digitalWrite(LOW);
-      }
-    });
-  }
 
   // Set API server states
   {

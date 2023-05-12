@@ -2,6 +2,7 @@
 
 #include <Adafruit_MAX31865.h>
 #include <Arduino.h>
+#include <PIDController.hpp>
 #include <SimpleKalmanFilter.h>
 #include <cstdint>
 #include <dimmable_light.h>
@@ -146,9 +147,50 @@ void setupArduinoPump(Effects &effects) {
       [](uint8_t power) { pump.setBrightness(power); });
 }
 
+void setupArduinoBoiler(Effects &effects, Timers &timers) {
+  static constexpr int WindowSize = 100;
+  static PIDController<int32_t, float, unsigned long> boilerPID(
+      0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
+  boilerPID.Begin(AUTOMATIC, millis());
+  static unsigned long windowStartTime = millis();
+
+  effects.createEffect<std::uint16_t>(
+      []() { return MachineState::current_state_ptr->getSetPoint(); },
+      [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
+
+  pinMode(BOILER_SSR_PIN, OUTPUT);
+
+  static bool outputState = false;
+
+  timers.createInterval(1, []() {
+    unsigned long now = MachineState::current_state_ptr->getTimestamp();
+    std::int16_t temp = MachineState::current_state_ptr->getTemp();
+    std::int32_t Output;
+
+    boilerPID.Compute(now, temp, &Output);
+
+    if (now - windowStartTime >= WindowSize) {
+      windowStartTime += WindowSize;
+    }
+
+    if (Output < now - windowStartTime) {
+      if (!outputState) {
+        digitalWrite(BOILER_SSR_PIN, HIGH);
+      }
+      outputState = true;
+    } else {
+      if (outputState) {
+        digitalWrite(BOILER_SSR_PIN, LOW);
+      }
+      outputState = false;
+    }
+  });
+};
+
 void setupHAL(Timers &timers, Effects &effects) {
   setupArduinoPressureSensor(timers);
   setupArduinoTempSensor(timers);
   setupArduinoSolenoid(effects);
   setupArduinoPump(effects);
+  setupArduinoBoiler(effects, timers);
 }
