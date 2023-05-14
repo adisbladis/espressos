@@ -2,6 +2,7 @@
 #include <doctest.h>
 
 #include "lib/effects.hpp"
+#include "lib/signal.hpp"
 #include "lib/map.hpp"
 
 TEST_CASE("map") { CHECK(map<long>(512, 0, 1024, 0, 2048) == 1024); }
@@ -34,6 +35,25 @@ TEST_SUITE("effects") {
     e.loop();
     CHECK(output == input);
     CHECK(triggered);
+  }
+}
+
+TEST_SUITE("signal") {
+  static Signal<int> input(1);
+  static int output;
+
+  TEST_CASE("equality checks") {
+    CHECK(input != output);
+  };
+
+  TEST_CASE("create effect") {
+    input.createEffect([](int value) { output = value; });
+    CHECK(input == output);
+  };
+
+  TEST_CASE("did update") {
+    input = 2;
+    CHECK(input == output);
   }
 }
 
