@@ -4,30 +4,46 @@
 #include "events.hpp"
 #include "fsmlist.hpp"
 #include "pump.hpp"
+#include "signals.hpp"
 
 class BrewActive;
 
 // The resting state, i.e. before/after a brew
 class BrewDone : public BrewState {
+  void entry() override {
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, 0};
+  }
+
   void react(BrewStartEvent const &e) override {
-    shotStartTime = timestamp;
-    shotStopTime = 0;
+    ::MachineSignals::shotStartTime = ::MachineSignals::timestamp.get();
+    ::MachineSignals::shotStartTime = 0;
     transit<BrewActive>();
   }
 };
 
 // While brewing
-class BrewActive : public BrewState {};
+class BrewActive : public BrewState {
+
+  // Only allow setting target pressure while we're actually brewing.
+  void react(BrewTargetEvent const &e) override {
+    PumpTarget pumpTarget;
+    pumpTarget.value = e.value;
+
+    switch (e.mode) {
+    case BrewStateMode::POWER:
+      pumpTarget.mode = PumpMode::POWER;
+    case BrewStateMode::PRESSURE:
+      pumpTarget.mode = PumpMode::PRESSURE;
+    };
+
+    ::MachineSignals::pump = pumpTarget;
+  }
+};
 
 // We can stop brewing from all states
 void BrewState::react(BrewStopEvent const &e) {
-  shotStopTime = timestamp;
+  ::MachineSignals::shotStopTime = ::MachineSignals::timestamp.get();
   transit<BrewDone>();
 };
-
-unsigned long BrewState::shotStartTime = 0;
-unsigned long BrewState::shotStopTime = 0;
-unsigned long BrewState::timestamp = 0;
-BrewStateTarget BrewState::target = {};
 
 FSM_INITIAL_STATE(BrewState, BrewDone)

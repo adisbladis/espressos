@@ -5,12 +5,10 @@
 
 #include "../config.hpp"
 #include "../fsm/fsmlist.hpp"
-#include "../lib/result.hpp"
 #include "../proto/api.h"
 
 #define MSG_BUF_SIZE 128
 #define UUID_SIZE 16 // Note: Convert this to bytes and get it down to 16 bytes
-typedef Result<std::nullptr_t, const char *> APIResult;
 typedef Command<UUID_SIZE> Cmd_t;
 
 class APIHandler {
@@ -96,8 +94,8 @@ private:
 public:
   APIHandler(PersistedConfig *pConfig) : pConfig(pConfig){};
 
-  APIResult handle(EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf) {
-    APIResult result;
+  const char *handle(EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf) {
+    const char *error = nullptr;
 
     auto status = cmd.deserialize(buf);
     buf.clear();
@@ -105,49 +103,49 @@ public:
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
       switch (status) {
       case ::EmbeddedProto::Error::END_OF_BUFFER:
-        result.setError("error decoding command: While trying to read from the "
-                        "buffer we ran out of bytes to read.");
+        error = "error decoding command: While trying to read from the "
+                "buffer we ran out of bytes to read.";
         break;
       case ::EmbeddedProto::Error::BUFFER_FULL:
-        result.setError("error decoding command: The write buffer is full, "
-                        "unable to push more bytes in to it.");
+        error = "error decoding command: The write buffer is full, "
+                "unable to push more bytes in to it.";
         break;
       case ::EmbeddedProto::Error::INVALID_WIRETYPE:
-        result.setError("error decoding command: When reading a Wiretype from "
-                        "the tag we got an invalid value.");
+        error = "error decoding command: When reading a Wiretype from "
+                "the tag we got an invalid value.";
         break;
       case ::EmbeddedProto::Error::ARRAY_FULL:
-        result.setError("error decoding command: The array is full, it is not "
-                        "possible to push more items in it.");
+        error = "error decoding command: The array is full, it is not "
+                "possible to push more items in it.";
         break;
       case ::EmbeddedProto::Error::INVALID_FIELD_ID:
-        result.setError("error decoding command: When the id "
-                        "obtained from the tag equeals zero.");
+        error = "error decoding command: When the id "
+                "obtained from the tag equeals zero.";
         break;
       case ::EmbeddedProto::Error::OVERLONG_VARINT:
-        result.setError("error decoding command: The maximum number of bytes "
-                        "where read for this varint but we did not reach the "
-                        "end of the data.");
+        error = "error decoding command: The maximum number of bytes "
+                "where read for this varint but we did not reach the "
+                "end of the data.";
         break;
       case ::EmbeddedProto::Error::INDEX_OUT_OF_BOUND:
-        result.setError("error decoding command: You are trying to access an "
-                        "index outside of valid data.");
+        error = "error decoding command: You are trying to access an "
+                "index outside of valid data.";
         break;
       default:
-        result.setError("error decoding command: unknown error");
+        error = "error decoding command: unknown error";
         break;
       }
 
       cmd.clear();
 
-      return result;
+      return error;
     }
 
     auto requestID = cmd.request_id();
 
     switch (cmd.get_which_command_oneof()) {
     case Cmd_t::FieldNumber::NOT_SET:
-      result.setError("oneof field not set");
+      error = "oneof field not set";
       break;
     case Cmd_t::FieldNumber::POWER_ON:
       handle(requestID, cmd.get_power_on());
@@ -192,12 +190,12 @@ public:
       handle(requestID, cmd.get_brew_target_set());
       break;
     default:
-      result.setError("Logic error: Unhandled switch case");
+      error = "Logic error: Unhandled switch case";
       break;
     }
 
     cmd.clear();
 
-    return result;
+    return error;
   };
 };

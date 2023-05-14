@@ -4,6 +4,7 @@ import { produce } from "solid-js/store";
 
 import { APIClient } from "./api";
 import {
+  BrewTarget,
   BrewTargetMode,
   Event,
   LogMessage_LogLevel,
@@ -153,6 +154,10 @@ const App: Component = () => {
   const setTargetPressure = createPacedSetter(50, (pressure: number) => {
     setState(
       produce((s) => {
+        if (!s.brewTarget) {
+          s.brewTarget = BrewTarget.create();
+        }
+
         s.brewTarget.mode = BrewTargetMode.PRESSURE;
         s.brewTarget.value = pressure;
       }),
@@ -262,12 +267,12 @@ const App: Component = () => {
                     ➖
                   </button>
                 </div>
-                {state.brewTarget.value / 1000} bar
+                {(state.brewTarget?.value || 0) / 1000} bar
                 <input
                   type="range"
                   min="0"
                   max="10000" /* 10000 mBar */
-                  value={state.brewTarget.value}
+                  value={state.brewTarget?.value || 0}
                   class="range-sm"
                   onInput={(e) => setTargetPressure(Number(e.target.value))}
                 />

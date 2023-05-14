@@ -11,7 +11,7 @@
 
 #include "../../api/handler.hpp"
 #include "../../fsm//fsmlist.hpp"
-#include "../../lib/effects.hpp"
+#include "../../fsm//signals.hpp"
 #include "../../lib/map.hpp"
 #include "../../lib/timers.hpp"
 #include "ota.hpp"
@@ -86,14 +86,13 @@ void setupArduinoTempSensor(Timers &timers) {
   });
 }
 
-void setupArduinoSolenoid(Effects &effects) {
+void setupArduinoSolenoid() {
   pinMode(BREW_SOLENOID_PIN, OUTPUT);
-  effects.createEffect<bool>(
-      []() { return MachineState::current_state_ptr->getSolenoid(); },
+  MachineSignals::solenoid.createEffect(
       [](bool pinStatus) { digitalWrite(BREW_SOLENOID_PIN, pinStatus); });
 }
 
-void setupArduinoPump(Effects &effects) {
+void setupArduinoPump(Timers &timers) {
   static DimmableLight pump(PUMP_DIMMER_OUT);
 
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
@@ -105,62 +104,52 @@ void setupArduinoPump(Effects &effects) {
 
   pressureProfilePID.Begin(AUTOMATIC, millis());
 
-  static uint8_t pumpPower = 0;
+  static Signal<uint8_t> pumpPower(0);
+  pumpPower.createEffect([](auto power) { pump.setBrightness(power); });
 
   // React to state machine pump changes
-  effects.createEffect<PumpTarget>(
-      []() { return MachineState::current_state_ptr->getPump(); },
-      [](PumpTarget pumpTarget) {
-        switch (pumpTarget.mode) {
-        case PumpMode::POWER:
-          // Remap value into uint8 range used by dimmer and apply
-          pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
-          break;
+  ::MachineSignals::pump.createEffect([](PumpTarget pumpTarget) {
+    switch (pumpTarget.mode) {
+    case PumpMode::POWER:
+      // Remap value into uint8 range used by dimmer and apply
+      pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
+      break;
 
-        case PumpMode::PRESSURE:
-          pressureProfilePID.SetSetpoint(pumpTarget.value);
-          break;
+    case PumpMode::PRESSURE:
+      pressureProfilePID.SetSetpoint(pumpTarget.value);
+      break;
 
-        default:
-          // We don't know what we're doing, the only safe thing to do is to
-          // stop.
-          send_event(PanicEvent());
-        }
+    default:
+      // We don't know what we're doing, the only safe thing to do is to
+      // stop.
+      send_event(PanicEvent());
+    }
 
-        lastPumpTarget = pumpTarget;
-      });
+    lastPumpTarget = pumpTarget;
+  });
 
   // Run pump pressure profiling PID loop
-  effects.createEffect<unsigned long>(
-      []() { return MachineState::current_state_ptr->getTimestamp(); },
-      [](unsigned long timestamp) {
-        if (lastPumpTarget.mode != PumpMode::PRESSURE) {
-          return;
-        }
+  timers.createInterval(1, [](unsigned long timestamp) {
+    if (lastPumpTarget.mode != PumpMode::PRESSURE) {
+      return;
+    }
 
-        int32_t output;
-        if (pressureProfilePID.Compute(
-                timestamp, MachineState::current_state_ptr->getPressure(),
-                &output)) {
-          pumpPower = output;
-        }
-      });
-
-  // Write pump power
-  effects.createEffect<uint8_t>(
-      []() { return pumpPower; },
-      [](uint8_t power) { pump.setBrightness(power); });
+    int32_t output;
+    if (pressureProfilePID.Compute(timestamp, ::MachineSignals::pressure.get(),
+                                   &output)) {
+      pumpPower = output;
+    }
+  });
 }
 
-void setupArduinoBoiler(Effects &effects, Timers &timers) {
+void setupArduinoBoiler(Timers &timers) {
   static constexpr int WindowSize = 100;
   static PIDController<int32_t, float, unsigned long> boilerPID(
       0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
   boilerPID.Begin(AUTOMATIC, millis());
   static unsigned long windowStartTime = millis();
 
-  effects.createEffect<std::uint16_t>(
-      []() { return MachineState::current_state_ptr->getSetPoint(); },
+  ::MachineSignals::setpoint.createEffect(
       [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
 
   pinMode(BOILER_SSR_PIN, OUTPUT);
@@ -168,8 +157,8 @@ void setupArduinoBoiler(Effects &effects, Timers &timers) {
   static bool outputState = false;
 
   timers.createInterval(1, []() {
-    unsigned long now = MachineState::current_state_ptr->getTimestamp();
-    std::int16_t temp = MachineState::current_state_ptr->getTemp();
+    unsigned long now = ::MachineSignals::timestamp.get();
+    std::int16_t temp = ::MachineSignals::temp.get();
     std::int32_t Output;
 
     boilerPID.Compute(now, temp, &Output);
@@ -192,19 +181,19 @@ void setupArduinoBoiler(Effects &effects, Timers &timers) {
   });
 };
 
-void setupArduinoHAL(Timers &timers, Effects &effects) {
+void setupArduinoHAL(Timers &timers) {
   // Turn on board power LED
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
   setupArduinoPressureSensor(timers);
   setupArduinoTempSensor(timers);
-  setupArduinoSolenoid(effects);
-  setupArduinoPump(effects);
-  setupArduinoBoiler(effects, timers);
+  setupArduinoSolenoid();
+  setupArduinoPump(timers);
+  setupArduinoBoiler(timers);
 }
 
-void setupArduinoAPI(APIHandler &handler, Timers &timers, Effects &effects,
+void setupArduinoAPI(APIHandler &handler, Timers &timers,
                      PersistedConfig &pConfig,
                      StateUpdateMessage_t &stateUpdateMessage) {
   LittleFS.begin();
@@ -226,17 +215,14 @@ void setupArduinoAPI(APIHandler &handler, Timers &timers, Effects &effects,
           apiServer.broadcastState(stateUpdateMessage);
         });
 
-    effects.createEffect<unsigned long>(
-        []() {
-          return MachineState::current_state_ptr->getStateUpdateInterval();
-        },
+    ::MachineSignals::stateUpdateInterval.createEffect(
         [](unsigned long updateInterval) {
           stateUpdateTimer->interval = updateInterval;
-        },
-        false); // The update interval is irrelevant to the API server
+        });
 
+    // TODO: Reimplement state upate trigger on interesting event updates
     // If any watched effects triggered send update to clients
-    effects.onTriggered([]() { stateUpdateTimer->last = 0; });
+    // effects.onTriggered([]() { stateUpdateTimer->last = 0; });
   }
 
   // Broadcast config on change

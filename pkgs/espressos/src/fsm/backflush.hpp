@@ -19,8 +19,6 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
 
   virtual void react(LoopEvent const &){};
 
-  void react(TimeEvent const &e) { timestamp = e.timestamp; };
-
   void react(BackflushStopEvent const &e);
 
   virtual void react(BackflushStartEvent const &){};

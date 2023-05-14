@@ -1,22 +1,20 @@
 #pragma once
 
-#include "../lib/effects.hpp"
 #include "../lib/timers.hpp"
 
 #ifdef ARDUINO
 #include "arduino/setup.hpp"
 #endif
 
-void setupHAL(Timers &timers, Effects &effects) {
+void setupHAL(Timers &timers) {
 #ifdef ARDUINO
-  setupArduinoHAL(timers, effects);
+  setupArduinoHAL(timers);
 #endif
 };
 
-void setupAPI(APIHandler &handler, Timers &timers, Effects &effects,
-              PersistedConfig &pConfig,
+void setupAPI(APIHandler &handler, Timers &timers, PersistedConfig &pConfig,
               StateUpdateMessage_t &stateUpdateMessage) {
 #ifdef ARDUINO
-  setupArduinoAPI(handler, timers, effects, pConfig, stateUpdateMessage);
+  setupArduinoAPI(handler, timers, pConfig, stateUpdateMessage);
 #endif
 }

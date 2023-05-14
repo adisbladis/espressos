@@ -8,6 +8,7 @@
 #include "machine.hpp"
 #include "pump.hpp"
 #include "rinse.hpp"
+#include "signals.hpp"
 
 /* Forward declarations */
 class Idle;
@@ -23,31 +24,42 @@ class Rinsing;
 // Panic (i.e. on hardware sensor errors) is exactly like the Off
 // state but without a transition to other states
 class Panic : public MachineState {
-  void entry() override { setpoint = 0; }
-
-public:
-  MachineMode getMode() override { return MachineMode::PANIC; };
+  void entry() override {
+    ::MachineSignals::setpoint = 0;
+    ::MachineSignals::solenoid = false;
+    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL;
+    ::MachineSignals::mode = MachineMode::PANIC;
+  }
 };
 
 // The machine is idle with the boiler turned off
 class Off : public MachineState {
-  void entry() override { setpoint = 0; };
+  void entry() override {
+    ::MachineSignals::setpoint = 0;
+    ::MachineSignals::solenoid = false;
+    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL;
+    ::MachineSignals::mode = MachineMode::OFF;
+  };
 
   void react(PowerOnEvent const &e) override {
-    setpoint = e.setpoint;
+    ::MachineSignals::setpoint = e.setpoint;
     transit<Idle>();
   }
-
-public:
-  MachineMode getMode() override { return MachineMode::OFF; };
 };
 
 // Idle state - Meaning just sitting around with the boiler on
 class Idle : public MachineState {
-  MachineMode getMode() override { return MachineMode::IDLE; };
+  void entry() override {
+    ::MachineSignals::solenoid = false;
+    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL;
+    ::MachineSignals::mode = MachineMode::IDLE;
+  };
+  void exit() override {
+    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL_ACTIVE;
+  }
 
   void react(PowerOnEvent const &e) override {
-    setpoint = e.setpoint;
+    ::MachineSignals::setpoint = e.setpoint;
     transit<Idle>();
   }
 
@@ -56,9 +68,8 @@ class Idle : public MachineState {
   void react(StartPumpEvent const &e) override { transit<Pumping>(); }
 
   void react(StartSteamEvent const &e) override {
-    prevSetpoint = setpoint;
-    setpoint = e.setpoint;
-    timeout = timestamp + STEAM_TIMEOUT;
+    prevSetpoint = ::MachineSignals::setpoint.get();
+    ::MachineSignals::setpoint = e.setpoint;
     transit<Steaming>();
   }
 
@@ -69,102 +80,63 @@ class Idle : public MachineState {
 
 // Brewing - We're actively brewing a cup
 class Brewing : public MachineState {
-  MachineMode getMode() override { return MachineMode::BREWING; };
   void react(BrewStopEvent const &e) override { transit<Idle>(); }
 
-public:
-  bool getSolenoid() override { return true; }
-  PumpTarget getPump() override {
-    auto target = BrewState::current_state_ptr->getTarget();
+  void entry() override {
+    ::MachineSignals::solenoid = true;
+    ::MachineSignals::mode = MachineMode::BREWING;
+  };
 
-    switch (target.mode) {
-    case BrewStateMode::POWER:
-      return (PumpTarget){PumpMode::POWER, target.value};
-
-    case BrewStateMode::PRESSURE:
-      return (PumpTarget){PumpMode::PRESSURE, target.value};
-    };
-
-    return (PumpTarget){PumpMode::POWER, 0};
-  }
-  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
+  void exit() override {
+    ::MachineSignals::solenoid = false;
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
+  };
 };
 
 class Backflushing : public MachineState {
   void react(BackflushStopEvent const &e) override { transit<Idle>(); }
 
-public:
-  MachineMode getMode() override { return MachineMode::BACKFLUSHING; };
-
-  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
-
-  bool getSolenoid() override {
-    if (BackflushState::current_state_ptr->active()) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  PumpTarget getPump() override {
-    if (BackflushState::current_state_ptr->active()) {
-      return (PumpTarget){PumpMode::POWER, PumpMax};
-    } else {
-      return (PumpTarget){PumpMode::POWER, PumpMin};
-    }
-  }
+  void entry() override {
+    ::MachineSignals::solenoid = true;
+    ::MachineSignals::mode = MachineMode::BACKFLUSHING;
+  };
 };
 
 class Rinsing : public MachineState {
   void react(RinseStopEvent const &e) override { transit<Idle>(); }
 
-public:
-  MachineMode getMode() override { return MachineMode::RINSING; };
-
-  long getStateUpdateInterval() override { return STATE_UPDATE_INTERVAL_BREW; }
-
-  bool getSolenoid() override {
-    if (RinseState::current_state_ptr->active()) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  PumpTarget getPump() override {
-    if (RinseState::current_state_ptr->active()) {
-      return (PumpTarget){PumpMode::POWER, PumpMax};
-    } else {
-      return (PumpTarget){PumpMode::POWER, PumpMin};
-    }
-  }
+  void entry() override { ::MachineSignals::mode = MachineMode::RINSING; };
 };
 
 class Pumping : public MachineState {
   void react(StopPumpEvent const &e) override { transit<Idle>(); }
 
-public:
-  PumpTarget getPump() override {
-    return (PumpTarget){PumpMode::POWER, PumpMax};
+  void entry() override {
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
+    ::MachineSignals::mode = MachineMode::PUMPING;
   };
 
-  MachineMode getMode() override { return MachineMode::PUMPING; };
+  void exit() override {
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
+  };
 };
 
 // Steaming - Boiler is set to the steam setpoint
 class Steaming : public MachineState {
-  void exit() override { setpoint = prevSetpoint; };
+  void entry() override {
+    ::MachineSignals::mode = MachineMode::STEAMING;
+    timeout = MachineSignals::timestamp.get() + STEAM_TIMEOUT;
+  };
+
+  void exit() override { ::MachineSignals::setpoint = prevSetpoint; };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
 
   void react(LoopEvent const &e) override {
     if (e.timestamp >= timeout) {
-      transit<Idle>();
+      send_event(StopSteamEvent());
     }
   }
-
-public:
-  MachineMode getMode() override { return MachineMode::STEAMING; };
 };
 
 /* Shared class methods*/
@@ -181,12 +153,8 @@ void MachineState::react(PowerOffEvent const &e) {
 // All modes are allowed to enter the panic state
 void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
 
-std::uint16_t MachineState::setpoint = 0;
 std::uint16_t MachineState::prevSetpoint = 0;
 unsigned long MachineState::timeout = 0;
-unsigned long MachineState::timestamp = 0;
-std::uint16_t MachineState::pressure = 0;
-std::int16_t MachineState::temp = 0;
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

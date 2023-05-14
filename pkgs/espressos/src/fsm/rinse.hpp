@@ -18,7 +18,7 @@ struct RinseStopEvent : tinyfsm::Event {};
 class RinseState : public tinyfsm::Fsm<RinseState> {
   friend class tinyfsm::Fsm<RinseState>;
 
-  void entry(void){};
+  virtual void entry(void){};
   void exit(void){};
 
   virtual void react(LoopEvent const &){};
@@ -29,12 +29,7 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
 
   void react(tinyfsm::Event const &){};
 
-  void react(TimeEvent const &e) { timestamp = e.timestamp; };
-
 protected:
-  // Current time
-  static unsigned long timestamp;
-
   // Time when to transition to RinseDone
   static unsigned long timeout;
 

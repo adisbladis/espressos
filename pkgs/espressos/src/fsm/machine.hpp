@@ -9,6 +9,7 @@
 #include "fsmlist.hpp"
 #include "pump.hpp"
 #include "rinse.hpp"
+#include "signals.hpp"
 
 /* Forward declarations */
 class Idle;
@@ -51,44 +52,21 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(BackflushStopEvent const &){};
   virtual void react(RinseStartEvent const &){};
   virtual void react(RinseStopEvent const &){};
-  void react(TimeEvent const &e) { timestamp = e.timestamp; };
-  void react(PressureEvent const &e) { pressure = e.pressure; };
-  void react(TempEvent const &e) { temp = e.temp; };
+  void react(TimeEvent const &e) { ::MachineSignals::timestamp = e.timestamp; };
+  void react(PressureEvent const &e) {
+    ::MachineSignals::pressure = e.pressure;
+  };
+  void react(TempEvent const &e) { ::MachineSignals::temp = e.temp; };
 
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
 
 protected:
-  // Boiler setpoint
-  static std::uint16_t setpoint;
-
   // Store the previous boiler setpoint when entering steam mode
   // so we can easily transition back into idle mode with the correct setpoint.
   static std::uint16_t prevSetpoint;
 
-  // How often to emit state updates to clients
-  static unsigned long stateUpdateInterval;
-
   // Timeout for the current state
   // It's up to each state to implement this themselves.
   static unsigned long timeout;
-
-  // Current timestamp
-  static unsigned long timestamp;
-
-  // Current pressure
-  static std::uint16_t pressure;
-
-  // Current temp
-  static std::int16_t temp;
-
-public:
-  std::uint16_t getSetPoint() { return setpoint; };
-  unsigned long getTimestamp() { return timestamp; };
-  std::uint16_t getPressure() { return pressure; };
-  std::int16_t getTemp() { return temp; };
-  virtual bool getSolenoid() { return false; }
-  virtual PumpTarget getPump() { return (PumpTarget){PumpMode::POWER, 0}; }
-  virtual long getStateUpdateInterval() { return STATE_UPDATE_INTERVAL; };
-  virtual MachineMode getMode() { return MachineMode::UNKNOWN; };
 };

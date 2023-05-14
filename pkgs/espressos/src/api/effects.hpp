@@ -1,46 +1,37 @@
 #pragma once
 
 #include "../fsm/fsmlist.hpp"
-#include "../lib/effects.hpp"
+#include "../fsm/signals.hpp"
 #include "types.hpp"
 
 // Set up effects that update the API state
-void setupAPIEffects(Effects &effects,
-                     StateUpdateMessage_t &stateUpdateMessage) {
-  effects.createEffect<int>(
-      []() { return MachineState::current_state_ptr->getSetPoint(); },
+void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
+
+  ::MachineSignals::setpoint.createEffect(
       [&](int setpoint) { stateUpdateMessage.set_setpoint(setpoint); });
 
   // Set boiler temp in API server
-  effects.createEffect<std::int16_t>(
-      []() { return MachineState::current_state_ptr->getTemp(); },
-      [&](std::int16_t temp) {
-        auto boilerTempMsg = stateUpdateMessage.mutable_boilerTemp();
-        boilerTempMsg.set_value(temp);
-        stateUpdateMessage.set_boilerTemp(boilerTempMsg);
-      },
-      false); // Update cadence too high to use as update trigger
+  ::MachineSignals::temp.createEffect([&](std::int16_t temp) {
+    auto boilerTempMsg = stateUpdateMessage.mutable_boilerTemp();
+    boilerTempMsg.set_value(temp);
+    stateUpdateMessage.set_boilerTemp(boilerTempMsg);
+  });
 
   // Set pressure in API server
-  effects.createEffect<std::uint16_t>(
-      []() { return MachineState::current_state_ptr->getPressure(); },
-      [&](std::uint16_t pressure) {
-        auto pressureMsg = stateUpdateMessage.mutable_pressure();
-        pressureMsg.set_value(pressure);
-        stateUpdateMessage.set_pressure(pressureMsg);
-      },
-      false); // Update cadence too high to use as update trigger
+  ::MachineSignals::pressure.createEffect([&](std::uint16_t pressure) {
+    auto pressureMsg = stateUpdateMessage.mutable_pressure();
+    pressureMsg.set_value(pressure);
+    stateUpdateMessage.set_pressure(pressureMsg);
+  });
 
-  effects.createEffect<uint32_t>(
-      []() { return BrewState::current_state_ptr->getShotStartTime(); },
+  ::MachineSignals::shotStartTime.createEffect(
       [&](uint32_t ts) {
         auto shotTimer = stateUpdateMessage.mutable_shot_timer();
         shotTimer.set_start(ts);
         stateUpdateMessage.set_shot_timer(shotTimer);
       });
 
-  effects.createEffect<uint32_t>(
-      []() { return BrewState::current_state_ptr->getShotStopTime(); },
+  ::MachineSignals::shotStopTime.createEffect(
       [&](uint32_t ts) {
         auto shotTimer = stateUpdateMessage.mutable_shot_timer();
         shotTimer.set_stop(ts);
@@ -48,35 +39,28 @@ void setupAPIEffects(Effects &effects,
       });
 
   // Set current brew target
-  effects.createEffect<BrewStateTarget>(
-      []() { return BrewState::current_state_ptr->getTarget(); },
-      [&](BrewStateTarget target) {
-        auto brewTarget = stateUpdateMessage.mutable_brew_target();
-        brewTarget.set_value(target.value);
+  ::MachineSignals::pump.createEffect([&](PumpTarget target) {
+    auto brewTarget = stateUpdateMessage.mutable_brew_target();
+    brewTarget.set_value(target.value);
 
-        switch (target.mode) {
-        case BrewStateMode::POWER:
-          brewTarget.set_mode(BrewTargetMode::POWER);
-          break;
-        case BrewStateMode::PRESSURE:
-          brewTarget.set_mode(BrewTargetMode::PRESSURE);
-          break;
-        }
+    switch (target.mode) {
+    case PumpMode::POWER:
+      brewTarget.set_mode(BrewTargetMode::POWER);
+      break;
+    case PumpMode::PRESSURE:
+      brewTarget.set_mode(BrewTargetMode::PRESSURE);
+      break;
+    }
 
-        stateUpdateMessage.set_brew_target(brewTarget);
-      },
-      false); // Update cadence too high to use as a message trigger
+    stateUpdateMessage.set_brew_target(brewTarget);
+  });
 
   // Set current time
-  effects.createEffect<unsigned long>(
-      []() { return MachineState::current_state_ptr->getTimestamp(); },
-      [&](unsigned long timestamp) {
-        stateUpdateMessage.set_millis(timestamp);
-      },
-      false); // Update cadence too high to use as a message trigger
+  ::MachineSignals::timestamp.createEffect([&](unsigned long timestamp) {
+    stateUpdateMessage.set_millis(timestamp);
+  });
 
   // Set mode in API server
-  effects.createEffect<MachineMode>(
-      []() { return MachineState::current_state_ptr->getMode(); },
+  ::MachineSignals::mode.createEffect(
       [&](MachineMode mode) { stateUpdateMessage.set_mode(mode); });
 }
