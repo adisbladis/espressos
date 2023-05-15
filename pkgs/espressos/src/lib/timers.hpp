@@ -15,13 +15,16 @@ struct Timer {
 struct Timeout {
   unsigned long at;
   std::function<void()> callback;
+  std::function<void()> cancel;
 };
+
+typedef std::shared_ptr<Timeout> Timeout_t;
 
 // Provides a way to run a function at an interval
 class Timers {
 private:
   std::vector<std::function<void(unsigned long)>> funcs;
-  std::set<std::shared_ptr<Timeout>> timeouts;
+  std::set<Timeout_t> timeouts;
   unsigned long lastNow;
 
 public:
@@ -53,12 +56,12 @@ public:
     return timer;
   };
 
-  std::shared_ptr<Timeout> setTimeout(unsigned long timeoutMs,
+  Timeout_t setTimeout(unsigned long timeoutMs,
                                       std::function<void()> callback) {
     unsigned long at = lastNow + timeoutMs;
 
-    std::shared_ptr<Timeout> timeout =
-        std::make_shared<Timeout>((Timeout){at, callback});
+    Timeout_t timeout = std::make_shared<Timeout>((Timeout){
+        at, callback, [this, &timeout]() { timeouts.erase(timeout); }});
 
     timeouts.insert(timeout);
 
@@ -75,7 +78,7 @@ public:
 
     // Run timeouts
     if (timeouts.size() > 0) {
-      std::vector<std::shared_ptr<Timeout>> triggeredTimeouts;
+      std::vector<Timeout_t> triggeredTimeouts;
 
       for (auto timeout : timeouts) {
         if (now >= timeout->at) {

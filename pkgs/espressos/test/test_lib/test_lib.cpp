@@ -68,6 +68,20 @@ TEST_SUITE("timers") {
     timers.loop(20);
     CHECK(output == 1);
   }
+
+  TEST_CASE("setTimeout(cancel)") {
+    Timers timers;
+    static int input = 1;
+    static int output = 0;
+
+    auto timeout = timers.setTimeout(10, []() { output = input; });
+
+    timeout->cancel();
+
+    // Check that we didn't trigger
+    timers.loop(10);
+    CHECK(output == 0);
+  }
 }
 
 int main(int argc, char **argv) {
