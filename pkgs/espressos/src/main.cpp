@@ -7,8 +7,8 @@
 #include "fsm/fsmlist.hpp"
 #include "hal/setup.hpp"
 #include "lib/timers.hpp"
+#include "timers.hpp"
 
-static Timers timers;
 static Timers apiTimers;
 
 void setup() {

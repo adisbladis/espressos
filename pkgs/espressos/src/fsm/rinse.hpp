@@ -2,6 +2,7 @@
 
 #include <tinyfsm.hpp>
 
+#include "../lib/timers.hpp"
 #include "events.hpp"
 
 // This is for quickly rinsing the group head after a shot.
@@ -19,7 +20,7 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
   friend class tinyfsm::Fsm<RinseState>;
 
   virtual void entry(void){};
-  void exit(void){};
+  virtual void exit(void){};
 
   virtual void react(LoopEvent const &){};
 
@@ -28,8 +29,4 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
   virtual void react(RinseStartEvent const &){};
 
   void react(tinyfsm::Event const &){};
-
-protected:
-  // Time when to transition to RinseDone
-  static unsigned long timeout;
 };

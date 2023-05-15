@@ -57,7 +57,7 @@ public:
   };
 
   Timeout_t setTimeout(unsigned long timeoutMs,
-                                      std::function<void()> callback) {
+                       std::function<void()> callback) {
     unsigned long at = lastNow + timeoutMs;
 
     Timeout_t timeout = std::make_shared<Timeout>((Timeout){
