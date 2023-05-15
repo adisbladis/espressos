@@ -14,6 +14,8 @@
 #include "../../fsm//signals.hpp"
 #include "../../lib/map.hpp"
 #include "../../lib/timers.hpp"
+#include "../../reconcile/boiler.hpp"
+#include "../../reconcile/pump.hpp"
 #include "ota.hpp"
 #include "webserver.hpp"
 
@@ -98,87 +100,20 @@ void setupArduinoPump(Timers &timers) {
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
   DimmableLight::begin();
 
-  static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
-  static PIDController<int32_t, float, unsigned long> pressureProfilePID(
-      0, 1, 7, 0, DIRECT);
-
-  pressureProfilePID.Begin(AUTOMATIC, millis());
-
   static Signal<uint8_t> pumpPower(0);
-  pumpPower.createEffect([](auto power) { pump.setBrightness(power); });
+  pumpPower.createEffect([](uint8_t power) { pump.setBrightness(power); });
 
-  // React to state machine pump changes
-  ::MachineSignals::pump.createEffect([](PumpTarget pumpTarget) {
-    switch (pumpTarget.mode) {
-    case PumpMode::POWER:
-      // Remap value into uint8 range used by dimmer and apply
-      pumpPower = map<uint16_t>(pumpTarget.value, 0, 65535, 0, 255);
-      break;
-
-    case PumpMode::PRESSURE:
-      pressureProfilePID.SetSetpoint(pumpTarget.value);
-      break;
-
-    default:
-      // We don't know what we're doing, the only safe thing to do is to
-      // stop.
-      send_event(PanicEvent());
-    }
-
-    lastPumpTarget = pumpTarget;
-  });
-
-  // Run pump pressure profiling PID loop
-  timers.createInterval(1, [](unsigned long timestamp) {
-    if (lastPumpTarget.mode != PumpMode::PRESSURE) {
-      return;
-    }
-
-    int32_t output;
-    if (pressureProfilePID.Compute(timestamp, ::MachineSignals::pressure.get(),
-                                   &output)) {
-      pumpPower = output;
-    }
-  });
+  setupPumpPID(timers, pumpPower);
 }
 
 void setupArduinoBoiler(Timers &timers) {
-  static constexpr int WindowSize = 100;
-  static PIDController<int32_t, float, unsigned long> boilerPID(
-      0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, REVERSE);
-  boilerPID.Begin(AUTOMATIC, millis());
-  static unsigned long windowStartTime = millis();
+  static Signal<bool> outputState(false);
 
-  ::MachineSignals::setpoint.createEffect(
-      [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
+  setupBoilerPID(timers, outputState);
 
   pinMode(BOILER_SSR_PIN, OUTPUT);
-
-  static bool outputState = false;
-
-  timers.createInterval(1, []() {
-    unsigned long now = ::MachineSignals::timestamp.get();
-    std::int16_t temp = ::MachineSignals::temp.get();
-    std::int32_t Output;
-
-    boilerPID.Compute(now, temp, &Output);
-
-    if (now - windowStartTime >= WindowSize) {
-      windowStartTime += WindowSize;
-    }
-
-    if (Output < now - windowStartTime) {
-      if (!outputState) {
-        digitalWrite(BOILER_SSR_PIN, HIGH);
-      }
-      outputState = true;
-    } else {
-      if (outputState) {
-        digitalWrite(BOILER_SSR_PIN, LOW);
-      }
-      outputState = false;
-    }
-  });
+  outputState.createEffect(
+      [](bool status) { digitalWrite(BOILER_SSR_PIN, status); });
 };
 
 void setupArduinoHAL(Timers &timers) {

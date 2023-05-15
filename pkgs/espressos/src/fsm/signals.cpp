@@ -12,6 +12,6 @@ Signal<MachineMode> MachineSignals::mode(MachineMode::OFF);
 Signal<unsigned long> MachineSignals::shotStartTime(0);
 Signal<unsigned long> MachineSignals::shotStopTime(0);
 
-class MachineSignalsListening : public MachineSignals { };
+class MachineSignalsListening : public MachineSignals {};
 
 FSM_INITIAL_STATE(MachineSignals, MachineSignalsListening)

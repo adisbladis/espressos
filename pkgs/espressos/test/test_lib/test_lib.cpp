@@ -31,9 +31,7 @@ TEST_SUITE("timers") {
     static int input = 1;
     static int output = 0;
 
-    timers.createInterval(10, [](){
-      output = input;
-    });
+    timers.createInterval(10, []() { output = input; });
 
     // Check that we didn't trigger eagerly
     CHECK(output == 0);
@@ -52,9 +50,7 @@ TEST_SUITE("timers") {
     static int input = 1;
     static int output = 0;
 
-    timers.setTimeout(10, [](){
-      output = input;
-    });
+    timers.setTimeout(10, []() { output = input; });
 
     // Check that we didn't trigger eagerly
     CHECK(output == 0);
@@ -72,7 +68,6 @@ TEST_SUITE("timers") {
     timers.loop(20);
     CHECK(output == 1);
   }
-
 }
 
 int main(int argc, char **argv) {

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <functional>
-#include <memory>
-#include <vector>
-#include <set>
 #include <iostream>
+#include <memory>
+#include <set>
+#include <vector>
 
 struct Timer {
   unsigned long last;
@@ -25,7 +25,7 @@ private:
   unsigned long lastNow;
 
 public:
-  Timers(): lastNow(0) { };
+  Timers() : lastNow(0){};
 
   std::shared_ptr<Timer> createInterval(unsigned long interval,
                                         std::function<void()> callback) {
@@ -53,13 +53,12 @@ public:
     return timer;
   };
 
-  std::shared_ptr<Timeout>
-  setTimeout(unsigned long timeoutMs,
-                 std::function<void()> callback) {
+  std::shared_ptr<Timeout> setTimeout(unsigned long timeoutMs,
+                                      std::function<void()> callback) {
     unsigned long at = lastNow + timeoutMs;
 
     std::shared_ptr<Timeout> timeout =
-      std::make_shared<Timeout>((Timeout){at, callback});
+        std::make_shared<Timeout>((Timeout){at, callback});
 
     timeouts.insert(timeout);
 

@@ -98,14 +98,15 @@ public:
   // The function will decide for itself whether a new pid Output needs to be
   // computed. returns true when the output is computed, false when nothing has
   // been done.
-  bool Compute(TimestampT now, IOT Input, IOT *Output) {
+  bool Compute(TimestampT now, IOT Input, IOT *Output,
+               bool forceCompute = false) {
     if (mode != AUTOMATIC) {
       return false;
     }
 
-    TimestampT timeChange = (now - lastTime);
+    bool doCompute = forceCompute || (now - lastTime) >= SampleTime;
 
-    if (timeChange >= SampleTime) {
+    if (doCompute) {
       /*Compute all the working error variables*/
       IOT error = setpoint - Input;
       IOT dInput = (Input - lastInput);
