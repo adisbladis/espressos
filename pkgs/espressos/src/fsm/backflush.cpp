@@ -41,9 +41,6 @@ class BackflushActive : public BackflushState {
 
 protected:
   static unsigned long timeout;
-
-public:
-  bool active() override { return true; }
 };
 
 class BackflushResting : public BackflushState {

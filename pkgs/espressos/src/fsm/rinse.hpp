@@ -32,7 +32,4 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
 protected:
   // Time when to transition to RinseDone
   static unsigned long timeout;
-
-public:
-  virtual bool active() { return false; }
 };

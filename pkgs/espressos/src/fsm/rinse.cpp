@@ -32,9 +32,6 @@ class RinseActive : public RinseState {
       send_event(RinseStopEvent());
     }
   }
-
-public:
-  bool active() override { return true; }
 };
 
 void RinseState::react(RinseStopEvent const &e) { transit<RinseDone>(); }
