@@ -9,7 +9,7 @@
 #include "../lib/timers.hpp"
 
 void setupPumpPID(Timers &timers, Signal<uint8_t> &pumpPower) {
-  static constexpr int SampleTime = 100;
+  static constexpr int SampleTime = 10;
 
   static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
   static PIDController<int32_t, float, unsigned long> pressureProfilePID(
