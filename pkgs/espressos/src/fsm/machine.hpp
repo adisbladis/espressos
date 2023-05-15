@@ -52,12 +52,6 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(BackflushStopEvent const &){};
   virtual void react(RinseStartEvent const &){};
   virtual void react(RinseStopEvent const &){};
-  void react(TimeEvent const &e) { ::MachineSignals::timestamp = e.timestamp; };
-  void react(PressureEvent const &e) {
-    ::MachineSignals::pressure = e.pressure;
-  };
-  void react(TempEvent const &e) { ::MachineSignals::temp = e.temp; };
-
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
 

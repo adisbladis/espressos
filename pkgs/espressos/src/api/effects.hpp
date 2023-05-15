@@ -24,19 +24,17 @@ void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
     stateUpdateMessage.set_pressure(pressureMsg);
   });
 
-  ::MachineSignals::shotStartTime.createEffect(
-      [&](uint32_t ts) {
-        auto shotTimer = stateUpdateMessage.mutable_shot_timer();
-        shotTimer.set_start(ts);
-        stateUpdateMessage.set_shot_timer(shotTimer);
-      });
+  ::MachineSignals::shotStartTime.createEffect([&](uint32_t ts) {
+    auto shotTimer = stateUpdateMessage.mutable_shot_timer();
+    shotTimer.set_start(ts);
+    stateUpdateMessage.set_shot_timer(shotTimer);
+  });
 
-  ::MachineSignals::shotStopTime.createEffect(
-      [&](uint32_t ts) {
-        auto shotTimer = stateUpdateMessage.mutable_shot_timer();
-        shotTimer.set_stop(ts);
-        stateUpdateMessage.set_shot_timer(shotTimer);
-      });
+  ::MachineSignals::shotStopTime.createEffect([&](uint32_t ts) {
+    auto shotTimer = stateUpdateMessage.mutable_shot_timer();
+    shotTimer.set_stop(ts);
+    stateUpdateMessage.set_shot_timer(shotTimer);
+  });
 
   // Set current brew target
   ::MachineSignals::pump.createEffect([&](PumpTarget target) {

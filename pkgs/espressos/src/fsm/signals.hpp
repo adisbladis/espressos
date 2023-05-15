@@ -1,38 +1,52 @@
 #pragma once
 
 #include <cstdint>
+#include <tinyfsm.hpp>
 
 #include "../lib/signal.hpp"
 #include "../proto/api.h"
+#include "events.hpp"
 #include "pump.hpp"
 
 // Signals are sideeffectful singleton values shared by all state machines
-namespace MachineSignals {
-extern Signal<bool> solenoid;
+// They are wrapped in a state machine to
+class MachineSignals : public tinyfsm::Fsm<MachineSignals> {
+  friend class tinyfsm::Fsm<MachineSignals>;
 
-// Boiler setpoint
-extern Signal<std::uint16_t> setpoint;
+  void react(tinyfsm::Event const &){};
 
-// Current FSM timestamp
-extern Signal<unsigned long> timestamp;
+  void entry() {};
+  void exit() {};
 
-// Current FSM pressure
-extern Signal<std::uint16_t> pressure;
+  void react(TimeEvent const &e) { timestamp = e.timestamp; };
+  void react(PressureEvent const &e) { pressure = e.pressure; };
+  void react(TempEvent const &e) { temp = e.temp; };
 
-// Current FSM temp
-extern Signal<std::uint16_t> temp;
+public:
+  static Signal<bool> solenoid;
 
-// How often to send state updates
-extern Signal<unsigned long> stateUpdateInterval;
+  // Boiler setpoint
+  static Signal<std::uint16_t> setpoint;
 
-// Pump target
-extern Signal<PumpTarget> pump;
+  // Current FSM timestamp
+  static Signal<unsigned long> timestamp;
 
-// Overall mode
-extern Signal<MachineMode> mode;
+  // Current FSM pressure
+  static Signal<std::uint16_t> pressure;
 
-// Shot timer
-extern Signal<unsigned long> shotStartTime;
-extern Signal<unsigned long> shotStopTime;
+  // Current FSM temp
+  static Signal<std::uint16_t> temp;
 
-} // namespace MachineSignals
+  // How often to send state updates
+  static Signal<unsigned long> stateUpdateInterval;
+
+  // Pump target
+  static Signal<PumpTarget> pump;
+
+  // Overall mode
+  static Signal<MachineMode> mode;
+
+  // Shot timer
+  static Signal<unsigned long> shotStartTime;
+  static Signal<unsigned long> shotStopTime;
+};
