@@ -59,8 +59,4 @@ protected:
   // Store the previous boiler setpoint when entering steam mode
   // so we can easily transition back into idle mode with the correct setpoint.
   static std::uint16_t prevSetpoint;
-
-  // Timeout for the current state
-  // It's up to each state to implement this themselves.
-  static unsigned long timeout;
 };

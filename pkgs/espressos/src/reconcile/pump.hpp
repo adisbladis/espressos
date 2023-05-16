@@ -13,7 +13,7 @@ void setupPumpPID(Timers &timers, Signal<uint8_t> &pumpPower) {
 
   static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
   static PIDController<int32_t, float, unsigned long> pressureProfilePID(
-      0, 1, 7, 0, DIRECT);
+      0, 1, 3, 0, DIRECT);
 
   pressureProfilePID.SetMode(AUTOMATIC);
   pressureProfilePID.SetSampleTime(SampleTime);

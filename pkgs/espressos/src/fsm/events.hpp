@@ -28,6 +28,9 @@ struct TempEvent : tinyfsm::Event {
 struct BackflushStartEvent : tinyfsm::Event {};
 struct BackflushStopEvent : tinyfsm::Event {};
 
+struct BackflushActivateEvent : tinyfsm::Event {};
+struct BackflushDeactivateEvent : tinyfsm::Event {};
+
 struct BrewStartEvent : tinyfsm::Event {};
 struct BrewStopEvent : tinyfsm::Event {};
 

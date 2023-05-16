@@ -38,6 +38,6 @@ protected:
 
 void RinseState::react(RinseStopEvent const &e) { transit<RinseDone>(); }
 
-Timeout_t RinseActive::timeout = timers.setTimeout(0, []() {});
+Timeout_t RinseActive::timeout = timers.setTimeout(0, DummyFunc);
 
 FSM_INITIAL_STATE(RinseState, RinseDone)

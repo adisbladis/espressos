@@ -23,6 +23,9 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
 
   virtual void react(BackflushStartEvent const &){};
 
+  virtual void react(BackflushActivateEvent const &){};
+  virtual void react(BackflushDeactivateEvent const &){};
+
   void react(tinyfsm::Event const &){};
 
 protected:

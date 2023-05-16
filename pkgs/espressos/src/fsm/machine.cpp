@@ -1,6 +1,8 @@
 #include <cstdint>
 #include <tinyfsm.hpp>
 
+#include "../lib/timers.hpp"
+#include "../timers.hpp"
 #include "backflush.hpp"
 #include "brew.hpp"
 #include "events.hpp"
@@ -94,12 +96,9 @@ class Brewing : public MachineState {
 };
 
 class Backflushing : public MachineState {
-  void react(BackflushStopEvent const &e) override { transit<Idle>(); }
+  void react(BackflushStopEvent const &) override { transit<Idle>(); }
 
-  void entry() override {
-    ::MachineSignals::solenoid = true;
-    ::MachineSignals::mode = MachineMode::BACKFLUSHING;
-  };
+  void entry() override { ::MachineSignals::mode = MachineMode::BACKFLUSHING; };
 };
 
 class Rinsing : public MachineState {
@@ -125,18 +124,21 @@ class Pumping : public MachineState {
 class Steaming : public MachineState {
   void entry() override {
     ::MachineSignals::mode = MachineMode::STEAMING;
-    timeout = MachineSignals::timestamp.get() + STEAM_TIMEOUT;
+
+    timeout = timers.setTimeout(STEAM_TIMEOUT, []() {
+      send_event(StopSteamEvent());
+    });
   };
 
-  void exit() override { ::MachineSignals::setpoint = prevSetpoint; };
+  void exit() override {
+    ::MachineSignals::setpoint = prevSetpoint;
+    timeout->cancel();
+  };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
 
-  void react(LoopEvent const &e) override {
-    if (e.timestamp >= timeout) {
-      send_event(StopSteamEvent());
-    }
-  }
+protected:
+  static Timeout_t timeout;
 };
 
 /* Shared class methods*/
@@ -154,7 +156,8 @@ void MachineState::react(PowerOffEvent const &e) {
 void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
 
 std::uint16_t MachineState::prevSetpoint = 0;
-unsigned long MachineState::timeout = 0;
+
+Timeout_t Steaming::timeout = timers.setTimeout(0, DummyFunc);
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

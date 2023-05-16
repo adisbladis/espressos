@@ -1,5 +1,7 @@
 #include <tinyfsm.hpp>
 
+#include "../lib/timers.hpp"
+#include "../timers.hpp"
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
@@ -10,10 +12,7 @@ class BackflushResting;
 
 // The resting state, i.e. before/after a backflush
 class BackflushDone : public BackflushState {
-  void entry() override {
-    activeCount = BACKFLUSH_ACTIVE_COUNT;
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
-  }
+  void entry() override { activeCount = BACKFLUSH_ACTIVE_COUNT; }
 
   void react(BackflushStartEvent const &e) override {
     transit<BackflushActive>();
@@ -23,40 +22,47 @@ class BackflushDone : public BackflushState {
 // The active state, pump and solenoid on
 class BackflushActive : public BackflushState {
   void entry() override {
-    timeout = ::MachineSignals::timestamp.get() + BACKFLUSH_DUTY_CYCLE;
-    activeCount--;
-
     if (activeCount == 0) {
       send_event(BackflushStopEvent());
+      return;
     }
+    activeCount--;
+
+    timeout = timers.setTimeout(
+        BACKFLUSH_DUTY_CYCLE, []() { send_event(BackflushDeactivateEvent()); });
 
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
+    ::MachineSignals::solenoid = true;
   }
 
-  void react(LoopEvent const &e) override {
-    if (e.timestamp >= timeout) {
-      transit<BackflushResting>();
-    }
+  void react(BackflushDeactivateEvent const &) override {
+    transit<BackflushResting>();
+  }
+
+  void exit() override {
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
+    ::MachineSignals::solenoid = false;
+    timeout->cancel();
   }
 
 protected:
-  static unsigned long timeout;
+  static Timeout_t timeout;
 };
 
 class BackflushResting : public BackflushState {
   void entry() override {
-    timeout = ::MachineSignals::timestamp.get() + (BACKFLUSH_DUTY_CYCLE * 2);
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
+    timeout = timers.setTimeout(BACKFLUSH_DUTY_CYCLE * 2,
+                                []() { send_event(BackflushActivateEvent()); });
   }
 
-  void react(LoopEvent const &e) override {
-    if (e.timestamp >= timeout) {
-      transit<BackflushActive>();
-    }
+  void exit() override { timeout->cancel(); }
+
+  void react(BackflushActivateEvent const &) override {
+    transit<BackflushActive>();
   }
 
 protected:
-  static unsigned long timeout;
+  static Timeout_t timeout;
 };
 
 void BackflushState::react(BackflushStopEvent const &e) {
@@ -64,7 +70,7 @@ void BackflushState::react(BackflushStopEvent const &e) {
 }
 
 int BackflushState::activeCount = BACKFLUSH_ACTIVE_COUNT;
-unsigned long BackflushActive::timeout = 0;
-unsigned long BackflushResting::timeout = 0;
+Timeout_t BackflushActive::timeout = timers.setTimeout(0, []() {});
+Timeout_t BackflushResting::timeout = timers.setTimeout(0, []() {});
 
 FSM_INITIAL_STATE(BackflushState, BackflushDone)
