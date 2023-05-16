@@ -1,5 +1,7 @@
 #include <tinyfsm.hpp>
 
+#include "../hal/time.hpp"
+
 #include "brew.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
@@ -15,7 +17,7 @@ class BrewDone : public BrewState {
   }
 
   void react(BrewStartEvent const &e) override {
-    ::MachineSignals::shotStartTime = ::MachineSignals::timestamp.get();
+    ::MachineSignals::shotStartTime = millis();
     ::MachineSignals::shotStartTime = 0;
     transit<BrewActive>();
   }
@@ -42,7 +44,7 @@ class BrewActive : public BrewState {
 
 // We can stop brewing from all states
 void BrewState::react(BrewStopEvent const &e) {
-  ::MachineSignals::shotStopTime = ::MachineSignals::timestamp.get();
+  ::MachineSignals::shotStopTime = millis();
   transit<BrewDone>();
 };
 

@@ -19,7 +19,6 @@ class MachineSignals : public tinyfsm::Fsm<MachineSignals> {
   void entry(){};
   void exit(){};
 
-  void react(TimeEvent const &e) { timestamp = e.timestamp; };
   void react(PressureEvent const &e) { pressure = e.pressure; };
   void react(TempEvent const &e) { temp = e.temp; };
 

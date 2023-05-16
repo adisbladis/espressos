@@ -5,13 +5,6 @@
 
 #include "../hal/time.hpp"
 
-// This behaves exactly the same as the LoopEvent but the intent differs.
-// The intent for this event is for state machines that do things in relation
-// to the current time to be able to update their internal timestamps.
-struct TimeEvent : tinyfsm::Event {
-  Timestamp_t timestamp;
-};
-
 // When the machine pressure changes a pressure event is emitted
 struct PressureEvent : tinyfsm::Event {
   uint16_t pressure;

@@ -16,12 +16,6 @@ void setup() {
     // Initialise the FSM
     fsm_list::start();
 
-    timers.createInterval(1, [](Timestamp_t now) {
-      static TimeEvent timeEvent;
-      timeEvent.timestamp = now;
-      send_event(timeEvent);
-    });
-
     setupHAL(timers);
   }
 
