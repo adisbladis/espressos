@@ -4,12 +4,12 @@
 #include <Arduino.h>
 #include <LittleFS.h>
 #include <PIDController.hpp>
+#include <ReadBufferFixedSize.h>
 #include <SimpleKalmanFilter.h>
 #include <WiFi.h>
+#include <WriteBufferFixedSize.h>
 #include <cstdint>
 #include <dimmable_light.h>
-#include <ReadBufferFixedSize.h>
-#include <WriteBufferFixedSize.h>
 
 #include "../../api/handler.hpp"
 #include "../../fsm//fsmlist.hpp"
@@ -128,8 +128,9 @@ void setupArduinoBoiler() {
 };
 
 void setupArduinoConfig() {
-  // Note the ordering of the code blocks here, we don't want to set up the effect
-  // before we read the config from flash as that would be an infinite loop.
+  // Note the ordering of the code blocks here, we don't want to set up the
+  // effect before we read the config from flash as that would be an infinite
+  // loop.
 
   // Attempt to read config from flash
   File f = LittleFS.open(CONFIG_FILE, "r");
@@ -153,21 +154,25 @@ void setupArduinoConfig() {
   static EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE> buf;
 
   // Set up update handler to save config
-  ::MachineSignals::config.createEffect([](const Config &config) {
-    File f = LittleFS.open(CONFIG_FILE, "w");
-    if (!f) {
-      logger->log(LogLevel::ERROR, "Could not open config file for writing");
-      return;
-    }
+  ::MachineSignals::config.createEffect(
+      [](const Config &config) {
+        File f = LittleFS.open(CONFIG_FILE, "w");
+        if (!f) {
+          logger->log(LogLevel::ERROR,
+                      "Could not open config file for writing");
+          return;
+        }
 
-    auto n = f.write(buf.get_data(), buf.get_size());
-    f.close();
+        auto n = f.write(buf.get_data(), buf.get_size());
+        f.close();
 
-    if (n != buf.get_size()) {
-      logger->log(LogLevel::ERROR, "Error writing config file (n != buf.size))");
-      return;
-    }
-  }, false);
+        if (n != buf.get_size()) {
+          logger->log(LogLevel::ERROR,
+                      "Error writing config file (n != buf.size))");
+          return;
+        }
+      },
+      false);
 };
 
 void setupArduinoHAL() {
@@ -198,17 +203,22 @@ void setupArduinoAPI() {
 
   apiServer.begin();
 
-  // Set state update interval
+  // Send state updates periodically
   {
     static auto stateUpdateTimer =
         timers.createInterval(STATE_UPDATE_INTERVAL, []() {
           apiServer.broadcastState(stateUpdateMessage);
         });
 
-    ::MachineSignals::stateUpdateInterval.createEffect(
-        [](Timestamp_t updateInterval) {
-          stateUpdateTimer->interval = updateInterval;
-        });
+    // Set state update interval depending in the machine mode
+    ::MachineSignals::mode.createEffect([](MachineMode mode) {
+      if (mode == MachineMode::UNKNOWN || mode == MachineMode::PANIC ||
+          mode == MachineMode::OFF || mode == MachineMode::IDLE) {
+        stateUpdateTimer->interval = STATE_UPDATE_INTERVAL;
+      } else {
+        stateUpdateTimer->interval = STATE_UPDATE_INTERVAL_ACTIVE;
+      }
+    });
 
     // TODO: Reimplement state upate trigger on interesting event updates
     // If any watched effects triggered send update to clients

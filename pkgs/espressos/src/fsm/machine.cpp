@@ -29,7 +29,6 @@ class Panic : public MachineState {
   void entry() override {
     ::MachineSignals::setpoint = 0;
     ::MachineSignals::solenoid = false;
-    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL;
     ::MachineSignals::mode = MachineMode::PANIC;
   }
 };
@@ -39,7 +38,6 @@ class Off : public MachineState {
   void entry() override {
     ::MachineSignals::setpoint = 0;
     ::MachineSignals::solenoid = false;
-    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL;
     ::MachineSignals::mode = MachineMode::OFF;
   };
 
@@ -53,12 +51,9 @@ class Off : public MachineState {
 class Idle : public MachineState {
   void entry() override {
     ::MachineSignals::solenoid = false;
-    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL;
     ::MachineSignals::mode = MachineMode::IDLE;
   };
-  void exit() override {
-    ::MachineSignals::stateUpdateInterval = STATE_UPDATE_INTERVAL_ACTIVE;
-  }
+  void exit() override {}
 
   void react(PowerOnEvent const &e) override {
     ::MachineSignals::setpoint = e.setpoint;

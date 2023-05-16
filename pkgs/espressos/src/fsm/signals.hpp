@@ -38,9 +38,6 @@ public:
   // Current FSM temp
   static Signal<std::uint16_t> temp;
 
-  // How often to send state updates
-  static Signal<Timestamp_t> stateUpdateInterval;
-
   // Pump target
   static Signal<PumpTarget> pump;
 

@@ -61,8 +61,7 @@ private:
   }
 
 public:
-  APIWebServer(int port)
-      : server(port), handler(), onConnectCallback([]() {}) {
+  APIWebServer(int port) : server(port), handler(), onConnectCallback([]() {}) {
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,
                           size_t length) {

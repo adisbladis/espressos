@@ -12,19 +12,21 @@ class BrewActive;
 
 // The resting state, i.e. before/after a brew
 class BrewDone : public BrewState {
-  void entry() override {
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, 0};
-  }
-
   void react(BrewStartEvent const &e) override {
-    ::MachineSignals::shotStartTime = millis();
-    ::MachineSignals::shotStartTime = 0;
     transit<BrewActive>();
   }
 };
 
 // While brewing
 class BrewActive : public BrewState {
+  void entry() override {
+    ::MachineSignals::shotStartTime = millis();
+  };
+
+  void exit() override {
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, 0};
+    ::MachineSignals::shotStopTime = millis();
+  };
 
   // Only allow setting target pressure while we're actually brewing.
   void react(BrewTargetEvent const &e) override {
@@ -44,7 +46,6 @@ class BrewActive : public BrewState {
 
 // We can stop brewing from all states
 void BrewState::react(BrewStopEvent const &e) {
-  ::MachineSignals::shotStopTime = millis();
   transit<BrewDone>();
 };
 
