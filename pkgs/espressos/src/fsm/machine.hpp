@@ -40,7 +40,6 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
 
   void react(PanicEvent const &);
   void react(PowerOffEvent const &);
-  virtual void react(LoopEvent const &){};
   virtual void react(PowerOnEvent const &){};
   virtual void react(BrewStartEvent const &){};
   virtual void react(BrewStopEvent const &){};

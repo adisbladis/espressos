@@ -17,8 +17,6 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
 
-  virtual void react(LoopEvent const &){};
-
   void react(BackflushStopEvent const &e);
 
   virtual void react(BackflushStartEvent const &){};

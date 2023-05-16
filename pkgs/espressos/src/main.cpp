@@ -20,10 +20,6 @@ void setup() {
       static TimeEvent timeEvent;
       timeEvent.timestamp = now;
       send_event(timeEvent);
-
-      static LoopEvent loopEvent;
-      loopEvent.timestamp = now;
-      send_event(loopEvent);
     });
 
     setupHAL(timers);

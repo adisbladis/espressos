@@ -22,8 +22,6 @@ class RinseState : public tinyfsm::Fsm<RinseState> {
   virtual void entry(void){};
   virtual void exit(void){};
 
-  virtual void react(LoopEvent const &){};
-
   void react(RinseStopEvent const &e);
 
   virtual void react(RinseStartEvent const &){};
