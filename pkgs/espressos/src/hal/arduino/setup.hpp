@@ -151,7 +151,7 @@ void setupArduinoAPI(APIHandler &handler, Timers &timers,
         });
 
     ::MachineSignals::stateUpdateInterval.createEffect(
-        [](unsigned long updateInterval) {
+        [](Timestamp_t updateInterval) {
           stateUpdateTimer->interval = updateInterval;
         });
 

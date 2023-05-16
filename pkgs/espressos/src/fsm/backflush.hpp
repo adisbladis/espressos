@@ -28,5 +28,4 @@ class BackflushState : public tinyfsm::Fsm<BackflushState> {
 
 protected:
   static int activeCount;
-  static unsigned long timestamp;
 };

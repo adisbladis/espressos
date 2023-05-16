@@ -6,14 +6,16 @@
 #include <set>
 #include <vector>
 
+#include "../hal/time.hpp"
+
 struct Timer {
-  unsigned long last;
-  unsigned long interval;
-  std::function<void(unsigned long)> callback;
+  Timestamp_t last;
+  Timestamp_t interval;
+  std::function<void(Timestamp_t)> callback;
 };
 
 struct Timeout {
-  unsigned long at;
+  Timestamp_t at;
   std::function<void()> callback;
   std::function<void()> cancel;
 };
@@ -23,27 +25,27 @@ typedef std::shared_ptr<Timeout> Timeout_t;
 // Provides a way to run a function at an interval
 class Timers {
 private:
-  std::vector<std::function<void(unsigned long)>> funcs;
+  std::vector<std::function<void(Timestamp_t)>> funcs;
   std::set<Timeout_t> timeouts;
-  unsigned long lastNow;
+  Timestamp_t lastNow;
 
 public:
   Timers() : lastNow(0){};
 
-  std::shared_ptr<Timer> createInterval(unsigned long interval,
+  std::shared_ptr<Timer> createInterval(Timestamp_t interval,
                                         std::function<void()> callback) {
-    return createInterval(interval, [=](unsigned long) { callback(); });
+    return createInterval(interval, [=](Timestamp_t) { callback(); });
   };
 
   // Create a timer that's called at a certain interval.
   // If the interval is 0 it will be called on every loop cycle.
   std::shared_ptr<Timer>
-  createInterval(unsigned long interval,
-                 std::function<void(unsigned long)> callback) {
+  createInterval(Timestamp_t interval,
+                 std::function<void(Timestamp_t)> callback) {
     std::shared_ptr<Timer> timer =
         std::make_shared<Timer>((Timer){0, interval, callback});
 
-    funcs.push_back([=](unsigned long now) mutable {
+    funcs.push_back([=](Timestamp_t now) mutable {
       if (now < (timer->last + timer->interval)) {
         return;
       }
@@ -56,9 +58,8 @@ public:
     return timer;
   };
 
-  Timeout_t setTimeout(unsigned long timeoutMs,
-                       std::function<void()> callback) {
-    unsigned long at = lastNow + timeoutMs;
+  Timeout_t setTimeout(Timestamp_t timeoutMs, std::function<void()> callback) {
+    Timestamp_t at = lastNow + timeoutMs;
 
     Timeout_t timeout = std::make_shared<Timeout>((Timeout){
         at, callback, [this, &timeout]() { timeouts.erase(timeout); }});
@@ -68,7 +69,7 @@ public:
     return timeout;
   };
 
-  void loop(unsigned long now) {
+  void loop(Timestamp_t now) {
     lastNow = now;
 
     // Run intervals

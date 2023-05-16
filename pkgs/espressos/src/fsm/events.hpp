@@ -3,11 +3,13 @@
 #include <cstdint>
 #include <tinyfsm.hpp>
 
+#include "../hal/time.hpp"
+
 // This behaves exactly the same as the LoopEvent but the intent differs.
 // The intent for this event is for state machines that do things in relation
 // to the current time to be able to update their internal timestamps.
 struct TimeEvent : tinyfsm::Event {
-  unsigned long timestamp;
+  Timestamp_t timestamp;
 };
 
 // When the machine pressure changes a pressure event is emitted

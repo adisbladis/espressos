@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../lib/timers.hpp"
+#include "time.hpp"
 
 #ifdef ARDUINO
 #include "arduino/setup.hpp"

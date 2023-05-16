@@ -125,9 +125,8 @@ class Steaming : public MachineState {
   void entry() override {
     ::MachineSignals::mode = MachineMode::STEAMING;
 
-    timeout = timers.setTimeout(STEAM_TIMEOUT, []() {
-      send_event(StopSteamEvent());
-    });
+    timeout = timers.setTimeout(STEAM_TIMEOUT,
+                                []() { send_event(StopSteamEvent()); });
   };
 
   void exit() override {

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <tinyfsm.hpp>
 
+#include "../hal/time.hpp"
 #include "../lib/signal.hpp"
 #include "../proto/api.h"
 #include "events.hpp"
@@ -29,7 +30,7 @@ public:
   static Signal<std::uint16_t> setpoint;
 
   // Current FSM timestamp
-  static Signal<unsigned long> timestamp;
+  static Signal<Timestamp_t> timestamp;
 
   // Current FSM pressure
   static Signal<std::uint16_t> pressure;
@@ -38,7 +39,7 @@ public:
   static Signal<std::uint16_t> temp;
 
   // How often to send state updates
-  static Signal<unsigned long> stateUpdateInterval;
+  static Signal<Timestamp_t> stateUpdateInterval;
 
   // Pump target
   static Signal<PumpTarget> pump;
@@ -47,6 +48,6 @@ public:
   static Signal<MachineMode> mode;
 
   // Shot timer
-  static Signal<unsigned long> shotStartTime;
-  static Signal<unsigned long> shotStopTime;
+  static Signal<Timestamp_t> shotStartTime;
+  static Signal<Timestamp_t> shotStopTime;
 };

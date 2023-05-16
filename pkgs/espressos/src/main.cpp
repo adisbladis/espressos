@@ -16,7 +16,7 @@ void setup() {
     // Initialise the FSM
     fsm_list::start();
 
-    timers.createInterval(1, [](unsigned long now) {
+    timers.createInterval(1, [](Timestamp_t now) {
       static TimeEvent timeEvent;
       timeEvent.timestamp = now;
       send_event(timeEvent);
@@ -41,7 +41,7 @@ void setup() {
 }
 
 void loop() {
-  unsigned long now = millis();
+  Timestamp_t now = millis();
   timers.loop(now);
   apiTimers.loop(now);
 }

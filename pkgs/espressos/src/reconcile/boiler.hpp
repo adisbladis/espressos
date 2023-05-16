@@ -11,7 +11,7 @@
 void setupBoilerPID(Timers &timers, Signal<bool> &outputState) {
   static constexpr int SampleTime = 100;
 
-  static PIDController<int32_t, float, unsigned long> boilerPID(
+  static PIDController<int32_t, float, Timestamp_t> boilerPID(
       0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, DIRECT);
 
   boilerPID.SetSampleTime(SampleTime);
