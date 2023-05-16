@@ -34,19 +34,21 @@ void setupArduinoPressureSensor() {
   // tolerances so it's best to allow for some reads outside of the measured
   // range.
   //
-  // This sets the tolerance to the floor/ceiling +- 30%, it Works For Me™,
-  // YMMV.
-  static std::uint16_t minFloor = floor * 0.7;
-  static std::uint16_t maxCeil = ceil * 1.3;
+  // This sets the tolerances so that we can detect floating voltage.
+  static std::uint16_t minFloor = 10;
+  static std::uint16_t maxCeil = 1024 - minFloor;
 
   timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
     int value = analogRead(PRESSURE_SENSOR_PIN);
 
     // Clamp values outside of range to their respective max values
+    bool clamped = false;
     if (value < floor && value >= minFloor) {
       value = floor;
+      clamped = true;
     } else if (value > ceil && value <= maxCeil) {
       value = ceil;
+      clamped = true;
     }
 
     if (value < floor || value > ceil) {
@@ -54,7 +56,9 @@ void setupArduinoPressureSensor() {
       return;
     }
 
-    value = pressureKalmanFilter.updateEstimate(value);
+    if (!clamped) {
+      value = pressureKalmanFilter.updateEstimate(value);
+    }
 
     PressureEvent e;
     e.pressure = (value - floor) * PRESSURE_SENSOR_MBAR / ceil;
@@ -128,7 +132,7 @@ void setupArduinoHAL() {
   setupArduinoBoiler();
 }
 
-void setupArduinoAPI(APIHandler &handler, StateUpdateMessage_t &stateUpdateMessage) {
+void setupArduinoAPI() {
   LittleFS.begin();
 
   Serial.begin(115200);
@@ -138,13 +142,17 @@ void setupArduinoAPI(APIHandler &handler, StateUpdateMessage_t &stateUpdateMessa
 
   beginArduinoOTA(2040);
 
+  static StateUpdateMessage_t stateUpdateMessage;
+  setupAPIEffects(stateUpdateMessage);
+
+  static APIHandler handler;
   static APIWebServer apiServer = APIWebServer(HTTP_PORT, &handler);
   apiServer.begin();
 
   // Set state update interval
   {
     static auto stateUpdateTimer =
-        timers.createInterval(STATE_UPDATE_INTERVAL, [&stateUpdateMessage]() {
+        timers.createInterval(STATE_UPDATE_INTERVAL, []() {
           apiServer.broadcastState(stateUpdateMessage);
         });
 
@@ -163,14 +171,15 @@ void setupArduinoAPI(APIHandler &handler, StateUpdateMessage_t &stateUpdateMessa
       [](const Config &config) { apiServer.broadcastConfig(config); });
 
   // Broadcaste config/state on new connections
-  apiServer.onConnect([&stateUpdateMessage]() {
+  apiServer.onConnect([]() {
     apiServer.broadcastConfig(::MachineSignals::config.get());
     apiServer.broadcastState(stateUpdateMessage);
   });
+}
 
-  // Run loop functions on every loop() call
-  timers.createInterval(0, []() {
-    handleArduinoOTA();
-    apiServer.loop();
-  });
+// On arduino the main loop is called implicitly through loop()
+void loop() {
+  timers.loop(millis());
+  handleArduinoOTA();
+  apiServer.loop();
 }

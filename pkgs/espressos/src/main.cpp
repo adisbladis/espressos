@@ -9,30 +9,12 @@
 #include "timers.hpp"
 
 void setup() {
-  {
-    // Initialise the FSM
-    fsm_list::start();
-
-    setupHAL();
-  }
+  // Initialise the FSM
+  fsm_list::start();
+  setupHAL();
 
   // Set up user IO
-  {
-    static StateUpdateMessage_t stateUpdateMessage;
-
-    static APIHandler apiHandler;
-
-    setupAPI(apiHandler, stateUpdateMessage);
-
-    // Set up effects that update the API state
-    setupAPIEffects(stateUpdateMessage);
-  }
-}
-
-// On arduino the main loop is called implicitly through loop()
-void loop() {
-  Timestamp_t now = millis();
-  timers.loop(now);
+  setupAPI();
 }
 
 #ifndef ARDUINO
@@ -42,9 +24,9 @@ void loop() {
 int main() {
   setup();
 
-  while(true) {
+  while (true) {
     usleep(1000);
-    loop();
+    timers.loop(millis());
   }
 }
 

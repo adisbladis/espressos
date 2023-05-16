@@ -91,7 +91,7 @@ private:
   };
 
 public:
-  APIHandler() {};
+  APIHandler(){};
 
   const char *handle(EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf) {
     const char *error = nullptr;

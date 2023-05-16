@@ -2,7 +2,7 @@
 
 #include <LittleFS.h>
 #include <ReadBufferFixedSize.h>
-x#include <WriteBufferFixedSize.h>
+x #include<WriteBufferFixedSize.h>
 
 #include "logger.hpp"
 #include "proto/config.h"
@@ -10,7 +10,7 @@ x#include <WriteBufferFixedSize.h>
 #define CONFIG_FILE "config.pb"
 #define CONFIG_BUF_SIZE 128
 
-class PersistedConfig {
+    class PersistedConfig {
 private:
   Config config;
   std::vector<std::function<void(Config)>> callbacks;

@@ -12,8 +12,8 @@ void setupHAL() {
 #endif
 };
 
-void setupAPI(APIHandler &handler, StateUpdateMessage_t &stateUpdateMessage) {
+void setupAPI() {
 #ifdef ARDUINO
-  setupArduinoAPI(handler, stateUpdateMessage);
+  setupArduinoAPI();
 #endif
 }
