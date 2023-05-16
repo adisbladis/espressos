@@ -1,9 +1,9 @@
 #pragma once
 
+#include <ReadBufferFixedSize.h>
 #include <cstddef>
 #include <cstdint>
 
-#include "../config.hpp"
 #include "../fsm/fsmlist.hpp"
 #include "../proto/api.h"
 

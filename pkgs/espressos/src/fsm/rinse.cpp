@@ -7,8 +7,6 @@
 #include "rinse.hpp"
 #include "signals.hpp"
 
-#include <Arduino.h>
-
 class RinseActive;
 
 // The resting state, i.e. before/after a rinse.

@@ -29,7 +29,23 @@ void setup() {
   }
 }
 
+// On arduino the main loop is called implicitly through loop()
 void loop() {
   Timestamp_t now = millis();
   timers.loop(now);
 }
+
+#ifndef ARDUINO
+#include <unistd.h>
+
+// A naive main() implementation for non-arduino platforms
+int main() {
+  setup();
+
+  while(true) {
+    usleep(1000);
+    loop();
+  }
+}
+
+#endif
