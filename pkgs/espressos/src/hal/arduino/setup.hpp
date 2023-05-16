@@ -8,6 +8,8 @@
 #include <WiFi.h>
 #include <cstdint>
 #include <dimmable_light.h>
+#include <ReadBufferFixedSize.h>
+#include <WriteBufferFixedSize.h>
 
 #include "../../api/handler.hpp"
 #include "../../fsm//fsmlist.hpp"
@@ -18,6 +20,11 @@
 #include "../../reconcile/pump.hpp"
 #include "ota.hpp"
 #include "webserver.hpp"
+
+#define CONFIG_FILE "config.pb"
+#define CONFIG_BUF_SIZE 128
+
+static APIWebServer apiServer = APIWebServer(HTTP_PORT);
 
 void setupArduinoPressureSensor() {
   // TODO: Don't hardcode filter values and consider where this filter actually
@@ -120,7 +127,52 @@ void setupArduinoBoiler() {
       [](bool status) { digitalWrite(BOILER_SSR_PIN, status); });
 };
 
+void setupArduinoConfig() {
+  // Note the ordering of the code blocks here, we don't want to set up the effect
+  // before we read the config from flash as that would be an infinite loop.
+
+  // Attempt to read config from flash
+  File f = LittleFS.open(CONFIG_FILE, "r");
+  if (f) {
+    Config config;
+
+    EmbeddedProto::ReadBufferFixedSize<CONFIG_BUF_SIZE> buf;
+    f.read(buf.get_data(), CONFIG_BUF_SIZE);
+    buf.set_bytes_written(f.size());
+    auto status = config.deserialize(buf);
+    if (status != ::EmbeddedProto::Error::NO_ERRORS) {
+      Serial.printf("Error decoding config: %d\n", status);
+      return;
+    }
+
+    ConfigSetEvent configSetEvent;
+    configSetEvent.config = config;
+    send_event(configSetEvent);
+  }
+
+  static EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE> buf;
+
+  // Set up update handler to save config
+  ::MachineSignals::config.createEffect([](const Config &config) {
+    File f = LittleFS.open(CONFIG_FILE, "w");
+    if (!f) {
+      logger->log(LogLevel::ERROR, "Could not open config file for writing");
+      return;
+    }
+
+    auto n = f.write(buf.get_data(), buf.get_size());
+    f.close();
+
+    if (n != buf.get_size()) {
+      logger->log(LogLevel::ERROR, "Error writing config file (n != buf.size))");
+      return;
+    }
+  }, false);
+};
+
 void setupArduinoHAL() {
+  Serial.begin(115200);
+
   // Turn on board power LED
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -130,12 +182,11 @@ void setupArduinoHAL() {
   setupArduinoSolenoid();
   setupArduinoPump();
   setupArduinoBoiler();
+  setupArduinoConfig();
 }
 
 void setupArduinoAPI() {
   LittleFS.begin();
-
-  Serial.begin(115200);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID_NAME, SSID_PASWORD);
@@ -145,8 +196,6 @@ void setupArduinoAPI() {
   static StateUpdateMessage_t stateUpdateMessage;
   setupAPIEffects(stateUpdateMessage);
 
-  static APIHandler handler;
-  static APIWebServer apiServer = APIWebServer(HTTP_PORT, &handler);
   apiServer.begin();
 
   // Set state update interval

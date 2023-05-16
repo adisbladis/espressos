@@ -28,7 +28,7 @@ public:
 class APIWebServer : public Logger {
 private:
   WebServer server;
-  APIHandler *handler;
+  APIHandler handler;
   EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf;
   EmbeddedProto::WriteBufferFixedSize<MSG_BUF_SIZE> outBuf;
   char logMessageBuf[LOG_MESSAGE_SIZE];
@@ -61,8 +61,8 @@ private:
   }
 
 public:
-  APIWebServer(int port, APIHandler *handler)
-      : server(port), handler(handler), onConnectCallback([]() {}) {
+  APIWebServer(int port)
+      : server(port), handler(), onConnectCallback([]() {}) {
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,
                           size_t length) {
@@ -94,7 +94,7 @@ public:
           buf.set_bytes_written(length);
         }
 
-        auto result = this->handler->handle(buf);
+        auto result = this->handler.handle(buf);
         buf.clear();
 
         break;

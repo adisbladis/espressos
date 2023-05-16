@@ -32,8 +32,14 @@ public:
     }
   }
 
-  void createEffect(std::function<void(T)> effect) {
+  void createEffect(std::function<void(T)> effect, bool eager) {
     effects.push_back(effect);
-    effect(value);
+    if (eager) {
+      effect(value);
+    }
+  };
+
+  void createEffect(std::function<void(T)> effect) {
+    createEffect(effect, true);
   };
 };
