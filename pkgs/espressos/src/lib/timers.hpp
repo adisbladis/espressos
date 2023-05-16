@@ -73,7 +73,7 @@ public:
     lastNow = now;
 
     // Run intervals
-    for (auto cb : funcs) {
+    for (const auto &cb : funcs) {
       cb(now);
     }
 
@@ -81,14 +81,14 @@ public:
     if (timeouts.size() > 0) {
       std::vector<Timeout_t> triggeredTimeouts;
 
-      for (auto timeout : timeouts) {
+      for (const auto &timeout : timeouts) {
         if (now >= timeout->at) {
           timeout->callback();
           triggeredTimeouts.push_back(timeout);
         };
       }
 
-      for (auto timeout : triggeredTimeouts) {
+      for (const auto &timeout : triggeredTimeouts) {
         timeouts.erase(timeout);
       }
     }

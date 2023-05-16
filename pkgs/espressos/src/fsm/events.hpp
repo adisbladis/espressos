@@ -4,6 +4,7 @@
 #include <tinyfsm.hpp>
 
 #include "../hal/time.hpp"
+#include "../proto/config.h"
 
 // When the machine pressure changes a pressure event is emitted
 struct PressureEvent : tinyfsm::Event {
@@ -33,4 +34,8 @@ struct BrewTargetEvent : tinyfsm::Event {
   }
 
   bool operator!=(BrewTargetEvent const &rhs) const { return !(*this == rhs); }
+};
+
+struct ConfigSetEvent : tinyfsm::Event {
+  Config config;
 };

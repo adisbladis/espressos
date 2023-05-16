@@ -16,9 +16,6 @@ private:
   // Reuse command for every call to handle
   Cmd_t cmd;
 
-  // Mutate persistent configuration
-  PersistedConfig *pConfig;
-
   void handle(const uint8_t *requestID, const PowerOn cmd) {
     PowerOnEvent powerOnEvent;
     powerOnEvent.setpoint = cmd.get_setpoint();
@@ -88,11 +85,13 @@ private:
   };
 
   void handle(const uint8_t *requestID, const Config config) {
-    this->pConfig->setConfig(config);
+    ConfigSetEvent e;
+    e.config = config;
+    send_event(e);
   };
 
 public:
-  APIHandler(PersistedConfig *pConfig) : pConfig(pConfig){};
+  APIHandler() {};
 
   const char *handle(EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf) {
     const char *error = nullptr;

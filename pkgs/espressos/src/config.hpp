@@ -10,10 +10,6 @@
 #define CONFIG_FILE "config.pb"
 #define CONFIG_BUF_SIZE 128
 
-typedef std::function<void(
-    EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE>)>
-    ConfigSaveFunc;
-
 class PersistedConfig {
 private:
   Config config;
@@ -67,7 +63,7 @@ public:
   bool setConfig(const Config &c) {
     config = c;
 
-    for (auto cb : callbacks) {
+    for (const auto &cb : callbacks) {
       cb(config);
     }
 

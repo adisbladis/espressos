@@ -23,7 +23,7 @@ public:
     va_list args;
     va_start(args, message);
 
-    for (auto logger : loggers) {
+    for (const auto &logger : loggers) {
       logger->log(level, message, args);
     }
 

@@ -155,7 +155,7 @@ public:
     broadcastEvent();
   };
 
-  void broadcastConfig(Config config) {
+  void broadcastConfig(const Config &config) {
     if (!this->hasClients()) {
       return;
     }

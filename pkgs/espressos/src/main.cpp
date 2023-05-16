@@ -3,7 +3,6 @@
 #include "api/effects.hpp"
 #include "api/handler.hpp"
 #include "api/types.hpp"
-#include "config.hpp"
 #include "fsm/fsmlist.hpp"
 #include "hal/setup.hpp"
 #include "lib/timers.hpp"
@@ -23,11 +22,9 @@ void setup() {
   {
     static StateUpdateMessage_t stateUpdateMessage;
 
-    static PersistedConfig pConfig;
-    static APIHandler apiHandler(&pConfig);
+    static APIHandler apiHandler;
 
-    pConfig.setup();
-    setupAPI(apiHandler, apiTimers, pConfig, stateUpdateMessage);
+    setupAPI(apiHandler, apiTimers, stateUpdateMessage);
 
     // Set up effects that update the API state
     setupAPIEffects(stateUpdateMessage);

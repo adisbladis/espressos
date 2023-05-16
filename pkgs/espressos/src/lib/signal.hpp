@@ -27,7 +27,7 @@ public:
 
     value = rhs;
 
-    for (auto e : effects) {
+    for (const auto &e : effects) {
       e(value);
     }
   }

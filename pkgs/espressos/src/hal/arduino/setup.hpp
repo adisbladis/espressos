@@ -129,7 +129,6 @@ void setupArduinoHAL(Timers &timers) {
 }
 
 void setupArduinoAPI(APIHandler &handler, Timers &timers,
-                     PersistedConfig &pConfig,
                      StateUpdateMessage_t &stateUpdateMessage) {
   LittleFS.begin();
 
@@ -161,11 +160,12 @@ void setupArduinoAPI(APIHandler &handler, Timers &timers,
   }
 
   // Broadcast config on change
-  pConfig.onChange([](Config config) { apiServer.broadcastConfig(config); });
+  ::MachineSignals::config.createEffect(
+      [](const Config &config) { apiServer.broadcastConfig(config); });
 
   // Broadcaste config/state on new connections
-  apiServer.onConnect([&pConfig, &stateUpdateMessage]() {
-    apiServer.broadcastConfig(pConfig.getConfig());
+  apiServer.onConnect([&stateUpdateMessage]() {
+    apiServer.broadcastConfig(::MachineSignals::config.get());
     apiServer.broadcastState(stateUpdateMessage);
   });
 

@@ -13,9 +13,9 @@ void setupHAL(Timers &timers) {
 #endif
 };
 
-void setupAPI(APIHandler &handler, Timers &timers, PersistedConfig &pConfig,
+void setupAPI(APIHandler &handler, Timers &timers,
               StateUpdateMessage_t &stateUpdateMessage) {
 #ifdef ARDUINO
-  setupArduinoAPI(handler, timers, pConfig, stateUpdateMessage);
+  setupArduinoAPI(handler, timers, stateUpdateMessage);
 #endif
 }

@@ -6,6 +6,7 @@
 #include "../hal/time.hpp"
 #include "../lib/signal.hpp"
 #include "../proto/api.h"
+#include "../proto/config.h"
 #include "events.hpp"
 #include "pump.hpp"
 
@@ -49,4 +50,7 @@ public:
   // Shot timer
   static Signal<Timestamp_t> shotStartTime;
   static Signal<Timestamp_t> shotStopTime;
+
+  // Current configuration
+  static Signal<Config> config;
 };
