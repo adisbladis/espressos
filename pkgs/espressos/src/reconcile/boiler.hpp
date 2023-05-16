@@ -7,8 +7,9 @@
 #include "../fsm/signals.hpp"
 #include "../lib/signal.hpp"
 #include "../lib/timers.hpp"
+#include "../timers.hpp"
 
-void setupBoilerPID(Timers &timers, Signal<bool> &outputState) {
+void setupBoilerPID(Signal<bool> &outputState) {
   static constexpr int SampleTime = 100;
 
   static PIDController<int32_t, float, Timestamp_t> boilerPID(

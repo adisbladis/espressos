@@ -7,8 +7,9 @@
 #include "../fsm/signals.hpp"
 #include "../lib/signal.hpp"
 #include "../lib/timers.hpp"
+#include "../timers.hpp"
 
-void setupPumpPID(Timers &timers, Signal<uint8_t> &pumpPower) {
+void setupPumpPID(Signal<uint8_t> &pumpPower) {
   static constexpr int SampleTime = 10;
 
   static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};

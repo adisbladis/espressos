@@ -19,7 +19,7 @@
 #include "ota.hpp"
 #include "webserver.hpp"
 
-void setupArduinoPressureSensor(Timers &timers) {
+void setupArduinoPressureSensor() {
   // TODO: Don't hardcode filter values and consider where this filter actually
   // belongs
   static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
@@ -62,7 +62,7 @@ void setupArduinoPressureSensor(Timers &timers) {
   });
 }
 
-void setupArduinoTempSensor(Timers &timers) {
+void setupArduinoTempSensor() {
   static Adafruit_MAX31865 thermo(BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
   thermo.begin();
 
@@ -94,7 +94,7 @@ void setupArduinoSolenoid() {
       [](bool pinStatus) { digitalWrite(BREW_SOLENOID_PIN, pinStatus); });
 }
 
-void setupArduinoPump(Timers &timers) {
+void setupArduinoPump() {
   static DimmableLight pump(PUMP_DIMMER_OUT);
 
   DimmableLight::setSyncPin(PUMP_DIMMER_ZC);
@@ -103,33 +103,32 @@ void setupArduinoPump(Timers &timers) {
   static Signal<uint8_t> pumpPower(0);
   pumpPower.createEffect([](uint8_t power) { pump.setBrightness(power); });
 
-  setupPumpPID(timers, pumpPower);
+  setupPumpPID(pumpPower);
 }
 
-void setupArduinoBoiler(Timers &timers) {
+void setupArduinoBoiler() {
   static Signal<bool> outputState(false);
 
-  setupBoilerPID(timers, outputState);
+  setupBoilerPID(outputState);
 
   pinMode(BOILER_SSR_PIN, OUTPUT);
   outputState.createEffect(
       [](bool status) { digitalWrite(BOILER_SSR_PIN, status); });
 };
 
-void setupArduinoHAL(Timers &timers) {
+void setupArduinoHAL() {
   // Turn on board power LED
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
-  setupArduinoPressureSensor(timers);
-  setupArduinoTempSensor(timers);
+  setupArduinoPressureSensor();
+  setupArduinoTempSensor();
   setupArduinoSolenoid();
-  setupArduinoPump(timers);
-  setupArduinoBoiler(timers);
+  setupArduinoPump();
+  setupArduinoBoiler();
 }
 
-void setupArduinoAPI(APIHandler &handler, Timers &timers,
-                     StateUpdateMessage_t &stateUpdateMessage) {
+void setupArduinoAPI(APIHandler &handler, StateUpdateMessage_t &stateUpdateMessage) {
   LittleFS.begin();
 
   Serial.begin(115200);

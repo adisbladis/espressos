@@ -1,21 +1,19 @@
 #pragma once
 
-#include "../lib/timers.hpp"
 #include "time.hpp"
 
 #ifdef ARDUINO
 #include "arduino/setup.hpp"
 #endif
 
-void setupHAL(Timers &timers) {
+void setupHAL() {
 #ifdef ARDUINO
-  setupArduinoHAL(timers);
+  setupArduinoHAL();
 #endif
 };
 
-void setupAPI(APIHandler &handler, Timers &timers,
-              StateUpdateMessage_t &stateUpdateMessage) {
+void setupAPI(APIHandler &handler, StateUpdateMessage_t &stateUpdateMessage) {
 #ifdef ARDUINO
-  setupArduinoAPI(handler, timers, stateUpdateMessage);
+  setupArduinoAPI(handler, stateUpdateMessage);
 #endif
 }

@@ -8,14 +8,12 @@
 #include "lib/timers.hpp"
 #include "timers.hpp"
 
-static Timers apiTimers;
-
 void setup() {
   {
     // Initialise the FSM
     fsm_list::start();
 
-    setupHAL(timers);
+    setupHAL();
   }
 
   // Set up user IO
@@ -24,7 +22,7 @@ void setup() {
 
     static APIHandler apiHandler;
 
-    setupAPI(apiHandler, apiTimers, stateUpdateMessage);
+    setupAPI(apiHandler, stateUpdateMessage);
 
     // Set up effects that update the API state
     setupAPIEffects(stateUpdateMessage);
@@ -34,5 +32,4 @@ void setup() {
 void loop() {
   Timestamp_t now = millis();
   timers.loop(now);
-  apiTimers.loop(now);
 }
