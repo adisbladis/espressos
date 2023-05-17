@@ -19,12 +19,8 @@ class Pumping;
 class Steaming;
 
 /* Events */
-struct PowerOnEvent : tinyfsm::Event {
-  std::uint16_t setpoint;
-};
-struct StartSteamEvent : tinyfsm::Event {
-  std::uint16_t setpoint;
-};
+struct PowerOnEvent : tinyfsm::Event {};
+struct StartSteamEvent : tinyfsm::Event {};
 
 struct PanicEvent : tinyfsm::Event {};
 struct PowerOffEvent : tinyfsm::Event {};
@@ -53,9 +49,4 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(RinseStopEvent const &){};
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
-
-protected:
-  // Store the previous boiler setpoint when entering steam mode
-  // so we can easily transition back into idle mode with the correct setpoint.
-  static std::uint16_t prevSetpoint;
 };

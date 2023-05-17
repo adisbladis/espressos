@@ -22,6 +22,16 @@ class MachineSignals : public tinyfsm::Fsm<MachineSignals> {
 
   void react(PressureEvent const &e) { pressure = e.pressure; };
   void react(TempEvent const &e) { temp = e.temp; };
+  void react(SetpointSetEvent const &e) {
+    // Ignore event if we're not in any active mode
+    switch (mode.get()) {
+    case MachineMode::PANIC:
+    case MachineMode::OFF:
+      return;
+    }
+
+    setpoint = e.setpoint;
+  };
 
 public:
   static Signal<bool> solenoid;

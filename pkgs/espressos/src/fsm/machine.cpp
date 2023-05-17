@@ -41,10 +41,7 @@ class Off : public MachineState {
     ::MachineSignals::mode = MachineMode::OFF;
   };
 
-  void react(PowerOnEvent const &e) override {
-    ::MachineSignals::setpoint = e.setpoint;
-    transit<Idle>();
-  }
+  void react(PowerOnEvent const &e) override { transit<Idle>(); }
 };
 
 // Idle state - Meaning just sitting around with the boiler on
@@ -52,23 +49,17 @@ class Idle : public MachineState {
   void entry() override {
     ::MachineSignals::solenoid = false;
     ::MachineSignals::mode = MachineMode::IDLE;
+    ::MachineSignals::setpoint = ::MachineSignals::config.get().get_setpoint();
   };
   void exit() override {}
 
-  void react(PowerOnEvent const &e) override {
-    ::MachineSignals::setpoint = e.setpoint;
-    transit<Idle>();
-  }
+  void react(PowerOnEvent const &e) override { transit<Idle>(); }
 
   void react(BrewStartEvent const &e) override { transit<Brewing>(); }
 
   void react(StartPumpEvent const &e) override { transit<Pumping>(); }
 
-  void react(StartSteamEvent const &e) override {
-    prevSetpoint = ::MachineSignals::setpoint.get();
-    ::MachineSignals::setpoint = e.setpoint;
-    transit<Steaming>();
-  }
+  void react(StartSteamEvent const &e) override { transit<Steaming>(); }
 
   void react(BackflushStartEvent const &e) override { transit<Backflushing>(); }
 
@@ -119,15 +110,14 @@ class Pumping : public MachineState {
 class Steaming : public MachineState {
   void entry() override {
     ::MachineSignals::mode = MachineMode::STEAMING;
+    ::MachineSignals::setpoint =
+        ::MachineSignals::config.get().get_steamSetPoint();
 
     timeout = timers.setTimeout(STEAM_TIMEOUT,
                                 []() { send_event(StopSteamEvent()); });
   };
 
-  void exit() override {
-    ::MachineSignals::setpoint = prevSetpoint;
-    timeout->cancel();
-  };
+  void exit() override { timeout->cancel(); };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
 
@@ -148,8 +138,6 @@ void MachineState::react(PowerOffEvent const &e) {
 
 // All modes are allowed to enter the panic state
 void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
-
-std::uint16_t MachineState::prevSetpoint = 0;
 
 Timeout_t Steaming::timeout = timers.setTimeout(0, DummyFunc);
 

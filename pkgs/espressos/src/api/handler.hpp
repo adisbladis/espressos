@@ -17,9 +17,7 @@ private:
   Cmd_t cmd;
 
   static void handle(const uint8_t *requestID, const PowerOn &cmd) {
-    PowerOnEvent powerOnEvent;
-    powerOnEvent.setpoint = cmd.get_setpoint();
-    send_event(powerOnEvent);
+    send_event(PowerOnEvent());
   };
 
   static void handle(const uint8_t *requestID, const PowerOff &cmd) {
@@ -43,9 +41,7 @@ private:
   };
 
   static void handle(const uint8_t *requestID, const StartSteam &cmd) {
-    StartSteamEvent startSteamEvent;
-    startSteamEvent.setpoint = cmd.get_setpoint();
-    send_event(startSteamEvent);
+    send_event(StartSteamEvent());
   };
 
   static void handle(const uint8_t *requestID, const StopSteam &cmd) {
@@ -88,6 +84,12 @@ private:
     ConfigSetEvent e;
     e.config = config;
     send_event(e);
+  };
+
+  static void handle(const uint8_t *requestID, const SetpointSet &cmd) {
+    SetpointSetEvent event;
+    event.setpoint = cmd.get_setpoint();
+    send_event(event);
   };
 
 public:
@@ -187,6 +189,9 @@ public:
       break;
     case Cmd_t::FieldNumber::BREW_TARGET_SET:
       handle(requestID, cmd.get_brew_target_set());
+      break;
+    case Cmd_t::FieldNumber::SETPOINT_SET:
+      handle(requestID, cmd.get_setpoint_set());
       break;
     default:
       error = "Logic error: Unhandled switch case";

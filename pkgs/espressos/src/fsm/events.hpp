@@ -39,3 +39,7 @@ struct BrewTargetEvent : tinyfsm::Event {
 struct ConfigSetEvent : tinyfsm::Event {
   Config config;
 };
+
+struct SetpointSetEvent : tinyfsm::Event {
+  uint16_t setpoint;
+};

@@ -12,12 +12,7 @@ message BrewTarget {
   uint32 value = 2;
 }
 
-message PowerOn {
-  // Setpoint represented as a hundredth of a degree celsius
-  // i.e. you'll get the real decimal representation by multiplying
-  // this number by 100.
-  uint32 setpoint = 1;
-}
+message PowerOn { }
 message PowerOff { }
 
 message StartBrew {
@@ -29,12 +24,7 @@ message StopBrew { }
 message StartPump { }
 message StopPump { }
 
-message StartSteam {
-  // Setpoint represented as a hundredth of a degree celsius
-  // i.e. you'll get the real decimal representation by multiplying
-  // this number by 100.
-  uint32 setpoint = 1;
-}
+message StartSteam { }
 message StopSteam { }
 
 message BackflushStart { }
@@ -42,6 +32,10 @@ message BackflushStop { }
 
 message RinseStart { }
 message RinseStop { }
+
+message SetpointSet {
+  uint32 setpoint = 1;
+}
 
 message Command {
   // A unique client-generated request identifier.
@@ -72,6 +66,8 @@ message Command {
     RinseStop rinse_stop = 14;
 
     BrewTarget brew_target_set = 15;
+
+    SetpointSet setpoint_set = 16;
   }
 };
 

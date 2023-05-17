@@ -250,7 +250,7 @@ const App: Component = () => {
                   <button
                     class="btn m-1 btn-lg"
                     onClick={() =>
-                      client.powerOn((state.setpoint / 100 + 1) * 100)
+                      client.setpointSet((state.setpoint / 100 + 1) * 100)
                     }
                   >
                     ➕
@@ -261,7 +261,7 @@ const App: Component = () => {
                   <button
                     class="btn m-1 btn-lg"
                     onClick={() =>
-                      client.powerOn((state.setpoint / 100 - 1) * 100)
+                      client.setpointSet((state.setpoint / 100 - 1) * 100)
                     }
                   >
                     ➖

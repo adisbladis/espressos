@@ -13,6 +13,7 @@ import {
   Event,
   BrewTarget,
   BrewTargetMode,
+  SetpointSet,
 } from "./proto/api";
 
 const mkRequestId = (): Uint8Array => new Uint8Array(uuidv4(null, []));
@@ -190,6 +191,18 @@ export class APIClient {
         brewTargetSet: <BrewTarget>{
           mode: BrewTargetMode.POWER,
           value: power,
+        },
+      },
+    });
+  }
+
+  async setpointSet(setpoint: number): Promise<void> {
+    await this.sendCommand({
+      requestId: mkRequestId(),
+      commandOneof: {
+        $case: "setpointSet",
+        setpointSet: <SetpointSet>{
+          setpoint: setpoint,
         },
       },
     });

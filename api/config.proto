@@ -22,6 +22,9 @@ message BoilerConfig {
 message Config {
   BoilerConfig boiler = 1;
 
+  // Setpoint represented as a hundredth of a degree celsius
+  // i.e. you'll get the real decimal representation by multiplying
+  // this number by 100.
   uint32 setpoint = 2;
   uint32 steamSetPoint = 3;
 }
