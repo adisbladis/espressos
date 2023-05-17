@@ -16,59 +16,59 @@ private:
   // Reuse command for every call to handle
   Cmd_t cmd;
 
-  void handle(const uint8_t *requestID, const PowerOn &cmd) {
+  static void handle(const uint8_t *requestID, const PowerOn &cmd) {
     PowerOnEvent powerOnEvent;
     powerOnEvent.setpoint = cmd.get_setpoint();
     send_event(powerOnEvent);
   };
 
-  void handle(const uint8_t *requestID, const PowerOff &cmd) {
+  static void handle(const uint8_t *requestID, const PowerOff &cmd) {
     send_event(PowerOffEvent());
   };
 
-  void handle(const uint8_t *requestID, const StartBrew &cmd) {
+  static void handle(const uint8_t *requestID, const StartBrew &cmd) {
     send_event(BrewStartEvent());
   };
 
-  void handle(const uint8_t *requestID, const StopBrew &cmd) {
+  static void handle(const uint8_t *requestID, const StopBrew &cmd) {
     send_event(BrewStopEvent());
   };
 
-  void handle(const uint8_t *requestID, const StartPump &cmd) {
+  static void handle(const uint8_t *requestID, const StartPump &cmd) {
     send_event(StartPumpEvent());
   };
 
-  void handle(const uint8_t *requestID, const StopPump &cmd) {
+  static void handle(const uint8_t *requestID, const StopPump &cmd) {
     send_event(StopPumpEvent());
   };
 
-  void handle(const uint8_t *requestID, const StartSteam &cmd) {
+  static void handle(const uint8_t *requestID, const StartSteam &cmd) {
     StartSteamEvent startSteamEvent;
     startSteamEvent.setpoint = cmd.get_setpoint();
     send_event(startSteamEvent);
   };
 
-  void handle(const uint8_t *requestID, const StopSteam &cmd) {
+  static void handle(const uint8_t *requestID, const StopSteam &cmd) {
     send_event(StopSteamEvent());
   };
 
-  void handle(const uint8_t *requestID, const BackflushStart &cmd) {
+  static void handle(const uint8_t *requestID, const BackflushStart &cmd) {
     send_event(BackflushStartEvent());
   };
 
-  void handle(const uint8_t *requestID, const BackflushStop &cmd) {
+  static void handle(const uint8_t *requestID, const BackflushStop &cmd) {
     send_event(BackflushStopEvent());
   };
 
-  void handle(const uint8_t *requestID, const RinseStart &cmd) {
+  static void handle(const uint8_t *requestID, const RinseStart &cmd) {
     send_event(RinseStartEvent());
   };
 
-  void handle(const uint8_t *requestID, const RinseStop &cmd) {
+  static void handle(const uint8_t *requestID, const RinseStop &cmd) {
     send_event(RinseStopEvent());
   };
 
-  void handle(const uint8_t *requestID, const BrewTarget &cmd) {
+  static void handle(const uint8_t *requestID, const BrewTarget &cmd) {
     BrewTargetEvent brewTargetEvent;
     brewTargetEvent.value = cmd.get_value();
 
@@ -84,7 +84,7 @@ private:
     send_event(brewTargetEvent);
   };
 
-  void handle(const uint8_t *requestID, const Config &config) {
+  static void handle(const uint8_t *requestID, const Config &config) {
     ConfigSetEvent e;
     e.config = config;
     send_event(e);
