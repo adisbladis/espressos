@@ -113,6 +113,7 @@ public:
 
     auto log = event.get_log();
 
+    // NOLINTBEGIN(bugprone-branch-clone)
     switch (level) {
     case LogLevel::ERROR:
       log.set_logLevel(LogMessage_t::LogLevel::ERROR);
@@ -127,6 +128,7 @@ public:
       log.set_logLevel(LogMessage_t::LogLevel::INFO);
       break;
     }
+    // NOLINTEND(bugprone-branch-clone)
 
     auto fs = log.get_msg();
     fs.set(logMessageBuf, strlen(logMessageBuf) > LOG_MESSAGE_SIZE

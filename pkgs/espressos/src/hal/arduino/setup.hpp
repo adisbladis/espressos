@@ -34,7 +34,8 @@ void setupArduinoPressureSensor() {
   // Calculate the usable range of values from the ADC
   // A value of 0.8 means that we "lose" 20% of ADC range
   // as the sensor has a voltage range from 0.5v to 4.5v with a VCC of 5v.
-  static std::uint16_t floor = (1024 - (1024 * PRESSURE_SENSOR_RANGE)) / 2;
+  static std::uint16_t floor =
+      static_cast<std::uint16_t>((1024 - (1024 * PRESSURE_SENSOR_RANGE)) / 2);
   static std::uint16_t ceil = 1024 - floor;
 
   // We can calculate the floor nicely, but in reality these values have some
@@ -64,7 +65,8 @@ void setupArduinoPressureSensor() {
     }
 
     if (!clamped) {
-      value = pressureKalmanFilter.updateEstimate(value);
+      value = static_cast<int>(
+          pressureKalmanFilter.updateEstimate(static_cast<float>(value)));
     }
 
     PressureEvent e;
@@ -92,8 +94,8 @@ void setupArduinoTempSensor() {
       }
 
       TempEvent tempEvent;
-      tempEvent.temp =
-          thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100;
+      tempEvent.temp = static_cast<int16_t>(
+          thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100);
       send_event(tempEvent);
     }
   });
