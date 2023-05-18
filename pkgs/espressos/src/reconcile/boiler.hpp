@@ -7,6 +7,7 @@
 #include "../fsm/signals.hpp"
 #include "../lib/signal.hpp"
 #include "../lib/timers.hpp"
+#include "../proto/config.h"
 #include "../timers.hpp"
 
 void setupBoilerPID(Signal<bool> &outputState) {
@@ -17,6 +18,12 @@ void setupBoilerPID(Signal<bool> &outputState) {
 
   boilerPID.SetSampleTime(SampleTime);
   boilerPID.SetMode(AUTOMATIC);
+
+  ::MachineSignals::config.createEffect([](Config config) {
+    auto pidConfig = config.mutable_boiler().mutable_PID();
+    boilerPID.SetTunings(pidConfig.get_P(), pidConfig.get_I(),
+                         pidConfig.get_D());
+  });
 
   ::MachineSignals::setpoint.createEffect(
       [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
