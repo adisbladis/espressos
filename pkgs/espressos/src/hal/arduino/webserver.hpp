@@ -36,8 +36,7 @@ private:
 
   // Preallocate a single event and re-use by setting oneof (also make sure to
   // reset requestId)
-  Event<UUID_SIZE, ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE>
-      event;
+  Event<UUID_SIZE, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE> event;
 
   bool hasClients() { return this->server.connectedClients() > 0; };
 
@@ -146,8 +145,7 @@ public:
 
   void close() { this->server.close(); }
 
-  void broadcastState(
-      StateUpdate<ERROR_MESSAGE_SIZE, ERROR_MESSAGE_SIZE> &stateUpdateMessage) {
+  void broadcastState(StateUpdate<ERROR_MESSAGE_SIZE> &stateUpdateMessage) {
     if (!this->hasClients()) {
       return;
     }

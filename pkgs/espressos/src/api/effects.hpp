@@ -11,17 +11,12 @@ void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
       [&](int setpoint) { stateUpdateMessage.set_setpoint(setpoint); });
 
   // Set boiler temp in API server
-  ::MachineSignals::temp.createEffect([&](std::int16_t temp) {
-    auto boilerTempMsg = stateUpdateMessage.mutable_boilerTemp();
-    boilerTempMsg.set_value(temp);
-    stateUpdateMessage.set_boilerTemp(boilerTempMsg);
-  });
+  ::MachineSignals::temp.createEffect(
+      [&](std::int16_t temp) { stateUpdateMessage.set_boilerTemp(temp); });
 
   // Set pressure in API server
   ::MachineSignals::pressure.createEffect([&](std::uint16_t pressure) {
-    auto pressureMsg = stateUpdateMessage.mutable_pressure();
-    pressureMsg.set_value(pressure);
-    stateUpdateMessage.set_pressure(pressureMsg);
+    stateUpdateMessage.set_pressure(pressure);
   });
 
   ::MachineSignals::shotStartTime.createEffect([&](uint32_t ts) {
@@ -51,6 +46,16 @@ void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
     }
 
     stateUpdateMessage.set_brew_target(brewTarget);
+  });
+
+  // Set panic reason
+  ::MachineSignals::panicReason.createEffect([&](std::string panicReason) {
+    auto fs = stateUpdateMessage.mutable_panic_reason();
+    auto pr = panicReason.c_str();
+
+    fs.set(pr,
+           strlen(pr) > ERROR_MESSAGE_SIZE ? ERROR_MESSAGE_SIZE : strlen(pr));
+    stateUpdateMessage.set_panic_reason(fs);
   });
 
   // Set current time

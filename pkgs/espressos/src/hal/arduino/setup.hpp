@@ -60,7 +60,16 @@ void setupArduinoPressureSensor() {
     }
 
     if (value < floor || value > ceil) {
-      send_event(PanicEvent());
+      PanicEvent event;
+
+      if (value < floor) {
+        event.reason = "Pressure sensor underflow";
+      } else {
+        event.reason = "Pressure sensor overflow";
+      }
+
+      send_event(event);
+
       return;
     }
 
@@ -89,7 +98,30 @@ void setupArduinoTempSensor() {
 
       if (fault) {
         thermo.clearFault();
-        send_event(PanicEvent());
+
+        std::string reason = "RTD Error: ";
+        if (fault & MAX31865_FAULT_HIGHTHRESH) {
+          reason += "RTD High Threshold\n";
+        }
+        if (fault & MAX31865_FAULT_LOWTHRESH) {
+          reason += "RTD Low Threshold\n";
+        }
+        if (fault & MAX31865_FAULT_REFINLOW) {
+          reason += "REFIN- > 0.85 x Bias";
+        }
+        if (fault & MAX31865_FAULT_REFINHIGH) {
+          reason += "REFIN- < 0.85 x Bias - FORCE- open\n";
+        }
+        if (fault & MAX31865_FAULT_RTDINLOW) {
+          reason += "RTDIN- < 0.85 x Bias - FORCE- open\n";
+        }
+        if (fault & MAX31865_FAULT_OVUV) {
+          reason += "Under/Over voltage\n";
+        }
+
+        PanicEvent event;
+        event.reason = reason;
+        send_event(event);
         return;
       }
 

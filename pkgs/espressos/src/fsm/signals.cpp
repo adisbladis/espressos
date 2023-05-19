@@ -27,6 +27,8 @@ Signal<Config> MachineSignals::config(([]() {
   return config;
 })());
 
+Signal<std::string> MachineSignals::panicReason("");
+
 class MachineSignalsListening : public MachineSignals {};
 
 FSM_INITIAL_STATE(MachineSignals, MachineSignalsListening)

@@ -60,4 +60,7 @@ public:
 
   // Current configuration
   static Signal<Config> config;
+
+  // If we're in panic a reason can be provided
+  static Signal<std::string> panicReason;
 };

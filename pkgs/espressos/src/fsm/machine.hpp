@@ -22,7 +22,9 @@ class Steaming;
 struct PowerOnEvent : tinyfsm::Event {};
 struct StartSteamEvent : tinyfsm::Event {};
 
-struct PanicEvent : tinyfsm::Event {};
+struct PanicEvent : tinyfsm::Event {
+  std::string reason;
+};
 struct PowerOffEvent : tinyfsm::Event {};
 struct StartPumpEvent : tinyfsm::Event {};
 struct StopPumpEvent : tinyfsm::Event {};

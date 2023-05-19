@@ -73,19 +73,6 @@ message Command {
 
 /* Events sent by the server */
 
-message Uint32Result {
-  oneof result {
-    uint32 value = 1;
-    string error = 2;
-  }
-};
-message Int32Result {
-  oneof result {
-    int32 value = 1;
-    string error = 2;
-  }
-};
-
 enum MachineMode {
   UNKNOWN = 0;
   PANIC = 1;
@@ -116,8 +103,8 @@ message ShotTimer {
 
 message StateUpdate {
   MachineMode mode = 1;
-  Int32Result boilerTemp = 2;
-  Uint32Result pressure = 3;
+  int32 boilerTemp = 2;
+  uint32 pressure = 3;
   int32 setpoint = 4;
 
   // Current time of machine since startup in milliseconds
@@ -132,6 +119,8 @@ message StateUpdate {
 
   ShotTimer shot_timer = 6;
   BrewTarget brew_target = 7;
+
+  string panic_reason = 8;
 }
 
 message LogMessage {

@@ -94,28 +94,6 @@ const Chart: Component = () => {
     },
   ];
 
-  const unpackUint32Result = (x: Uint32Result["result"]): number => {
-    switch (x.$case) {
-      case "value":
-        return x.value;
-      case "error":
-        return -1; // Sentinel error value
-      default:
-        throw new Error("Case unhandled");
-    }
-  };
-
-  const unpackInt32Result = (x: Int32Result["result"]): number => {
-    switch (x.$case) {
-      case "value":
-        return x.value;
-      case "error":
-        return -1; // Sentinel error value
-      default:
-        throw new Error("Case unhandled");
-    }
-  };
-
   const interval = setInterval(() => {
     for (let i = 0; i < chart.data.datasets.length; i++) {
       const dataset = chart.data.datasets[i];
@@ -126,10 +104,10 @@ const Chart: Component = () => {
 
       switch (dataset.label) {
         case "Temp":
-          value = unpackInt32Result(state.boilerTemp.result) / 100;
+          value = state.boilerTemp / 100;
           break;
         case "Pressure":
-          value = unpackUint32Result(state.pressure.result) / 1000;
+          value = state.pressure / 1000;
           break;
       }
 

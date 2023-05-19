@@ -34,7 +34,9 @@ void setupPumpPID(Signal<uint8_t> &pumpPower) {
     default:
       // We don't know what we're doing, the only safe thing to do is to
       // stop.
-      send_event(PanicEvent());
+      PanicEvent event;
+      event.reason = "Unknown pump mode";
+      send_event(event);
     }
 
     lastPumpTarget = pumpTarget;

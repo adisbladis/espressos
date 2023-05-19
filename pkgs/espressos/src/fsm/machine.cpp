@@ -137,7 +137,10 @@ void MachineState::react(PowerOffEvent const &e) {
 }
 
 // All modes are allowed to enter the panic state
-void MachineState::react(PanicEvent const &e) { transit<Panic>(); }
+void MachineState::react(PanicEvent const &e) {
+  ::MachineSignals::panicReason = e.reason;
+  transit<Panic>();
+}
 
 Timeout_t Steaming::timeout = timers.setTimeout(0, DummyFunc);
 

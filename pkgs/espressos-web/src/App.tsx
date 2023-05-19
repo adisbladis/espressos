@@ -60,17 +60,6 @@ client.onEvent("*", (event: Event) => {
   switch (event.eventOneof.$case) {
     case "stateUpdate":
       setState(event.eventOneof.stateUpdate);
-
-      const temp = event.eventOneof.stateUpdate.boilerTemp.result;
-      if (temp.$case == "error") {
-        console.error(temp);
-      }
-
-      const pressure = event.eventOneof.stateUpdate.pressure.result;
-      if (pressure.$case == "error") {
-        console.error(pressure);
-      }
-
       break;
     case "config":
       setConfig(event.eventOneof.config);
@@ -325,33 +314,9 @@ const App: Component = () => {
                 <ul>
                   <li>Mode: {modeSymbol()}</li>
 
-                  <li>
-                    Temp:{" "}
-                    {((): string => {
-                      switch (state.boilerTemp.result.$case) {
-                        case "value":
-                          return `${(
-                            state.boilerTemp.result.value / 100
-                          ).toFixed(2)}°C`;
-                        case "error":
-                          return "ERR";
-                      }
-                    })()}
-                  </li>
+                  <li>Temp: {(state.boilerTemp / 100).toFixed(2)}°C</li>
 
-                  <li>
-                    Pressure:{" "}
-                    {((): string => {
-                      switch (state.pressure.result.$case) {
-                        case "value":
-                          return `${(
-                            state.pressure.result.value / 1000
-                          ).toFixed(2)} bar`;
-                        case "error":
-                          return "ERR";
-                      }
-                    })()}
-                  </li>
+                  <li>Pressure: {(state.pressure / 1000).toFixed(2)} bar</li>
 
                   <li>Timer: {shotTimer}</li>
                 </ul>
