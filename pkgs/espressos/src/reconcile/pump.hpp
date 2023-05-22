@@ -21,7 +21,7 @@ void setupPumpPID(Signal<uint8_t> &pumpPower) {
   pressureProfilePID.SetSampleTime(SampleTime);
 
   // React to state machine pump changes
-  ::MachineSignals::pump.createEffect([&](PumpTarget pumpTarget) {
+  ::MachineSignals::pump.createEffect([&](const PumpTarget &pumpTarget) {
     switch (pumpTarget.mode) {
     case PumpMode::POWER:
       // Remap value into uint8 range used by dimmer and apply

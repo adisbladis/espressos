@@ -74,16 +74,11 @@ class Brewing : public MachineState {
   void react(BrewStopEvent const &e) override { transit<Idle>(); }
 
   void entry() override {
-    ::MachineSignals::solenoid = true;
     ::MachineSignals::mode = MachineMode::BREWING;
     send_event(BrewStartingEvent());
   };
 
-  void exit() override {
-    ::MachineSignals::solenoid = false;
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
-    send_event(BrewStoppingEvent());
-  };
+  void exit() override { send_event(BrewStoppingEvent()); };
 };
 
 class Backflushing : public MachineState {

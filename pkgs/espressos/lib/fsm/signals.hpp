@@ -40,9 +40,6 @@ public:
   // Boiler setpoint
   static Signal<std::uint16_t> setpoint;
 
-  // Current FSM timestamp
-  static Signal<Timestamp_t> timestamp;
-
   // Current FSM pressure
   static Signal<std::uint16_t> pressure;
 

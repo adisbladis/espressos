@@ -59,10 +59,6 @@ void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
   });
 
   // Set current time
-  ::MachineSignals::timestamp.createEffect(
-      [&](Timestamp_t timestamp) { stateUpdateMessage.set_millis(timestamp); });
-
-  // Set mode in API server
-  ::MachineSignals::mode.createEffect(
-      [&](MachineMode mode) { stateUpdateMessage.set_mode(mode); });
+  stateUpdateMessage.set_millis(millis());
+  stateUpdateMessage.set_mode(MachineSignals::mode.get());
 }

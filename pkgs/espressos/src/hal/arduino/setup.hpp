@@ -137,8 +137,9 @@ void setupArduinoTempSensor() {
 
 void setupArduinoSolenoid() {
   pinMode(BREW_SOLENOID_PIN, OUTPUT);
-  MachineSignals::solenoid.createEffect(
-      [](bool pinStatus) { digitalWrite(BREW_SOLENOID_PIN, pinStatus); });
+  MachineSignals::solenoid.createEffect([](const bool &pinStatus) {
+    digitalWrite(BREW_SOLENOID_PIN, pinStatus);
+  });
 }
 
 void setupArduinoPump() {
@@ -148,7 +149,8 @@ void setupArduinoPump() {
   DimmableLight::begin();
 
   static Signal<uint8_t> pumpPower(0);
-  pumpPower.createEffect([](uint8_t power) { pump.setBrightness(power); });
+  pumpPower.createEffect(
+      [](const uint8_t &power) { pump.setBrightness(power); });
 
   setupPumpPID(pumpPower);
 }
@@ -160,7 +162,7 @@ void setupArduinoBoiler() {
 
   pinMode(BOILER_SSR_PIN, OUTPUT);
   outputState.createEffect(
-      [](bool status) { digitalWrite(BOILER_SSR_PIN, status); });
+      [](const bool &status) { digitalWrite(BOILER_SSR_PIN, status); });
 };
 
 void setupArduinoConfig() {
@@ -247,7 +249,7 @@ void setupArduinoAPI() {
         });
 
     // Set state update interval depending in the machine mode
-    ::MachineSignals::mode.createEffect([](MachineMode mode) {
+    ::MachineSignals::mode.createEffect([](const MachineMode &mode) {
       if (mode == MachineMode::UNKNOWN || mode == MachineMode::PANIC ||
           mode == MachineMode::OFF || mode == MachineMode::IDLE) {
         stateUpdateTimer->interval = STATE_UPDATE_INTERVAL;

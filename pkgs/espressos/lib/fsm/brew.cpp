@@ -17,11 +17,15 @@ class BrewDone : public BrewState {
 
 // While brewing
 class BrewActive : public BrewState {
-  void entry() override { ::MachineSignals::shotStartTime = millis(); };
+  void entry() override {
+    ::MachineSignals::shotStartTime = millis();
+    ::MachineSignals::solenoid = true;
+  };
 
   void exit() override {
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, 0};
     ::MachineSignals::shotStopTime = millis();
+    ::MachineSignals::solenoid = false;
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
   };
 
   // Only allow setting target pressure while we're actually brewing.

@@ -20,14 +20,14 @@ void setupBoilerPID(Signal<bool> &outputState) {
   boilerPID.SetSampleTime(SampleTime);
   boilerPID.SetMode(AUTOMATIC);
 
-  ::MachineSignals::config.createEffect([](Config config) {
-    auto pidConfig = config.mutable_boiler().mutable_PID();
+  ::MachineSignals::config.createEffect([](const Config &config) {
+    auto pidConfig = config.get_boiler().get_PID();
     boilerPID.SetTunings(pidConfig.get_P(), pidConfig.get_I(),
                          pidConfig.get_D());
   });
 
   ::MachineSignals::setpoint.createEffect(
-      [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
+      [](const std::uint16_t &setpoint) { boilerPID.SetSetpoint(setpoint); });
 
   getEventLoop().createInterval(SampleTime, [&]() {
     std::int16_t temp = ::MachineSignals::temp.get();

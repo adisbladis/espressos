@@ -8,7 +8,7 @@
 // Wraps a value and calls side effects on update
 template <typename T> class Signal {
 private:
-  std::vector<std::function<void(T)>> effects;
+  std::vector<std::function<void(const T &)>> effects;
   T value;
 
 public:
@@ -32,14 +32,14 @@ public:
     }
   }
 
-  void createEffect(std::function<void(T)> effect, bool eager) {
+  void createEffect(std::function<void(const T &)> effect, bool eager) {
     effects.push_back(effect);
     if (eager) {
       effect(value);
     }
   };
 
-  void createEffect(std::function<void(T)> effect) {
+  void createEffect(std::function<void(const T &)> effect) {
     createEffect(effect, true);
   };
 };
