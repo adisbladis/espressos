@@ -11,11 +11,12 @@
 #include <cstdint>
 #include <dimmable_light.h>
 
+#include <Map.hpp>
+#include <Timers.hpp>
+
 #include "../../api/handler.hpp"
 #include "../../fsm//fsmlist.hpp"
 #include "../../fsm//signals.hpp"
-#include "../../lib/map.hpp"
-#include "../../lib/timers.hpp"
 #include "../../reconcile/boiler.hpp"
 #include "../../reconcile/pump.hpp"
 #include "ota.hpp"

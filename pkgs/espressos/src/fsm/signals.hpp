@@ -3,8 +3,9 @@
 #include <cstdint>
 #include <tinyfsm.hpp>
 
-#include "../hal/time.hpp"
-#include "../lib/signal.hpp"
+#include <Signal.hpp>
+#include <Time.hpp>
+
 #include "../proto/api.h"
 #include "../proto/config.h"
 #include "events.hpp"

@@ -6,7 +6,7 @@
 #include <set>
 #include <vector>
 
-#include "../hal/time.hpp"
+#include <Time.hpp>
 
 struct Timer {
   Timestamp_t last;

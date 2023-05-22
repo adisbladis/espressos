@@ -4,7 +4,8 @@
 #include <iostream>
 #include <tinyfsm.hpp>
 
-#include "../hal/time.hpp"
+#include <Time.hpp>
+
 #include "../proto/config.h"
 
 // The general flow around an action is as follows (using backflushing as an

@@ -1,5 +1,6 @@
+#include <Time.hpp>
+
 #include "signals.hpp"
-#include "../hal/time.hpp"
 
 Signal<bool> MachineSignals::solenoid(false);
 Signal<std::uint16_t> MachineSignals::setpoint(0);

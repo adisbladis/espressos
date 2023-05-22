@@ -1,11 +1,12 @@
 #include <cstdint>
 
+#include <Timers.hpp>
+
 #include "api/effects.hpp"
 #include "api/handler.hpp"
 #include "api/types.hpp"
 #include "fsm/fsmlist.hpp"
 #include "hal/setup.hpp"
-#include "lib/timers.hpp"
 #include "timers.hpp"
 
 void setup() {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib/timers.hpp"
+#include <Timers.hpp>
 
 // The global timers singleton
 inline Timers timers;

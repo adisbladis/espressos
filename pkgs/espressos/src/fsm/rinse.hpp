@@ -2,7 +2,8 @@
 
 #include <tinyfsm.hpp>
 
-#include "../lib/timers.hpp"
+#include <Timers.hpp>
+
 #include "events.hpp"
 
 // This is for quickly rinsing the group head after a shot.

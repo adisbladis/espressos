@@ -1,9 +1,9 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest.h>
 
-#include "lib/map.hpp"
-#include "lib/signal.hpp"
-#include "lib/timers.hpp"
+#include <Map.hpp>
+#include <Signal.hpp>
+#include <Timers.hpp>
 
 TEST_CASE("map") { CHECK(map<long>(512, 0, 1024, 0, 2048) == 1024); }
 

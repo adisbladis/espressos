@@ -3,10 +3,11 @@
 #include <PIDController.hpp>
 #include <cstdint>
 
+#include <Signal.hpp>
+#include <Timers.hpp>
+
 #include "../fsm/fsmlist.hpp"
 #include "../fsm/signals.hpp"
-#include "../lib/signal.hpp"
-#include "../lib/timers.hpp"
 #include "../timers.hpp"
 
 void setupPumpPID(Signal<uint8_t> &pumpPower) {
