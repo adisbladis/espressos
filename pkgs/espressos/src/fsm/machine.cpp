@@ -73,24 +73,36 @@ class Brewing : public MachineState {
   void entry() override {
     ::MachineSignals::solenoid = true;
     ::MachineSignals::mode = MachineMode::BREWING;
+    send_event(BrewStartingEvent());
   };
 
   void exit() override {
     ::MachineSignals::solenoid = false;
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
+    send_event(BrewStoppingEvent());
   };
 };
 
 class Backflushing : public MachineState {
   void react(BackflushStopEvent const &) override { transit<Idle>(); }
 
-  void entry() override { ::MachineSignals::mode = MachineMode::BACKFLUSHING; };
+  void entry() override {
+    ::MachineSignals::mode = MachineMode::BACKFLUSHING;
+    send_event(BackflushStartingEvent());
+  };
+
+  void exit() override { send_event(BackflushStoppingEvent()); };
 };
 
 class Rinsing : public MachineState {
   void react(RinseStopEvent const &e) override { transit<Idle>(); }
 
-  void entry() override { ::MachineSignals::mode = MachineMode::RINSING; };
+  void entry() override {
+    ::MachineSignals::mode = MachineMode::RINSING;
+    send_event(RinseStartingEvent());
+  };
+
+  void exit() override { send_event(RinseStoppingEvent()); };
 };
 
 class Pumping : public MachineState {
@@ -99,10 +111,12 @@ class Pumping : public MachineState {
   void entry() override {
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
     ::MachineSignals::mode = MachineMode::PUMPING;
+    send_event(PumpStartingEvent());
   };
 
   void exit() override {
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
+    send_event(PumpStoppingEvent());
   };
 };
 
@@ -115,9 +129,14 @@ class Steaming : public MachineState {
 
     timeout = timers.setTimeout(STEAM_TIMEOUT,
                                 []() { send_event(StopSteamEvent()); });
+
+    send_event(SteamStartingEvent());
   };
 
-  void exit() override { timeout->cancel(); };
+  void exit() override {
+    timeout->cancel();
+    send_event(SteamStoppingEvent());
+  };
 
   void react(StopSteamEvent const &e) override { transit<Idle>(); }
 

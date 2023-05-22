@@ -14,7 +14,7 @@ class BackflushResting;
 class BackflushDone : public BackflushState {
   void entry() override { activeCount = BACKFLUSH_ACTIVE_COUNT; }
 
-  void react(BackflushStartEvent const &e) override {
+  void react(BackflushStartingEvent const &e) override {
     transit<BackflushActive>();
   }
 };
@@ -65,7 +65,7 @@ protected:
   static Timeout_t timeout;
 };
 
-void BackflushState::react(BackflushStopEvent const &e) {
+void BackflushState::react(BackflushStoppingEvent const &e) {
   transit<BackflushDone>();
 }
 

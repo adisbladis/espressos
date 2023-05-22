@@ -19,16 +19,6 @@ class Pumping;
 class Steaming;
 
 /* Events */
-struct PowerOnEvent : tinyfsm::Event {};
-struct StartSteamEvent : tinyfsm::Event {};
-
-struct PanicEvent : tinyfsm::Event {
-  std::string reason;
-};
-struct PowerOffEvent : tinyfsm::Event {};
-struct StartPumpEvent : tinyfsm::Event {};
-struct StopPumpEvent : tinyfsm::Event {};
-struct StopSteamEvent : tinyfsm::Event {};
 
 /* FSM base class */
 class MachineState : public tinyfsm::Fsm<MachineState> {

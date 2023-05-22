@@ -12,7 +12,7 @@ class BrewActive;
 
 // The resting state, i.e. before/after a brew
 class BrewDone : public BrewState {
-  void react(BrewStartEvent const &e) override { transit<BrewActive>(); }
+  void react(BrewStartingEvent const &e) override { transit<BrewActive>(); }
 };
 
 // While brewing
@@ -41,6 +41,6 @@ class BrewActive : public BrewState {
 };
 
 // We can stop brewing from all states
-void BrewState::react(BrewStopEvent const &e) { transit<BrewDone>(); };
+void BrewState::react(BrewStoppingEvent const &e) { transit<BrewDone>(); };
 
 FSM_INITIAL_STATE(BrewState, BrewDone)

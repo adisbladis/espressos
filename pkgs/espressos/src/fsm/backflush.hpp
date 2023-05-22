@@ -11,16 +11,18 @@
 #define BACKFLUSH_DUTY_CYCLE 5000
 #define BACKFLUSH_ACTIVE_COUNT 5
 
+struct BackflushActivateEvent : tinyfsm::Event {};
+struct BackflushDeactivateEvent : tinyfsm::Event {};
+
 class BackflushState : public tinyfsm::Fsm<BackflushState> {
   friend class tinyfsm::Fsm<BackflushState>;
 
   virtual void entry(void){}; // entry actions in some states
   virtual void exit(void){};  // exit actions in some states
 
-  void react(BackflushStopEvent const &e);
+  void react(BackflushStoppingEvent const &e);
 
-  virtual void react(BackflushStartEvent const &){};
-
+  virtual void react(BackflushStartingEvent const &){};
   virtual void react(BackflushActivateEvent const &){};
   virtual void react(BackflushDeactivateEvent const &){};
 

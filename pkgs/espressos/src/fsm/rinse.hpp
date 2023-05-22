@@ -13,18 +13,15 @@
 
 #define RINSE_DUTY_CYCLE 1000
 
-struct RinseStartEvent : tinyfsm::Event {};
-struct RinseStopEvent : tinyfsm::Event {};
-
 class RinseState : public tinyfsm::Fsm<RinseState> {
   friend class tinyfsm::Fsm<RinseState>;
 
   virtual void entry(void){};
   virtual void exit(void){};
 
-  void react(RinseStopEvent const &e);
+  void react(RinseStoppingEvent const &e);
 
-  virtual void react(RinseStartEvent const &){};
+  virtual void react(RinseStartingEvent const &){};
 
   void react(tinyfsm::Event const &){};
 };

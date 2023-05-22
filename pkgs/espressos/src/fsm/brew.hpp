@@ -19,8 +19,8 @@ class BrewState : public tinyfsm::Fsm<BrewState> {
 
   virtual void react(tinyfsm::Event const &){};
 
-  virtual void react(BrewStartEvent const &){};
-  void react(BrewStopEvent const &);
+  virtual void react(BrewStartingEvent const &){};
+  void react(BrewStoppingEvent const &);
 
   virtual void react(BrewTargetEvent const &){};
 };

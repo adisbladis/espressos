@@ -11,7 +11,7 @@ class RinseActive;
 
 // The resting state, i.e. before/after a rinse.
 class RinseDone : public RinseState {
-  void react(RinseStartEvent const &e) override { transit<RinseActive>(); }
+  void react(RinseStartingEvent const &e) override { transit<RinseActive>(); }
 };
 
 // The active state, during the rinse.
@@ -34,7 +34,7 @@ protected:
   static Timeout_t timeout;
 };
 
-void RinseState::react(RinseStopEvent const &e) { transit<RinseDone>(); }
+void RinseState::react(RinseStoppingEvent const &e) { transit<RinseDone>(); }
 
 Timeout_t RinseActive::timeout = timers.setTimeout(0, DummyFunc);
 
