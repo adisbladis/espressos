@@ -1,60 +1,44 @@
 let
   pkgs = import <nixpkgs> { };
-  inherit (pkgs) lib;
 
-  embeddedproto = pkgs.callPackage
+  embeddedproto = pkgs.python3.pkgs.callPackage
     ({ stdenv
-     , python3
+     , buildPythonApplication
      , fetchFromGitHub
+     , jinja2
+     , markupsafe
+     , six
+     , toposort
      , protobuf
      }:
       let
         pname = "EmbeddedProto";
         version = "3.3.1";
 
-        pythonEnv = python3.withPackages (ps: [
-          ps.jinja2
-          ps.markupsafe
-          ps.protobuf
-          ps.six
-          ps.toposort
-        ]);
-
       in
-      stdenv.mkDerivation {
+      buildPythonApplication {
         inherit pname version;
 
         src = fetchFromGitHub {
           repo = "EmbeddedProto";
-          owner = "Embedded-AMS";
-          rev = "ddebda1f03aeee87b0d5d124300ad2c533f23fd9"; # develop
-          sha256 = "sha256-Lw3Q9gCNLNLyLfwCgFYl/sQeyAvYYJppI7wgFkKTsCU=";
+          owner = "adisbladis";
+          rev = "setuptools";
+          sha256 = "sha256-FUchrDG7xi0qqA+6rovAtdJ6WlHMLTwgslFG12HhFRc=";
         };
 
-        nativeBuildInputs = [ pythonEnv protobuf ];
+        sourceRoot = "source/generator";
 
-        buildPhase = ''
-          runHook preBuild
-          protoc -I generator --python_out=generator embedded_proto_options.proto
-          runHook postBuild
+        postPatch = ''
+          substituteInPlace setup.py --replace "==" ">="
         '';
 
-        installPhase = ''
-          runHook preInstall
-
-          mkdir -p $out/share/EmbeddedProto
-          mv generator $out/share/EmbeddedProto/
-
-          mkdir -p $out/bin
-          cat > $out/bin/protoc-gen-eams <<EOF
-          #!${pkgs.runtimeShell}
-          exec ${pythonEnv.interpreter} $out/share/EmbeddedProto/generator/protoc-gen-eams.py --protoc-plugin "$@"
-          EOF
-          chmod +x $out/bin/protoc-gen-eams
-
-          runHook postInstall
-        '';
-
+        propagatedBuildInputs = [
+          jinja2
+          markupsafe
+          protobuf
+          six
+          toposort
+        ];
       })
     { };
 
