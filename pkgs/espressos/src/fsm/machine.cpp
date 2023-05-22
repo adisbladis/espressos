@@ -57,9 +57,9 @@ class Idle : public MachineState {
 
   void react(BrewStartEvent const &e) override { transit<Brewing>(); }
 
-  void react(StartPumpEvent const &e) override { transit<Pumping>(); }
+  void react(PumpStartEvent const &e) override { transit<Pumping>(); }
 
-  void react(StartSteamEvent const &e) override { transit<Steaming>(); }
+  void react(SteamStartEvent const &e) override { transit<Steaming>(); }
 
   void react(BackflushStartEvent const &e) override { transit<Backflushing>(); }
 
@@ -106,7 +106,7 @@ class Rinsing : public MachineState {
 };
 
 class Pumping : public MachineState {
-  void react(StopPumpEvent const &e) override { transit<Idle>(); }
+  void react(PumpStopEvent const &e) override { transit<Idle>(); }
 
   void entry() override {
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
@@ -128,7 +128,7 @@ class Steaming : public MachineState {
         ::MachineSignals::config.get().get_steamSetPoint();
 
     timeout = timers.setTimeout(STEAM_TIMEOUT,
-                                []() { send_event(StopSteamEvent()); });
+                                []() { send_event(SteamStopEvent()); });
 
     send_event(SteamStartingEvent());
   };
@@ -138,7 +138,7 @@ class Steaming : public MachineState {
     send_event(SteamStoppingEvent());
   };
 
-  void react(StopSteamEvent const &e) override { transit<Idle>(); }
+  void react(SteamStopEvent const &e) override { transit<Idle>(); }
 
 protected:
   static Timeout_t timeout;

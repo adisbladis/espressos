@@ -64,16 +64,16 @@ struct RinseStopEvent : tinyfsm::Event {};
 struct RinseStoppingEvent : tinyfsm::Event {};
 
 // Pumping
-struct StartPumpEvent : tinyfsm::Event {};
+struct PumpStartEvent : tinyfsm::Event {};
 struct PumpStartingEvent : tinyfsm::Event {};
-struct StopPumpEvent : tinyfsm::Event {};
+struct PumpStopEvent : tinyfsm::Event {};
 struct PumpStoppingEvent : tinyfsm::Event {};
 
 // Steaming
 struct SteamStartingEvent : tinyfsm::Event {};
-struct StartSteamEvent : tinyfsm::Event {};
+struct SteamStartEvent : tinyfsm::Event {};
 struct SteamStoppingEvent : tinyfsm::Event {};
-struct StopSteamEvent : tinyfsm::Event {};
+struct SteamStopEvent : tinyfsm::Event {};
 
 // Brewing
 struct BrewStartEvent : tinyfsm::Event {};

@@ -31,10 +31,10 @@ class MachineState : public tinyfsm::Fsm<MachineState> {
   virtual void react(PowerOnEvent const &){};
   virtual void react(BrewStartEvent const &){};
   virtual void react(BrewStopEvent const &){};
-  virtual void react(StartPumpEvent const &) {}
-  virtual void react(StopPumpEvent const &){};
-  virtual void react(StartSteamEvent const &){};
-  virtual void react(StopSteamEvent const &){};
+  virtual void react(PumpStartEvent const &) {}
+  virtual void react(PumpStopEvent const &){};
+  virtual void react(SteamStartEvent const &){};
+  virtual void react(SteamStopEvent const &){};
   virtual void react(BackflushStartEvent const &){};
   virtual void react(BackflushStopEvent const &){};
   virtual void react(RinseStartEvent const &){};

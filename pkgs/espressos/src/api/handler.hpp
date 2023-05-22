@@ -33,19 +33,19 @@ private:
   };
 
   static void handle(const uint8_t *requestID, const StartPump &cmd) {
-    send_event(StartPumpEvent());
+    send_event(PumpStartEvent());
   };
 
   static void handle(const uint8_t *requestID, const StopPump &cmd) {
-    send_event(StopPumpEvent());
+    send_event(PumpStopEvent());
   };
 
   static void handle(const uint8_t *requestID, const StartSteam &cmd) {
-    send_event(StartSteamEvent());
+    send_event(SteamStartEvent());
   };
 
   static void handle(const uint8_t *requestID, const StopSteam &cmd) {
-    send_event(StopSteamEvent());
+    send_event(SteamStopEvent());
   };
 
   static void handle(const uint8_t *requestID, const BackflushStart &cmd) {
