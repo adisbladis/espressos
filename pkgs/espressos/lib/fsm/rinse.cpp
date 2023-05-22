@@ -1,8 +1,8 @@
 #include <tinyfsm.hpp>
 
+#include <EventLoop.hpp>
 #include <Timers.hpp>
 
-#include "../timers.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
 #include "rinse.hpp"
@@ -20,8 +20,8 @@ class RinseActive : public RinseState {
   void entry() override {
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
     ::MachineSignals::solenoid = true;
-    timeout = timers.setTimeout(RINSE_DUTY_CYCLE,
-                                []() { send_event(RinseStopEvent()); });
+    timeout = getEventLoop().setTimeout(RINSE_DUTY_CYCLE,
+                                        []() { send_event(RinseStopEvent()); });
   }
 
   void exit() override {
@@ -37,6 +37,6 @@ protected:
 
 void RinseState::react(RinseStoppingEvent const &e) { transit<RinseDone>(); }
 
-Timeout_t RinseActive::timeout = timers.setTimeout(0, DummyFunc);
+Timeout_t RinseActive::timeout = getEventLoop().setTimeout(0, []() {});
 
 FSM_INITIAL_STATE(RinseState, RinseDone)

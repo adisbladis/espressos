@@ -3,13 +3,13 @@
 #include <PIDController.hpp>
 #include <cstdint>
 
+#include <EventLoop.hpp>
 #include <Signal.hpp>
 #include <Timers.hpp>
 
 #include "../fsm/fsmlist.hpp"
 #include "../fsm/signals.hpp"
 #include "../proto/config.h"
-#include "../timers.hpp"
 
 void setupBoilerPID(Signal<bool> &outputState) {
   static constexpr int SampleTime = 100;
@@ -29,7 +29,7 @@ void setupBoilerPID(Signal<bool> &outputState) {
   ::MachineSignals::setpoint.createEffect(
       [](std::uint16_t setpoint) { boilerPID.SetSetpoint(setpoint); });
 
-  timers.createInterval(SampleTime, [&]() {
+  getEventLoop().createInterval(SampleTime, [&]() {
     std::int16_t temp = ::MachineSignals::temp.get();
     std::int32_t Output;
 
@@ -49,7 +49,7 @@ void setupBoilerPID(Signal<bool> &outputState) {
     // It's useless to run the timer if it would run at the same time as the
     // interval as it would get recomputed immediately anyway.
     if (Output < SampleTime) {
-      timers.setTimeout(Output, [&]() { outputState = false; });
+      getEventLoop().setTimeout(Output, [&]() { outputState = false; });
     }
   });
 }

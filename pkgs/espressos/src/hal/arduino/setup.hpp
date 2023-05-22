@@ -11,12 +11,13 @@
 #include <cstdint>
 #include <dimmable_light.h>
 
+#include <EventLoop.hpp>
 #include <Map.hpp>
 #include <Timers.hpp>
+#include <fsmlist.hpp>
+#include <signals.hpp>
 
 #include "../../api/handler.hpp"
-#include "../../fsm//fsmlist.hpp"
-#include "../../fsm//signals.hpp"
 #include "../../reconcile/boiler.hpp"
 #include "../../reconcile/pump.hpp"
 #include "ota.hpp"
@@ -47,7 +48,7 @@ void setupArduinoPressureSensor() {
   static std::uint16_t minFloor = 10;
   static std::uint16_t maxCeil = 1024 - minFloor;
 
-  timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
+  getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
     int value = analogRead(PRESSURE_SENSOR_PIN);
 
     // Clamp values outside of range to their respective max values
@@ -90,7 +91,7 @@ void setupArduinoTempSensor() {
   thermo.begin();
 
   // Read temp and issue events
-  timers.createInterval(PRESSURE_SENSOR_INTERVAL, []() {
+  getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
     uint16_t rtd;
     bool cond = thermo.readRTDAsync(rtd);
 
@@ -241,7 +242,7 @@ void setupArduinoAPI() {
   // Send state updates periodically
   {
     static auto stateUpdateTimer =
-        timers.createInterval(STATE_UPDATE_INTERVAL, []() {
+        getEventLoop().createInterval(STATE_UPDATE_INTERVAL, []() {
           apiServer.broadcastState(stateUpdateMessage);
         });
 
@@ -273,7 +274,7 @@ void setupArduinoAPI() {
 
 // On arduino the main loop is called implicitly through loop()
 void loop() {
-  timers.loop(millis());
+  getEventLoop().loop(millis());
   handleArduinoOTA();
   apiServer.loop();
 }

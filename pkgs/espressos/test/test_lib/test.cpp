@@ -1,5 +1,4 @@
-#define DOCTEST_CONFIG_IMPLEMENT
-#include <doctest.h>
+#include "../helpers.hpp"
 
 #include <Map.hpp>
 #include <Signal.hpp>
@@ -84,13 +83,4 @@ TEST_SUITE("timers") {
   }
 }
 
-int main(int argc, char **argv) {
-  doctest::Context context;
-
-  // PlatformIO required options
-  context.setOption("success", true);     // Report successful tests
-  context.setOption("no-exitcode", true); // No non-zero exit on fail
-
-  context.applyCommandLine(argc, argv);
-  return context.run();
-}
+TEST_MAIN()

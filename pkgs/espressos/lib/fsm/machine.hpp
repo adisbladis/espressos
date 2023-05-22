@@ -11,16 +11,6 @@
 #include "rinse.hpp"
 #include "signals.hpp"
 
-/* Forward declarations */
-class Idle;
-class Panic;
-class Brewing;
-class Pumping;
-class Steaming;
-
-/* Events */
-
-/* FSM base class */
 class MachineState : public tinyfsm::Fsm<MachineState> {
   friend class tinyfsm::Fsm<MachineState>;
 

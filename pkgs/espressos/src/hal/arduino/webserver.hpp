@@ -4,11 +4,12 @@
 #include <WebSocketsServer.h>
 #include <WriteBufferFixedSize.h>
 
+#include <api.h>
+#include <config.h>
+#include <fsmlist.hpp>
+
 #include "../../api/handler.hpp"
-#include "../../fsm/fsmlist.hpp"
 #include "../../logger.hpp"
-#include "../../proto/api.h"
-#include "../../proto/config.h"
 
 typedef LogMessage<LOG_MESSAGE_SIZE> LogMessage_t;
 

@@ -1,8 +1,7 @@
 #include <tinyfsm.hpp>
 
-#include <Timers.hpp>
+#include <EventLoop.hpp>
 
-#include "../timers.hpp"
 #include "backflush.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
@@ -29,7 +28,7 @@ class BackflushActive : public BackflushState {
     }
     activeCount--;
 
-    timeout = timers.setTimeout(
+    timeout = getEventLoop().setTimeout(
         BACKFLUSH_DUTY_CYCLE, []() { send_event(BackflushDeactivateEvent()); });
 
     ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
@@ -52,8 +51,9 @@ protected:
 
 class BackflushResting : public BackflushState {
   void entry() override {
-    timeout = timers.setTimeout(BACKFLUSH_DUTY_CYCLE * 2,
-                                []() { send_event(BackflushActivateEvent()); });
+    timeout = getEventLoop().setTimeout(BACKFLUSH_DUTY_CYCLE * 2, []() {
+      send_event(BackflushActivateEvent());
+    });
   }
 
   void exit() override { timeout->cancel(); }
@@ -71,7 +71,7 @@ void BackflushState::react(BackflushStoppingEvent const &e) {
 }
 
 int BackflushState::activeCount = BACKFLUSH_ACTIVE_COUNT;
-Timeout_t BackflushActive::timeout = timers.setTimeout(0, []() {});
-Timeout_t BackflushResting::timeout = timers.setTimeout(0, []() {});
+Timeout_t BackflushActive::timeout = getEventLoop().setTimeout(0, []() {});
+Timeout_t BackflushResting::timeout = getEventLoop().setTimeout(0, []() {});
 
 FSM_INITIAL_STATE(BackflushState, BackflushDone)

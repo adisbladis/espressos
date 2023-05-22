@@ -3,12 +3,12 @@
 #include <PIDController.hpp>
 #include <cstdint>
 
+#include <EventLoop.hpp>
 #include <Signal.hpp>
 #include <Timers.hpp>
 
 #include "../fsm/fsmlist.hpp"
 #include "../fsm/signals.hpp"
-#include "../timers.hpp"
 
 void setupPumpPID(Signal<uint8_t> &pumpPower) {
   static constexpr int SampleTime = 10;
@@ -44,7 +44,7 @@ void setupPumpPID(Signal<uint8_t> &pumpPower) {
   });
 
   // Run pump pressure profiling PID loop
-  timers.createInterval(SampleTime, [&](Timestamp_t timestamp) {
+  getEventLoop().createInterval(SampleTime, [&](Timestamp_t timestamp) {
     if (lastPumpTarget.mode != PumpMode::PRESSURE) {
       return;
     }

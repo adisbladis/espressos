@@ -9,5 +9,5 @@ test:
 	pio test -e native
 
 generate:
-	@mkdir -p src/proto
-	protoc -I ../../api --eams_out=src/proto ../../api/*.proto
+	@mkdir -p lib/proto
+	protoc -I ../../api --eams_out=lib/proto ../../api/*.proto

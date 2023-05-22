@@ -1,9 +1,9 @@
 #include <cstdint>
 #include <tinyfsm.hpp>
 
+#include <EventLoop.hpp>
 #include <Timers.hpp>
 
-#include "../timers.hpp"
 #include "backflush.hpp"
 #include "brew.hpp"
 #include "events.hpp"
@@ -31,6 +31,7 @@ class Panic : public MachineState {
     ::MachineSignals::setpoint = 0;
     ::MachineSignals::solenoid = false;
     ::MachineSignals::mode = MachineMode::PANIC;
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
   }
 };
 
@@ -40,6 +41,7 @@ class Off : public MachineState {
     ::MachineSignals::setpoint = 0;
     ::MachineSignals::solenoid = false;
     ::MachineSignals::mode = MachineMode::OFF;
+    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
   };
 
   void react(PowerOnEvent const &e) override { transit<Idle>(); }
@@ -128,8 +130,8 @@ class Steaming : public MachineState {
     ::MachineSignals::setpoint =
         ::MachineSignals::config.get().get_steamSetPoint();
 
-    timeout = timers.setTimeout(STEAM_TIMEOUT,
-                                []() { send_event(SteamStopEvent()); });
+    timeout = getEventLoop().setTimeout(STEAM_TIMEOUT,
+                                        []() { send_event(SteamStopEvent()); });
 
     send_event(SteamStartingEvent());
   };
@@ -162,7 +164,7 @@ void MachineState::react(PanicEvent const &e) {
   transit<Panic>();
 }
 
-Timeout_t Steaming::timeout = timers.setTimeout(0, DummyFunc);
+Timeout_t Steaming::timeout = getEventLoop().setTimeout(0, []() {});
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)

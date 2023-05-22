@@ -1,13 +1,13 @@
 #include <cstdint>
 
+#include <EventLoop.hpp>
 #include <Timers.hpp>
+#include <fsmlist.hpp>
 
 #include "api/effects.hpp"
 #include "api/handler.hpp"
 #include "api/types.hpp"
-#include "fsm/fsmlist.hpp"
 #include "hal/setup.hpp"
-#include "timers.hpp"
 
 void setup() {
   // Initialise the FSM
@@ -25,9 +25,11 @@ void setup() {
 int main() {
   setup();
 
+  auto eventloop = getEventLoop();
+
   while (true) {
     usleep(1000);
-    timers.loop(millis());
+    eventloop.loop(millis());
   }
 }
 
