@@ -15,7 +15,7 @@ TEST_CASE("start steaming") {
 }
 
 TEST_CASE("assert signal values") {
-  CHECK(MachineSignals::setpoint.get() == 13000);
+  CHECK(MachineSignals::setpoint.get() == 13500);
   CHECK(MachineSignals::solenoid.get() == false);
   CHECK(MachineSignals::pump.get().mode == PumpMode::POWER);
   CHECK(MachineSignals::pump.get().value == 0);
