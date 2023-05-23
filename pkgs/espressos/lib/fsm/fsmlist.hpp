@@ -13,11 +13,12 @@ auto_init_recursive_mutex(send_event_mutex);
 #include "backflush.hpp"
 #include "brew.hpp"
 #include "machine.hpp"
+#include "pump.hpp"
 #include "rinse.hpp"
 #include "signals.hpp"
 
 using fsm_list = tinyfsm::FsmList<MachineState, BackflushState, BrewState,
-                                  RinseState, MachineSignals>;
+                                  RinseState, MachineSignals, PumpState>;
 
 // Dispatch event to all fsm_list classes
 template <typename E> void send_event(E const &event) {

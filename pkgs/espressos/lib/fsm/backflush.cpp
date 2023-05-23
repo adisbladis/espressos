@@ -51,6 +51,12 @@ protected:
 
 class BackflushResting : public BackflushState {
   void entry() override {
+    if (activeCount == 0) {
+      send_event(BackflushStopEvent());
+      return;
+    }
+
+    activeCount--;
     timeout = getEventLoop().setTimeout(BACKFLUSH_DUTY_CYCLE * 2, []() {
       send_event(BackflushActivateEvent());
     });

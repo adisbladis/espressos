@@ -34,6 +34,8 @@ struct TempEvent : tinyfsm::Event {
 // Unrecoverable error
 struct PanicEvent : tinyfsm::Event {
   std::string reason;
+  PanicEvent(){};
+  PanicEvent(std::string reason) : reason(reason){};
 };
 
 // Config

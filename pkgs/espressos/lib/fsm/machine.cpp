@@ -107,15 +107,11 @@ class Pumping : public MachineState {
   void react(PumpStopEvent const &e) override { transit<Idle>(); }
 
   void entry() override {
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMax};
     ::MachineSignals::mode = MachineMode::PUMPING;
     send_event(PumpStartingEvent());
   };
 
-  void exit() override {
-    ::MachineSignals::pump = (PumpTarget){PumpMode::POWER, PumpMin};
-    send_event(PumpStoppingEvent());
-  };
+  void exit() override { send_event(PumpStoppingEvent()); };
 };
 
 // Steaming - Boiler is set to the steam setpoint

@@ -19,6 +19,7 @@ public:
   bool operator!=(const T &rhs) { return value != rhs; }
 
   T get() { return value; }
+  T &get_mut() { return value; }
 
   void operator=(const T &rhs) {
     if (value == rhs) {

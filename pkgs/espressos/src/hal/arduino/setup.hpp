@@ -237,7 +237,6 @@ void setupArduinoAPI() {
   beginArduinoOTA(2040);
 
   static StateUpdateMessage_t stateUpdateMessage;
-  setupAPIEffects(stateUpdateMessage);
 
   apiServer.begin();
 
@@ -245,6 +244,7 @@ void setupArduinoAPI() {
   {
     static auto stateUpdateTimer =
         getEventLoop().createInterval(STATE_UPDATE_INTERVAL, []() {
+          updateStateUpdateMessage(stateUpdateMessage);
           apiServer.broadcastState(stateUpdateMessage);
         });
 
@@ -270,6 +270,7 @@ void setupArduinoAPI() {
   // Broadcaste config/state on new connections
   apiServer.onConnect([]() {
     apiServer.broadcastConfig(::MachineSignals::config.get());
+    updateStateUpdateMessage(stateUpdateMessage);
     apiServer.broadcastState(stateUpdateMessage);
   });
 }

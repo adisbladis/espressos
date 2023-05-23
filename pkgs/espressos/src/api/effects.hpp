@@ -5,35 +5,23 @@
 #include "types.hpp"
 
 // Set up effects that update the API state
-void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
+void updateStateUpdateMessage(StateUpdateMessage_t &msg) {
+  msg.set_setpoint(MachineSignals::setpoint.get_mut());
+  msg.set_boilerTemp(MachineSignals::temp.get_mut());
+  msg.set_pressure(MachineSignals::pressure.get_mut());
 
-  ::MachineSignals::setpoint.createEffect(
-      [&](int setpoint) { stateUpdateMessage.set_setpoint(setpoint); });
-
-  // Set boiler temp in API server
-  ::MachineSignals::temp.createEffect(
-      [&](std::int16_t temp) { stateUpdateMessage.set_boilerTemp(temp); });
-
-  // Set pressure in API server
-  ::MachineSignals::pressure.createEffect([&](std::uint16_t pressure) {
-    stateUpdateMessage.set_pressure(pressure);
-  });
-
-  ::MachineSignals::shotStartTime.createEffect([&](uint32_t ts) {
-    auto shotTimer = stateUpdateMessage.mutable_shot_timer();
-    shotTimer.set_start(ts);
-    stateUpdateMessage.set_shot_timer(shotTimer);
-  });
-
-  ::MachineSignals::shotStopTime.createEffect([&](uint32_t ts) {
-    auto shotTimer = stateUpdateMessage.mutable_shot_timer();
-    shotTimer.set_stop(ts);
-    stateUpdateMessage.set_shot_timer(shotTimer);
-  });
+  // Shot timer
+  {
+    auto shotTimer = msg.mutable_shot_timer();
+    shotTimer.set_start(MachineSignals::shotStartTime.get_mut());
+    shotTimer.set_stop(MachineSignals::shotStopTime.get_mut());
+    msg.set_shot_timer(shotTimer);
+  }
 
   // Set current brew target
-  ::MachineSignals::pump.createEffect([&](PumpTarget target) {
-    auto brewTarget = stateUpdateMessage.mutable_brew_target();
+  {
+    auto target = MachineSignals::pump.get_mut();
+    auto brewTarget = msg.mutable_brew_target();
     brewTarget.set_value(target.value);
 
     switch (target.mode) {
@@ -45,20 +33,22 @@ void setupAPIEffects(StateUpdateMessage_t &stateUpdateMessage) {
       break;
     }
 
-    stateUpdateMessage.set_brew_target(brewTarget);
-  });
+    msg.set_brew_target(brewTarget);
+  }
 
   // Set panic reason
-  ::MachineSignals::panicReason.createEffect([&](std::string panicReason) {
-    auto fs = stateUpdateMessage.mutable_panic_reason();
+  {
+    auto panicReason = MachineSignals::panicReason.get_mut();
+
+    auto fs = msg.mutable_panic_reason();
     auto pr = panicReason.c_str();
 
     fs.set(pr,
            strlen(pr) > ERROR_MESSAGE_SIZE ? ERROR_MESSAGE_SIZE : strlen(pr));
-    stateUpdateMessage.set_panic_reason(fs);
-  });
+    msg.set_panic_reason(fs);
+  }
 
   // Set current time
-  stateUpdateMessage.set_millis(millis());
-  stateUpdateMessage.set_mode(MachineSignals::mode.get());
+  msg.set_millis(millis());
+  msg.set_mode(MachineSignals::mode.get());
 }

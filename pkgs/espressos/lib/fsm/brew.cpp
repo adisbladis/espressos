@@ -5,7 +5,6 @@
 #include "brew.hpp"
 #include "events.hpp"
 #include "fsmlist.hpp"
-#include "pump.hpp"
 #include "signals.hpp"
 
 class BrewActive;
@@ -33,11 +32,19 @@ class BrewActive : public BrewState {
     PumpTarget pumpTarget;
     pumpTarget.value = e.value;
 
+    // Set the pump target mode according to the event mode
     switch (e.mode) {
     case BrewStateMode::POWER:
       pumpTarget.mode = PumpMode::POWER;
+      break;
+
     case BrewStateMode::PRESSURE:
       pumpTarget.mode = PumpMode::PRESSURE;
+      break;
+
+    default:
+      send_event(PanicEvent("Unknown brew state mode"));
+      return;
     };
 
     ::MachineSignals::pump = pumpTarget;
