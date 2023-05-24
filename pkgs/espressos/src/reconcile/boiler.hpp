@@ -14,8 +14,8 @@
 void setupBoilerPID(Signal<bool> &outputState) {
   static constexpr int SampleTime = 100;
 
-  static PIDController<int32_t, float, Timestamp_t> boilerPID(
-      0, BOILER_PID_P, BOILER_PID_I, BOILER_PID_D, DIRECT);
+  static PIDController<int32_t, float> boilerPID(0, BOILER_PID_P, BOILER_PID_I,
+                                                 BOILER_PID_D, DIRECT);
 
   boilerPID.SetSampleTime(SampleTime);
   boilerPID.SetMode(AUTOMATIC);
@@ -31,9 +31,8 @@ void setupBoilerPID(Signal<bool> &outputState) {
 
   getEventLoop().createInterval(SampleTime, [&]() {
     std::int16_t temp = ::MachineSignals::temp.get();
-    std::int32_t Output;
 
-    boilerPID.Compute(0, temp, &Output, true);
+    auto Output = boilerPID.Compute(temp);
 
     // Output is off
     if (Output == 0) {

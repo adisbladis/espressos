@@ -57,15 +57,10 @@ class Idle : public MachineState {
   void exit() override {}
 
   void react(PowerOnEvent const &e) override { transit<Idle>(); }
-
   void react(BrewStartEvent const &e) override { transit<Brewing>(); }
-
   void react(PumpStartEvent const &e) override { transit<Pumping>(); }
-
   void react(SteamStartEvent const &e) override { transit<Steaming>(); }
-
   void react(BackflushStartEvent const &e) override { transit<Backflushing>(); }
-
   void react(RinseStartEvent const &e) override { transit<Rinsing>(); }
 };
 

@@ -3,7 +3,6 @@
 #include <Adafruit_MAX31865.h>
 #include <Arduino.h>
 #include <LittleFS.h>
-#include <PIDController.hpp>
 #include <ReadBufferFixedSize.h>
 #include <SimpleKalmanFilter.h>
 #include <WiFi.h>

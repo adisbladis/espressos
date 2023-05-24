@@ -25,8 +25,7 @@ template <typename M, typename N> struct PIDControllerPair {
   M second() const { return lhs; };
 };
 
-template <typename IOT, typename TuningT, typename TimestampT>
-class PIDController {
+template <typename IOT, typename TuningT> class PIDController {
 
 public:
   // constructor.  links the PID to the Input, Output, and
@@ -39,8 +38,7 @@ public:
                 PIDControllerProportionalOn POn,
                 PIDControllerDirection ControllerDirection)
       : mode(MANUAL), // Start disabled
-        setpoint(Setpoint), lastTime(0), outputSum(0), lastOutput(0),
-        lastInput(0),
+        setpoint(Setpoint), outputSum(0), lastOutput(0), lastInput(0),
         SampleTime(100) // // default Controller Sample Time is 0.1 seconds
   {
     // default output limit corresponds to
@@ -62,20 +60,12 @@ public:
       : PIDController::PIDController(Setpoint, Kp, Ki, Kd, P_ON_E,
                                      ControllerDirection) {}
 
-  // Sets initial state relative to current time
-  void Begin(TimestampT now) { lastTime = now - SampleTime; };
-  // Begin in mode with timestamp
-  void Begin(PIDControllerMode mode, TimestampT now) {
-    Begin(now);
-    SetMode(mode);
-  };
-
   // sets PID to either Manual (0) or Auto (non-0)
   //
   // Allows the controller Mode to be set to manual (0) or Automatic (non-zero)
   // when the transition from manual to auto occurs, the controller is
   // automatically initialized
-  void SetMode(PIDControllerMode Mode) {
+  void SetMode(const PIDControllerMode Mode) {
     /*we just went from manual to auto*/
     if (Mode == AUTOMATIC && mode != AUTOMATIC) {
       PIDController::Initialize();
@@ -94,64 +84,53 @@ public:
   // SetSampleTime respectively
   //
   // This, as they say, is where the magic happens.
-  // This function should be called every time "void loop()" executes.
-  // The function will decide for itself whether a new pid Output needs to be
-  // computed. returns true when the output is computed, false when nothing has
-  // been done.
-  bool Compute(TimestampT now, IOT Input, IOT *Output,
-               bool forceCompute = false) {
+  // This function should be called every SampleTime interval.
+  // It's the responsibility of the caller to invoke this
+  // method at the correct time.
+  IOT Compute(const IOT &Input) {
     if (mode != AUTOMATIC) {
       return false;
     }
 
-    bool doCompute = forceCompute || (now - lastTime) >= SampleTime;
+    /*Compute all the working error variables*/
+    IOT error = setpoint - Input;
+    IOT dInput = (Input - lastInput);
+    outputSum += (ki * error);
 
-    if (doCompute) {
-      /*Compute all the working error variables*/
-      IOT error = setpoint - Input;
-      IOT dInput = (Input - lastInput);
-      outputSum += (ki * error);
-
-      /*Add Proportional on Measurement, if P_ON_M is specified*/
-      if (pOn == P_ON_M) {
-        outputSum -= kp * dInput;
-      }
-
-      if (outputSum > outMax) {
-        outputSum = outMax;
-      } else if (outputSum < outMin) {
-        outputSum = outMin;
-      }
-
-      /*Add Proportional on Error, if P_ON_E is specified*/
-      IOT output;
-      if (pOn == P_ON_E) {
-        output = kp * error;
-      } else {
-        output = 0;
-      }
-
-      /*Compute Rest of PID Output*/
-      output += outputSum - kd * dInput;
-
-      if (output > outMax) {
-        output = outMax;
-      } else if (output < outMin) {
-        output = outMin;
-      }
-      *Output = output;
-
-      /*Remember some variables for next time*/
-      lastInput = Input;
-      lastOutput = output;
-      lastTime = now;
-
-      return true;
+    /*Add Proportional on Measurement, if P_ON_M is specified*/
+    if (pOn == P_ON_M) {
+      outputSum -= kp * dInput;
     }
 
-    *Output = lastOutput;
+    if (outputSum > outMax) {
+      outputSum = outMax;
+    } else if (outputSum < outMin) {
+      outputSum = outMin;
+    }
 
-    return false;
+    /*Add Proportional on Error, if P_ON_E is specified*/
+    IOT output;
+    if (pOn == P_ON_E) {
+      output = kp * error;
+    } else {
+      output = 0;
+    }
+
+    /*Compute Rest of PID Output*/
+    output += outputSum - kd * dInput;
+
+    // Clamp output
+    if (output > outMax) {
+      output = outMax;
+    } else if (output < outMin) {
+      output = outMin;
+    }
+
+    /*Remember some variables for next time*/
+    lastInput = Input;
+    lastOutput = output;
+
+    return output;
   };
 
   // clamps the output to a specific range. 0-255 by default, but
@@ -266,10 +245,10 @@ public:
                       static_cast<TuningT>(SampleTime);
       ki *= ratio;
       kd /= ratio;
-      SampleTime = static_cast<TimestampT>(NewSampleTime);
+      SampleTime = static_cast<unsigned long>(NewSampleTime);
     }
   };
-  inline TimestampT GetSampleTime() const { return SampleTime; };
+  inline unsigned long GetSampleTime() const { return SampleTime; };
 
 private:
   // does all the things that need to happen to ensure a bumpless transfer
@@ -300,9 +279,8 @@ private:
 
   IOT setpoint;
 
-  TimestampT lastTime;
   IOT outputSum, lastOutput, lastInput;
 
-  TimestampT SampleTime;
+  unsigned long SampleTime;
   IOT outMin, outMax;
 };

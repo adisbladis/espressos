@@ -14,8 +14,7 @@ void setupPumpPID(Signal<uint8_t> &pumpPower) {
   static constexpr int SampleTime = 10;
 
   static PumpTarget lastPumpTarget = (PumpTarget){PumpMode::POWER, 0};
-  static PIDController<int32_t, float, Timestamp_t> pressureProfilePID(
-      0, 1, 3, 0, DIRECT);
+  static PIDController<int32_t, float> pressureProfilePID(0, 1, 3, 0, DIRECT);
 
   pressureProfilePID.SetMode(AUTOMATIC);
   pressureProfilePID.SetSampleTime(SampleTime);
@@ -44,15 +43,11 @@ void setupPumpPID(Signal<uint8_t> &pumpPower) {
   });
 
   // Run pump pressure profiling PID loop
-  getEventLoop().createInterval(SampleTime, [&](Timestamp_t timestamp) {
+  getEventLoop().createInterval(SampleTime, [&]() {
     if (lastPumpTarget.mode != PumpMode::PRESSURE) {
       return;
     }
 
-    int32_t output;
-    if (pressureProfilePID.Compute(timestamp, ::MachineSignals::pressure.get(),
-                                   &output, true)) {
-      pumpPower = output;
-    }
+    pumpPower = pressureProfilePID.Compute(::MachineSignals::pressure.get());
   });
 }

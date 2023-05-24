@@ -5,7 +5,7 @@
 // https://github.com/br3ttb/Arduino-PID-Library/pull/107
 
 #include "PIDController.hpp"
-typedef PIDController<double, double, unsigned long> TestController;
+typedef PIDController<double, double> TestController;
 
 TEST_CASE("direct") {
   // Define Variables we'll be connecting to
@@ -18,16 +18,11 @@ TEST_CASE("direct") {
   // initialize the variables we're linked to
   Input = 50;
 
-  unsigned long ms = 0;
+  myPID.SetMode(AUTOMATIC);
 
-  // turn the PID on
-  myPID.Begin(AUTOMATIC, ms);
   for (int i = 0; i < 1000; i++) {
-    ms += 200;
-
-    if (myPID.Compute(ms, Input, &Output)) {
-      Input = Input + (Output - Input) / 25.6;
-    }
+    Output = myPID.Compute(Input);
+    Input = Input + (Output - Input) / 25.6;
   }
 
   CHECK(Setpoint == round(Input));
@@ -44,16 +39,11 @@ TEST_CASE("reverse") {
   // initialize the variables we're linked to
   Input = 50;
 
-  unsigned long ms = 0;
+  myPID.SetMode(AUTOMATIC);
 
-  // turn the PID on
-  myPID.Begin(AUTOMATIC, ms);
   for (int i = 0; i < 1000; i++) {
-    ms += 200;
-
-    if (myPID.Compute(ms, Input, &Output)) {
-      Input = Input + (Input - Output) / 25.6;
-    }
+    Output = myPID.Compute(Input);
+    Input = Input + (Input - Output) / 25.6;
   }
 
   CHECK(Setpoint == round(Input));
@@ -70,19 +60,15 @@ TEST_CASE("mode") {
   // initialize the variables we're linked to
   Input = 50;
 
-  unsigned long ms = 0;
-
   // turn the PID on
-  myPID.Begin(MANUAL, ms);
-  for (int i = 0; i < 1000; i++) {
-    ms += 200;
+  myPID.SetMode(MANUAL);
 
-    if (myPID.Compute(ms, Input, &Output)) {
-      Input = Input + (Input - Output) / 25.6;
-    }
+  for (int i = 0; i < 10; i++) {
+    Output = myPID.Compute(Input);
+    Input = Input + (Input - Output) / 25.6;
   }
 
-  CHECK(50 == round(Input));
+  CHECK(73 == round(Input));
 }
 
 TEST_CASE("getFunctions") {
@@ -101,61 +87,4 @@ TEST_CASE("getFunctions") {
   CHECK(1 == tunings.kd);
   CHECK(REVERSE == myPID.GetDirection());
   CHECK(AUTOMATIC == myPID.GetMode());
-}
-
-TEST_CASE("sampleTimeWorks") {
-  // Define Variables we'll be connecting to
-  constexpr double Setpoint = 100;
-  double Input, Output;
-
-  // Specify the links and initial tuning parameters
-  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
-
-  // initialize the variables we're linked to
-  Input = 50;
-
-  unsigned long ms = 0;
-
-  bool flag = false;
-
-  // turn the PID on
-  myPID.SetMode(AUTOMATIC);
-  for (int i = 0; i < 1000; i++) {
-    ms += 200;
-
-    if (myPID.Compute(ms, Input, &Output)) {
-      flag = true;
-      Input = Input + (Input - Output) / 25.6;
-    }
-  }
-
-  CHECK(flag == true);
-}
-
-TEST_CASE("sampleTimeNotWorks") {
-  // Define Variables we'll be connecting to
-  constexpr double Setpoint = 100;
-  double Input, Output;
-
-  // Specify the links and initial tuning parameters
-  TestController myPID(Setpoint, 2, 5, 1, REVERSE);
-
-  // initialize the variables we're linked to
-  Input = 50;
-
-  unsigned long ms = 0;
-
-  bool flag = false;
-
-  // turn the PID on
-  myPID.Begin(MANUAL, ms);
-  for (int i = 0; i < 1000; i++) {
-    ms += 199;
-    if (myPID.Compute(ms, Input, &Output)) {
-      flag = true;
-      Input = Input + (Input - Output) / 25.6;
-    }
-  }
-
-  CHECK(flag == false);
 }
