@@ -113,24 +113,12 @@ class Pumping : public MachineState {
 class Steaming : public MachineState {
   void entry() override {
     ::MachineSignals::mode = MachineMode::STEAMING;
-    ::MachineSignals::setpoint =
-        ::MachineSignals::config.get().get_steamSetPoint();
-
-    timeout = getEventLoop().setTimeout(STEAM_TIMEOUT,
-                                        []() { send_event(SteamStopEvent()); });
-
     send_event(SteamStartingEvent());
   };
 
-  void exit() override {
-    timeout->cancel();
-    send_event(SteamStoppingEvent());
-  };
+  void exit() override { send_event(SteamStoppingEvent()); };
 
   void react(SteamStopEvent const &e) override { transit<Idle>(); }
-
-protected:
-  static Timeout_t timeout;
 };
 
 /* Shared class methods*/
@@ -149,8 +137,6 @@ void MachineState::react(PanicEvent const &e) {
   ::MachineSignals::panicReason = e.reason;
   transit<Panic>();
 }
-
-Timeout_t Steaming::timeout = getEventLoop().setTimeout(0, []() {});
 
 /* Initial state */
 FSM_INITIAL_STATE(MachineState, Off)
