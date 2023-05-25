@@ -33,7 +33,7 @@ constexpr float PressureFilterMeaE = 0.6F;
 constexpr float PressureFilterEstE = 0.6F;
 constexpr float PressureFilterQ = 0.1F;
 
-static const APIWebServer apiServer = APIWebServer(HTTP_PORT);
+static APIWebServer apiServer = APIWebServer(HTTP_PORT);
 
 void setupArduinoPressureSensor() {
   // TODO: Don't hardcode filter values and consider where this filter actually
@@ -137,7 +137,8 @@ void setupArduinoTempSensor() {
     // Normalised temp (130 degrees celsius -> 13000)
     auto tempCelsius = static_cast<int16_t>(
         thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) *
-        100); // NOLINT(readability-magic-numbers) NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        100); // NOLINT(readability-magic-numbers)
+              // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     send_event(TempEvent(tempCelsius));
     // NOLINTEND(readability-implicit-bool-conversion)
   });
