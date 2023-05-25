@@ -81,9 +81,7 @@ private:
   };
 
   static void handle(const uint8_t *requestID, const Config &config) {
-    ConfigSetEvent e;
-    e.config = config;
-    send_event(e);
+    send_event(ConfigSetEvent(config));
   };
 
   static void handle(const uint8_t *requestID, const SetpointSet &cmd) {
@@ -95,7 +93,8 @@ private:
 public:
   APIHandler(){};
 
-  const char *handle(EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> &buf) {
+  const char *handle( // NOLINT(readability-convert-member-functions-to-static)
+      EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> &buf) {
     const char *error = nullptr;
 
     auto status = cmd.deserialize(buf);

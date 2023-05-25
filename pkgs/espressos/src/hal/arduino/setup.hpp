@@ -25,27 +25,36 @@
 #define CONFIG_FILE "config.pb"
 #define CONFIG_BUF_SIZE 128
 
+constexpr int OTAPort = 2040;
+constexpr int SerialBaudRate = 115200;
+constexpr std::uint16_t ADCMax = 1024;
+
+constexpr float PressureFilterMeaE = 0.6F;
+constexpr float PressureFilterEstE = 0.6F;
+constexpr float PressureFilterQ = 0.1F;
+
 static APIWebServer apiServer = APIWebServer(HTTP_PORT);
 
 void setupArduinoPressureSensor() {
   // TODO: Don't hardcode filter values and consider where this filter actually
   // belongs
-  static SimpleKalmanFilter pressureKalmanFilter(0.6f, 0.6f, 0.1f);
+  static SimpleKalmanFilter pressureKalmanFilter(
+      PressureFilterMeaE, PressureFilterEstE, PressureFilterQ);
 
   // Calculate the usable range of values from the ADC
   // A value of 0.8 means that we "lose" 20% of ADC range
   // as the sensor has a voltage range from 0.5v to 4.5v with a VCC of 5v.
-  static std::uint16_t floor =
-      static_cast<std::uint16_t>((1024 - (1024 * PRESSURE_SENSOR_RANGE)) / 2);
-  static std::uint16_t ceil = 1024 - floor;
+  static std::uint16_t floor = static_cast<std::uint16_t>(
+      (ADCMax - (ADCMax * PRESSURE_SENSOR_RANGE)) / 2);
+  static std::uint16_t ceil = ADCMax - floor;
 
   // We can calculate the floor nicely, but in reality these values have some
   // tolerances so it's best to allow for some reads outside of the measured
   // range.
   //
   // This sets the tolerances so that we can detect floating voltage.
-  static std::uint16_t minFloor = 10;
-  static std::uint16_t maxCeil = 1024 - minFloor;
+  constexpr std::uint16_t minFloor = 10;
+  constexpr std::uint16_t maxCeil = ADCMax - minFloor;
 
   getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
     int value = analogRead(PRESSURE_SENSOR_PIN);
@@ -79,9 +88,8 @@ void setupArduinoPressureSensor() {
           pressureKalmanFilter.updateEstimate(static_cast<float>(value)));
     }
 
-    PressureEvent e;
-    e.pressure = (value - floor) * PRESSURE_SENSOR_MBAR / ceil;
-    send_event(e);
+    auto pressureMbar = (value - floor) * PRESSURE_SENSOR_MBAR / ceil;
+    send_event(PressureEvent(pressureMbar));
   });
 }
 
@@ -92,52 +100,56 @@ void setupArduinoTempSensor() {
   // Read temp and issue events
   getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
     uint16_t rtd;
-    bool cond = thermo.readRTDAsync(rtd);
+    if (!thermo.readRTDAsync(rtd)) {
+      return;
+    };
 
-    if (cond) {
-      auto fault = thermo.readFault();
+    auto fault = thermo.readFault();
 
-      if (fault) {
-        thermo.clearFault();
+    // NOLINTBEGIN(readability-implicit-bool-conversion)
+    if (fault) {
+      thermo.clearFault();
 
-        std::string reason = "RTD Error: ";
-        if (fault & MAX31865_FAULT_HIGHTHRESH) {
-          reason += "RTD High Threshold\n";
-        }
-        if (fault & MAX31865_FAULT_LOWTHRESH) {
-          reason += "RTD Low Threshold\n";
-        }
-        if (fault & MAX31865_FAULT_REFINLOW) {
-          reason += "REFIN- > 0.85 x Bias";
-        }
-        if (fault & MAX31865_FAULT_REFINHIGH) {
-          reason += "REFIN- < 0.85 x Bias - FORCE- open\n";
-        }
-        if (fault & MAX31865_FAULT_RTDINLOW) {
-          reason += "RTDIN- < 0.85 x Bias - FORCE- open\n";
-        }
-        if (fault & MAX31865_FAULT_OVUV) {
-          reason += "Under/Over voltage\n";
-        }
-
-        PanicEvent event;
-        event.reason = reason;
-        send_event(event);
-        return;
+      std::string reason = "RTD Error: ";
+      if (fault & MAX31865_FAULT_HIGHTHRESH) {
+        reason += "RTD High Threshold\n";
+      }
+      if (fault & MAX31865_FAULT_LOWTHRESH) {
+        reason += "RTD Low Threshold\n";
+      }
+      if (fault & MAX31865_FAULT_REFINLOW) {
+        reason += "REFIN- > 0.85 x Bias";
+      }
+      if (fault & MAX31865_FAULT_REFINHIGH) {
+        reason += "REFIN- < 0.85 x Bias - FORCE- open\n";
+      }
+      if (fault & MAX31865_FAULT_RTDINLOW) {
+        reason += "RTDIN- < 0.85 x Bias - FORCE- open\n";
+      }
+      if (fault & MAX31865_FAULT_OVUV) {
+        reason += "Under/Over voltage\n";
       }
 
-      TempEvent tempEvent;
-      tempEvent.temp = static_cast<int16_t>(
-          thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) * 100);
-      send_event(tempEvent);
+      PanicEvent event;
+      event.reason = reason;
+      send_event(event);
+      return;
     }
+
+    TempEvent tempEvent;
+    tempEvent.temp = static_cast<int16_t>(
+        thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) *
+        100); // NOLINT(readability-magic-numbers)
+    send_event(tempEvent);
+
+    // NOLINTEND(readability-implicit-bool-conversion)
   });
 }
 
 void setupArduinoSolenoid() {
   pinMode(BREW_SOLENOID_PIN, OUTPUT);
   MachineSignals::solenoid.createEffect([](const bool &pinStatus) {
-    digitalWrite(BREW_SOLENOID_PIN, pinStatus);
+    digitalWrite(BREW_SOLENOID_PIN, static_cast<int>(pinStatus));
   });
 }
 
@@ -160,8 +172,9 @@ void setupArduinoBoiler() {
   setupBoilerPID(outputState);
 
   pinMode(BOILER_SSR_PIN, OUTPUT);
-  outputState.createEffect(
-      [](const bool &status) { digitalWrite(BOILER_SSR_PIN, status); });
+  outputState.createEffect([](const bool &status) {
+    digitalWrite(BOILER_SSR_PIN, static_cast<int>(status));
+  });
 };
 
 void setupArduinoConfig() {
@@ -170,22 +183,22 @@ void setupArduinoConfig() {
   // loop.
 
   // Attempt to read config from flash
-  File f = LittleFS.open(CONFIG_FILE, "r");
-  if (f) {
+  File file = LittleFS.open(CONFIG_FILE, "r");
+  if (file) {
     Config config;
 
     EmbeddedProto::ReadBufferFixedSize<CONFIG_BUF_SIZE> buf;
-    f.read(buf.get_data(), CONFIG_BUF_SIZE);
-    buf.set_bytes_written(f.size());
+    file.read(buf.get_data(), CONFIG_BUF_SIZE);
+    file.close();
+    buf.set_bytes_written(file.size());
+
     auto status = config.deserialize(buf);
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
       Serial.printf("Error decoding config: %d\n", status);
       return;
     }
 
-    ConfigSetEvent configSetEvent;
-    configSetEvent.config = config;
-    send_event(configSetEvent);
+    send_event(ConfigSetEvent(config));
   }
 
   static EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE> buf;
@@ -193,17 +206,17 @@ void setupArduinoConfig() {
   // Set up update handler to save config
   ::MachineSignals::config.createEffect(
       [](const Config &config) {
-        File f = LittleFS.open(CONFIG_FILE, "w");
-        if (!f) {
+        File file = LittleFS.open(CONFIG_FILE, "w");
+        if (!file) {
           logger->log(LogLevel::ERROR,
                       "Could not open config file for writing");
           return;
         }
 
-        auto n = f.write(buf.get_data(), buf.get_size());
-        f.close();
+        auto bytesWritten = file.write(buf.get_data(), buf.get_size());
+        file.close();
 
-        if (n != buf.get_size()) {
+        if (bytesWritten != buf.get_size()) {
           logger->log(LogLevel::ERROR,
                       "Error writing config file (n != buf.size))");
           return;
@@ -213,7 +226,7 @@ void setupArduinoConfig() {
 };
 
 void setupArduinoHAL() {
-  Serial.begin(115200);
+  Serial.begin(SerialBaudRate);
 
   // Turn on board power LED
   pinMode(LED_BUILTIN, OUTPUT);
@@ -233,7 +246,7 @@ void setupArduinoAPI() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID_NAME, SSID_PASWORD);
 
-  beginArduinoOTA(2040);
+  beginArduinoOTA(OTAPort);
 
   static StateUpdateMessage_t stateUpdateMessage;
 

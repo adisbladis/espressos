@@ -40,12 +40,14 @@ void updateStateUpdateMessage(StateUpdateMessage_t &msg) {
   {
     auto panicReason = MachineSignals::panicReason.get_mut();
 
-    auto fs = msg.mutable_panic_reason();
-    auto pr = panicReason.c_str();
+    auto fieldString = msg.mutable_panic_reason();
+    auto reason = panicReason.c_str();
 
-    fs.set(pr,
-           strlen(pr) > ERROR_MESSAGE_SIZE ? ERROR_MESSAGE_SIZE : strlen(pr));
-    msg.set_panic_reason(fs);
+    // Truncate error message if > bufsize
+    fieldString.set(reason, strlen(reason) > ERROR_MESSAGE_SIZE
+                                ? ERROR_MESSAGE_SIZE
+                                : strlen(reason));
+    msg.set_panic_reason(fieldString);
   }
 
   // Set current time

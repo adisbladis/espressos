@@ -44,6 +44,8 @@ private:
   // Broadcast the event singleton.
   //
   // This also implies relinquishing ownership of `event`.
+  //
+  // NOLINTBEGIN(readability-convert-member-functions-to-static)
   void broadcastEvent() {
     outBuf.clear();
 
@@ -59,6 +61,7 @@ private:
 
     this->server.broadcastBIN(outBuf.get_data(), outBuf.get_size());
   }
+  // NOLINTEND(readability-convert-member-functions-to-static)
 
 public:
   APIWebServer(int port) : server(port), handler(), onConnectCallback([]() {}) {
@@ -130,11 +133,11 @@ public:
     }
     // NOLINTEND(bugprone-branch-clone)
 
-    auto fs = log.get_msg();
-    fs.set(logMessageBuf, strlen(logMessageBuf) > LOG_MESSAGE_SIZE
-                              ? LOG_MESSAGE_SIZE
-                              : strlen(logMessageBuf));
-    log.set_msg(fs);
+    auto fieldString = log.get_msg();
+    fieldString.set(logMessageBuf, strlen(logMessageBuf) > LOG_MESSAGE_SIZE
+                                       ? LOG_MESSAGE_SIZE
+                                       : strlen(logMessageBuf));
+    log.set_msg(fieldString);
 
     event.set_log(log);
     broadcastEvent();

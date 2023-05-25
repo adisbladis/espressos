@@ -35,4 +35,4 @@ public:
 
 static Logger *logger = new Logger();
 
-static void setLogger(Logger *l) { logger = l; }
+static void setLogger(Logger *log) { logger = log; }

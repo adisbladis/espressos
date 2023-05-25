@@ -24,6 +24,9 @@
 // Pressure reading
 struct PressureEvent : tinyfsm::Event {
   uint16_t pressure;
+
+  PressureEvent(){};
+  PressureEvent(uint16_t pressure) : pressure(pressure){};
 };
 
 // Temp reading
@@ -41,6 +44,8 @@ struct PanicEvent : tinyfsm::Event {
 // Config
 struct ConfigSetEvent : tinyfsm::Event {
   Config config;
+
+  ConfigSetEvent(const Config &config) : config(config){};
 };
 
 // Set ephemeral setpoint

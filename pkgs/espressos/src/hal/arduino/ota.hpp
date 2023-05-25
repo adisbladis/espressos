@@ -4,7 +4,7 @@
 #include <ArduinoOTA.h>
 
 void beginArduinoOTA(int otaPort) {
-  ArduinoOTA.setPort(2040);
+  ArduinoOTA.setPort(otaPort);
 
   ArduinoOTA.onStart([]() { logger->log(LogLevel::DEBUG, "OTA start"); });
   ArduinoOTA.onEnd([]() { logger->log(LogLevel::DEBUG, "OTA end"); });
