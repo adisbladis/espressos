@@ -64,64 +64,35 @@ class Idle : public MachineState {
   void react(RinseStartEvent const &e) override { transit<Rinsing>(); }
 };
 
-// Brewing - We're actively brewing a cup
-class Brewing : public MachineState {
-  void react(BrewStopEvent const &e) override { transit<Idle>(); }
+// Machine states with sub state machines managing output signals
+// share this template.
+template <MachineMode mode, typename StartingEvent, typename StopEvent,
+          typename StoppingEvent>
+class MachineStateDecl : public MachineState {
+  void react(StopEvent const &e) override { transit<Idle>(); }
 
   void entry() override {
-    ::MachineSignals::mode = MachineMode::BREWING;
-    send_event(BrewStartingEvent());
+    MachineSignals::mode = mode;
+    send_event(StartingEvent());
   };
 
-  void exit() override { send_event(BrewStoppingEvent()); };
+  void exit() override { send_event(StoppingEvent()); };
 };
 
-class Backflushing : public MachineState {
-  void react(BackflushStopEvent const &) override { transit<Idle>(); }
-
-  void entry() override {
-    ::MachineSignals::mode = MachineMode::BACKFLUSHING;
-    send_event(BackflushStartingEvent());
-  };
-
-  void exit() override { send_event(BackflushStoppingEvent()); };
-};
-
-class Rinsing : public MachineState {
-  void react(RinseStopEvent const &e) override { transit<Idle>(); }
-
-  void entry() override {
-    ::MachineSignals::mode = MachineMode::RINSING;
-    send_event(RinseStartingEvent());
-  };
-
-  void exit() override { send_event(RinseStoppingEvent()); };
-};
-
-class Pumping : public MachineState {
-  void react(PumpStopEvent const &e) override { transit<Idle>(); }
-
-  void entry() override {
-    ::MachineSignals::mode = MachineMode::PUMPING;
-    send_event(PumpStartingEvent());
-  };
-
-  void exit() override { send_event(PumpStoppingEvent()); };
-};
-
-// Steaming - Boiler is set to the steam setpoint
-class Steaming : public MachineState {
-  void entry() override {
-    ::MachineSignals::mode = MachineMode::STEAMING;
-    send_event(SteamStartingEvent());
-  };
-
-  void exit() override { send_event(SteamStoppingEvent()); };
-
-  void react(SteamStopEvent const &e) override { transit<Idle>(); }
-};
-
-/* Shared class methods*/
+// States managed by their own state machines
+class Brewing : public MachineStateDecl<MachineMode::BREWING, BrewStartingEvent,
+                                        BrewStopEvent, BrewStoppingEvent> {};
+class Backflushing
+    : public MachineStateDecl<MachineMode::BACKFLUSHING, BackflushStartingEvent,
+                              BackflushStopEvent, BackflushStoppingEvent> {};
+class Rinsing
+    : public MachineStateDecl<MachineMode::RINSING, RinseStartingEvent,
+                              RinseStopEvent, RinseStoppingEvent> {};
+class Pumping : public MachineStateDecl<MachineMode::PUMPING, PumpStartingEvent,
+                                        PumpStopEvent, PumpStoppingEvent> {};
+class Steaming
+    : public MachineStateDecl<MachineMode::STEAMING, SteamStartingEvent,
+                              SteamStopEvent, SteamStoppingEvent> {};
 
 // Only power off if we're not in panic mode
 void MachineState::react(PowerOffEvent const &e) {
