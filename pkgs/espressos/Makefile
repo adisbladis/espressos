@@ -1,4 +1,4 @@
-.PHONY: all test build generate format
+.PHONY: all test build generate format check
 
 all: generate build
 
@@ -11,3 +11,6 @@ test:
 generate:
 	@mkdir -p lib/proto
 	protoc -I ../../api --eams_out=lib/proto ../../api/*.proto
+
+check:
+	pio check --fail-on-defect=low --fail-on-defect=medium
