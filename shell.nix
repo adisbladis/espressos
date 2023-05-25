@@ -55,6 +55,7 @@ pkgs.mkShell {
     pkgs.platformio
     pkgs.nodejs
     pkgs.doctest # C++ tests
+    pkgs.reuse # License management
 
     pkgs.treefmt
     pkgs.clang-tools # clang-format

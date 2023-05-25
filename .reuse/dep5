@@ -1,0 +1,32 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: EspressOS
+Upstream-Contact: Adisbladis <adisbladis@gmail.com>
+Source: https://github.com/adisbladis/espressos
+
+Files: README.md treefmt.toml .gitignore
+Copyright: 2023 adisbladis
+License: CC0-1.0
+
+Files: .envrc Makefile *.nix .github/*
+Copyright: 2023 adisbladis
+License: MIT
+
+Files: api/*
+Copyright: 2023 adisbladis
+License: MIT
+
+Files: pkgs/espressos/*
+Copyright: 2023 adisbladis
+License: GPL-3.0-only
+
+Files: pkgs/espressos-web/*
+Copyright: 2023 adisbladis
+License: GPL-3.0-only
+
+Files: pkgs/espressos-web/*
+Copyright: 2023 adisbladis
+License: GPL-3.0-only
+
+Files: pkgs/PIDController/*
+Copyright: 2017 Brett Beauregard, 2023 adisbladis
+License: MIT
