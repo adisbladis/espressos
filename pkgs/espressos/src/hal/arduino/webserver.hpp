@@ -30,8 +30,8 @@ class APIWebServer : public Logger {
 private:
   WebServer server;
   APIHandler handler;
-  EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> buf;
-  EmbeddedProto::WriteBufferFixedSize<MSG_BUF_SIZE> outBuf;
+  EmbeddedProto::ReadBufferFixedSize<MsgBufSize> buf;
+  EmbeddedProto::WriteBufferFixedSize<MsgBufSize> outBuf;
   char logMessageBuf[LOG_MESSAGE_SIZE];
   std::function<void()> onConnectCallback;
 
@@ -87,9 +87,9 @@ public:
         Serial.printf("[%u] received binary with length: %u\n", num, length);
 
         logger->log(LogLevel::INFO, "Got request");
-        if (length > MSG_BUF_SIZE) {
-          logger->log(LogLevel::ERROR, "length (%d) > MSG_BUF_SIZE (%d)",
-                      length, MSG_BUF_SIZE);
+        if (length > MsgBufSize) {
+          logger->log(LogLevel::ERROR, "length (%d) > MsgBufSize (%d)", length,
+                      MsgBufSize);
           break;
         } else {
           memcpy(buf.get_data(), payload, length);

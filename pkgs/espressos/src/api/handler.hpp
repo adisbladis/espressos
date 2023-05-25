@@ -7,9 +7,10 @@
 #include "../fsm/fsmlist.hpp"
 #include "../proto/api.h"
 
-#define MSG_BUF_SIZE 128
-#define UUID_SIZE 16 // Note: Convert this to bytes and get it down to 16 bytes
-typedef Command<UUID_SIZE> Cmd_t;
+constexpr int MsgBufSize = 128;
+constexpr int UUIDSize = 16;
+
+typedef Command<UUIDSize> Cmd_t;
 
 class APIHandler {
 private:
@@ -65,7 +66,7 @@ private:
   };
 
   static void handle(const uint8_t *requestID, const BrewTarget &cmd) {
-    BrewTargetEvent brewTargetEvent;
+    BrewTargetEvent brewTargetEvent();
     brewTargetEvent.value = cmd.get_value();
 
     switch (cmd.get_mode()) {
@@ -85,16 +86,14 @@ private:
   };
 
   static void handle(const uint8_t *requestID, const SetpointSet &cmd) {
-    SetpointSetEvent event;
-    event.setpoint = cmd.get_setpoint();
-    send_event(event);
+    send_event(SetpointSetEvent(cmd.get_setpoint()));
   };
 
 public:
   APIHandler(){};
 
   const char *handle( // NOLINT(readability-convert-member-functions-to-static)
-      EmbeddedProto::ReadBufferFixedSize<MSG_BUF_SIZE> &buf) {
+      EmbeddedProto::ReadBufferFixedSize<MsgBufSize> &buf) {
     const char *error = nullptr;
 
     auto status = cmd.deserialize(buf);

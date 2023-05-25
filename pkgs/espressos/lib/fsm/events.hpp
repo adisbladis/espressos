@@ -51,6 +51,8 @@ struct ConfigSetEvent : tinyfsm::Event {
 // Set ephemeral setpoint
 struct SetpointSetEvent : tinyfsm::Event {
   uint16_t setpoint;
+
+  SetpointSetEvent(uint16_t setpoint) : setpoint(setpoint){};
 };
 
 // Power on/off
