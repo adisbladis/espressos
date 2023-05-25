@@ -25,6 +25,8 @@ private:
   char buf[LOG_MESSAGE_SIZE];
 
 public:
+  SerialLogger() : buf(){};
+
   void log(LogLevel level, const char *message, ...) override {
     va_list args;
     va_start(args, message);

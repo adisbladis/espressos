@@ -33,7 +33,7 @@ constexpr float PressureFilterMeaE = 0.6F;
 constexpr float PressureFilterEstE = 0.6F;
 constexpr float PressureFilterQ = 0.1F;
 
-static APIWebServer apiServer = APIWebServer(HTTP_PORT);
+static const APIWebServer apiServer = APIWebServer(HTTP_PORT);
 
 void setupArduinoPressureSensor() {
   // TODO: Don't hardcode filter values and consider where this filter actually
@@ -44,17 +44,17 @@ void setupArduinoPressureSensor() {
   // Calculate the usable range of values from the ADC
   // A value of 0.8 means that we "lose" 20% of ADC range
   // as the sensor has a voltage range from 0.5v to 4.5v with a VCC of 5v.
-  static std::uint16_t floor = static_cast<std::uint16_t>(
+  static const std::uint16_t floor = static_cast<std::uint16_t>(
       (ADCMax - (ADCMax * PRESSURE_SENSOR_RANGE)) / 2);
-  static std::uint16_t ceil = ADCMax - floor;
+  static const std::uint16_t ceil = ADCMax - floor;
 
   // We can calculate the floor nicely, but in reality these values have some
   // tolerances so it's best to allow for some reads outside of the measured
   // range.
   //
   // This sets the tolerances so that we can detect floating voltage.
-  constexpr std::uint16_t minFloor = 10;
-  constexpr std::uint16_t maxCeil = ADCMax - minFloor;
+  static const std::uint16_t minFloor = 10;
+  static const std::uint16_t maxCeil = ADCMax - minFloor;
 
   getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
     int value = analogRead(PRESSURE_SENSOR_PIN);
@@ -99,7 +99,7 @@ void setupArduinoTempSensor() {
 
   // Read temp and issue events
   getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
-    uint16_t rtd;
+    uint16_t rtd = 0;
     if (!thermo.readRTDAsync(rtd)) {
       return;
     };
@@ -130,16 +130,14 @@ void setupArduinoTempSensor() {
         reason += "Under/Over voltage\n";
       }
 
-      PanicEvent event;
-      event.reason = reason;
-      send_event(event);
+      send_event(PanicEvent(reason));
       return;
     }
 
     // Normalised temp (130 degrees celsius -> 13000)
     auto tempCelsius = static_cast<int16_t>(
         thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) *
-        100); // NOLINT(readability-magic-numbers)
+        100); // NOLINT(readability-magic-numbers) NOLINT(cppcoreguidelines-avoid-magic-numbers)
     send_event(TempEvent(tempCelsius));
     // NOLINTEND(readability-implicit-bool-conversion)
   });
@@ -182,7 +180,7 @@ void setupArduinoConfig() {
   // loop.
 
   // Attempt to read config from flash
-  File file = LittleFS.open(CONFIG_FILE, "r");
+  auto file = LittleFS.open(CONFIG_FILE, "r");
   if (file) {
     Config config;
 
@@ -205,7 +203,7 @@ void setupArduinoConfig() {
   // Set up update handler to save config
   ::MachineSignals::config.createEffect(
       [](const Config &config) {
-        File file = LittleFS.open(CONFIG_FILE, "w");
+        auto file = LittleFS.open(CONFIG_FILE, "w");
         if (!file) {
           logger->log(LogLevel::ERROR,
                       "Could not open config file for writing");
