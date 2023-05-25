@@ -66,7 +66,7 @@ private:
   };
 
   static void handle(const uint8_t *requestID, const BrewTarget &cmd) {
-    BrewTargetEvent brewTargetEvent();
+    BrewTargetEvent brewTargetEvent;
     brewTargetEvent.value = cmd.get_value();
 
     switch (cmd.get_mode()) {

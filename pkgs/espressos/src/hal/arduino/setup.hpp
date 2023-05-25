@@ -61,7 +61,7 @@ void setupArduinoPressureSensor() {
 
     // Clamp values outside of range to their respective max values
     bool clamped = false;
-    if (value < floor && value >= minFloor) {
+    if (value < floor && value >= minFloor) { // NOLINT(bugprone-branch-clone)
       value = floor;
       clamped = true;
     } else if (value > ceil && value <= maxCeil) {
@@ -136,12 +136,11 @@ void setupArduinoTempSensor() {
       return;
     }
 
-    TempEvent tempEvent;
-    tempEvent.temp = static_cast<int16_t>(
+    // Normalised temp (130 degrees celsius -> 13000)
+    auto tempCelsius = static_cast<int16_t>(
         thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) *
         100); // NOLINT(readability-magic-numbers)
-    send_event(tempEvent);
-
+    send_event(TempEvent(tempCelsius));
     // NOLINTEND(readability-implicit-bool-conversion)
   });
 }

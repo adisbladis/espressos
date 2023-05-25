@@ -25,34 +25,36 @@
 struct PressureEvent : tinyfsm::Event {
   uint16_t pressure;
 
-  PressureEvent(){};
-  PressureEvent(uint16_t pressure) : pressure(pressure){};
+  explicit PressureEvent(){};
+  explicit PressureEvent(const uint16_t &pressure) : pressure(pressure){};
 };
 
 // Temp reading
 struct TempEvent : tinyfsm::Event {
   int16_t temp;
+
+  explicit TempEvent(int16_t temp) : temp(temp){};
 };
 
 // Unrecoverable error
 struct PanicEvent : tinyfsm::Event {
   std::string reason;
-  PanicEvent(){};
-  PanicEvent(std::string reason) : reason(reason){};
+  explicit PanicEvent(){};
+  explicit PanicEvent(const std::string &reason) : reason(reason){};
 };
 
 // Config
 struct ConfigSetEvent : tinyfsm::Event {
   Config config;
 
-  ConfigSetEvent(const Config &config) : config(config){};
+  explicit ConfigSetEvent(const Config &config) : config(config){};
 };
 
 // Set ephemeral setpoint
 struct SetpointSetEvent : tinyfsm::Event {
   uint16_t setpoint;
 
-  SetpointSetEvent(uint16_t setpoint) : setpoint(setpoint){};
+  explicit SetpointSetEvent(uint16_t setpoint) : setpoint(setpoint){};
 };
 
 // Power on/off

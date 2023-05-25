@@ -12,8 +12,8 @@ private:
   T value;
 
 public:
-  Signal(){};
-  Signal(const T value) : value(value){};
+  explicit Signal(){};
+  explicit Signal(const T &value) : value(value){};
 
   bool operator==(const T &rhs) { return value == rhs; }
   bool operator!=(const T &rhs) { return value != rhs; }

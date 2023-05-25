@@ -23,8 +23,8 @@ public:
     va_list args;
     va_start(args, message);
 
-    for (const auto &logger : loggers) {
-      logger->log(level, message, args);
+    for (const auto &logger_ : loggers) {
+      logger_->log(level, message, args);
     }
 
     va_end(args);

@@ -15,7 +15,7 @@ typedef LogMessage<LOG_MESSAGE_SIZE> LogMessage_t;
 
 class WebServer : public WebSocketsServer {
 public:
-  WebServer(int port) : WebSocketsServer(port) {
+  explicit WebServer(int port) : WebSocketsServer(port) {
     this->_server->setNoDelay(true);
   }
 
@@ -37,7 +37,7 @@ private:
 
   // Preallocate a single event and re-use by setting oneof (also make sure to
   // reset requestId)
-  Event<UUID_SIZE, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE> event;
+  Event<UUIDSize, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE> event;
 
   bool hasClients() { return this->server.connectedClients() > 0; };
 
@@ -64,7 +64,8 @@ private:
   // NOLINTEND(readability-convert-member-functions-to-static)
 
 public:
-  APIWebServer(int port) : server(port), handler(), onConnectCallback([]() {}) {
+  explicit APIWebServer(int port)
+      : server(port), handler(), onConnectCallback([]() {}) {
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,
                           size_t length) {
@@ -149,7 +150,8 @@ public:
 
   void close() { this->server.close(); }
 
-  void broadcastState(StateUpdate<ERROR_MESSAGE_SIZE> &stateUpdateMessage) {
+  void
+  broadcastState(const StateUpdate<ERROR_MESSAGE_SIZE> &stateUpdateMessage) {
     if (!this->hasClients()) {
       return;
     }
