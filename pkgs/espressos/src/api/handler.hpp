@@ -3,9 +3,13 @@
 #include <ReadBufferFixedSize.h>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <iostream>
+#include <optional>
+#include <string>
 
-#include "../fsm/fsmlist.hpp"
-#include "../proto/api.h"
+#include <api.h>
+#include <fsmlist.hpp>
 
 constexpr int MsgBufSize = 128;
 constexpr int UUIDSize = 16;
@@ -92,14 +96,16 @@ private:
 public:
   APIHandler(){};
 
-  const char *handle( // NOLINT(readability-convert-member-functions-to-static)
+  std::optional<std::string>
+  handle( // NOLINT(readability-convert-member-functions-to-static)
       EmbeddedProto::ReadBufferFixedSize<MsgBufSize> &buf) {
-    const char *error = nullptr;
 
     auto status = cmd.deserialize(buf);
     buf.clear();
 
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
+      std::string error = "";
+
       switch (status) {
       case ::EmbeddedProto::Error::END_OF_BUFFER:
         error = "error decoding command: While trying to read from the "
@@ -144,8 +150,8 @@ public:
 
     switch (cmd.get_which_command_oneof()) {
     case Cmd_t::FieldNumber::NOT_SET:
-      error = "oneof field not set";
-      break;
+      cmd.clear();
+      return "oneof field not set";
     case Cmd_t::FieldNumber::POWER_ON:
       handle(requestID, cmd.get_power_on());
       break;
@@ -192,12 +198,12 @@ public:
       handle(requestID, cmd.get_setpoint_set());
       break;
     default:
-      error = "Logic error: Unhandled switch case";
-      break;
+      cmd.clear();
+      return "Logic error: Unhandled switch case";
     }
 
     cmd.clear();
 
-    return error;
+    return {};
   };
 };
