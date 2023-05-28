@@ -12,30 +12,28 @@ message BrewTarget {
   uint32 value = 2;
 }
 
-message PowerOn { }
-message PowerOff { }
+message PowerOn {}
+message PowerOff {}
 
 message StartBrew {
   // The desired pressure in millibar
   uint32 pressure = 1;
 }
-message StopBrew { }
+message StopBrew {}
 
-message StartPump { }
-message StopPump { }
+message StartPump {}
+message StopPump {}
 
-message StartSteam { }
-message StopSteam { }
+message StartSteam {}
+message StopSteam {}
 
-message BackflushStart { }
-message BackflushStop { }
+message BackflushStart {}
+message BackflushStop {}
 
-message RinseStart { }
-message RinseStop { }
+message RinseStart {}
+message RinseStop {}
 
-message SetpointSet {
-  uint32 setpoint = 1;
-}
+message SetpointSet { uint32 setpoint = 1; }
 
 message Command {
   // A unique client-generated request identifier.
@@ -124,7 +122,7 @@ message StateUpdate {
 }
 
 message LogMessage {
-  enum LogLevel{
+  enum LogLevel {
     ERROR = 0;
     INFO = 1;
     DEBUG = 2;
@@ -134,7 +132,8 @@ message LogMessage {
 }
 
 message Event {
-  // If this event was in response to a request id it will contain one, otherwise empty
+  // If this event was in response to a request id it will contain one,
+  // otherwise empty
   bytes request_id = 1;
 
   oneof event_oneof {
