@@ -6,6 +6,7 @@
 
 #include <api.h>
 #include <config.h>
+#include <cstdint>
 #include <fsmlist.hpp>
 
 #include "../../api/handler.hpp"
@@ -37,17 +38,23 @@ private:
 
   // Preallocate a single event and re-use by setting oneof (also make sure to
   // reset requestId)
-  Event<UUIDSize, ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE> event;
+  Event<ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE, UUIDSize, ERROR_MESSAGE_SIZE>
+      event;
 
-  bool hasClients() { return this->server.connectedClients() > 0; };
+  inline bool hasClients() { return this->server.connectedClients() > 0; };
 
   // Broadcast the event singleton.
   //
-  // This also implies relinquishing ownership of `event`.
+  // This also implies relinquishing ownership of `event` as it's cleared.
   //
   // NOLINTBEGIN(readability-convert-member-functions-to-static)
   void broadcastEvent() {
     outBuf.clear();
+
+    if (!this->hasClients()) {
+      event.clear();
+      return;
+    }
 
     auto status = event.serialize(outBuf);
     event.clear();
@@ -60,6 +67,28 @@ private:
     }
 
     this->server.broadcastBIN(outBuf.get_data(), outBuf.get_size());
+  }
+  // NOLINTEND(readability-convert-member-functions-to-static)
+
+  // Send the event singleton to a single socket.
+  //
+  // This also implies relinquishing ownership of `event` as it's cleared.
+  //
+  // NOLINTBEGIN(readability-convert-member-functions-to-static)
+  void sendEvent(uint8_t num) {
+    outBuf.clear();
+
+    auto status = event.serialize(outBuf);
+    event.clear();
+
+    if (status != ::EmbeddedProto::Error::NO_ERRORS) {
+      outBuf.clear();
+      // Note: cannot use logger as it would cause infinite loops
+      Serial.printf("encoding err: %d\n", status);
+      return;
+    }
+
+    this->server.sendBIN(num, outBuf.get_data(), outBuf.get_size());
   }
   // NOLINTEND(readability-convert-member-functions-to-static)
 
@@ -97,8 +126,14 @@ public:
           buf.set_bytes_written(length);
         }
 
-        auto result = this->handler.handle(buf);
+        // Dispatch to APIHandler
+        auto resp = event.mutable_resp();
+        this->handler.handle(buf, resp);
         buf.clear();
+
+        // Send response
+        event.set_resp(resp);
+        sendEvent(num);
 
         break;
       }

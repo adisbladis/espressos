@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 import "config.proto";
 
 /* Commands sent by the client */
@@ -131,19 +133,28 @@ message LogMessage {
   string msg = 2;
 }
 
-message Event {
-  // If this event was in response to a request id it will contain one,
-  // otherwise empty
+message Response {
   bytes request_id = 1;
 
+  // Responses to requests
+  oneof resp_oneof {
+    google.protobuf.Empty OK = 2;
+    string error = 3;
+  }
+}
+
+message Event {
   oneof event_oneof {
     // Contains the current state of the machine
-    StateUpdate state_update = 2;
+    StateUpdate state_update = 1;
 
     // Get updated configuration
-    Config config = 3;
+    Config config = 2;
 
     // Generic log message
-    LogMessage log = 4;
+    LogMessage log = 3;
+
+    // Responses to requests
+    Response resp = 4;
   }
 }

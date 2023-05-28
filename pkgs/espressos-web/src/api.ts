@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, stringify as uuidStringify } from "uuid";
 
 import {
   Command,
@@ -18,13 +18,35 @@ import {
 
 const mkRequestId = (): Uint8Array => new Uint8Array(uuidv4(null, []));
 
+// A promise wrapper that can be resolved externally
+class PromiseExt<T> {
+  resolve!: (value: T | PromiseLike<T>) => void;
+  reject!: (reason?: any) => void;
+  promise: Promise<T>;
+
+  constructor(timeout: number) {
+    this.promise = new Promise<T>((resolve, reject) => {
+      this.resolve = resolve;
+      this.reject = reject;
+
+      if (timeout) {
+        setTimeout(() => reject(new Error("Request timed out")), timeout);
+      }
+    });
+  }
+}
+
 export class APIClient {
   readonly socket: WebSocket;
   private handlers: Map<string, Array<(event: Event) => void>>;
 
+  // UUID -> Promise
+  private requests: Map<string, PromiseExt<void>>;
+
   constructor(url: string) {
     this.socket = new WebSocket(url);
     this.handlers = new Map();
+    this.requests = new Map();
 
     this.socket.onopen = () => {
       console.log("connected to server", this);
@@ -33,6 +55,7 @@ export class APIClient {
     this.socket.onmessage = async (event) => {
       const msg = Event.decode(new Uint8Array(await event.data.arrayBuffer()));
 
+      // Dispatch to event handlers
       for (const key of ["*", msg.eventOneof.$case]) {
         const handlersArr: Array<(event: Event) => void> =
           this.handlers.get(key);
@@ -42,6 +65,23 @@ export class APIClient {
 
         for (const cb of handlersArr) {
           cb(msg);
+        }
+      }
+
+      // Resolve response promise
+      if (msg.eventOneof.$case == "resp") {
+        const resp = msg.eventOneof.resp;
+
+        const result = this.requests.get(uuidStringify(resp.requestId));
+        if (result !== undefined) {
+          switch (resp.respOneof.$case) {
+            case "OK":
+              result.resolve();
+              break;
+            case "error":
+              result.reject(resp.respOneof.error);
+              break;
+          }
         }
       }
     };
@@ -73,10 +113,28 @@ export class APIClient {
       throw new Error(`socket not connected, status ${this.socket.readyState}`);
     }
 
-    console.log("Sending command", msg.commandOneof.$case, msg);
+    if (!msg.requestId) {
+      throw new Error("Message missing requestId");
+    }
 
     const bytes = Command.encode(msg).finish();
+
+    // Register request in the request map so we can route the response
+    const uuidString = uuidStringify(msg.requestId);
+
+    const promiseExt = new PromiseExt<void>(1000); // Timeout 1s
+    this.requests.set(uuidString, promiseExt);
+
+    console.log("Sending command", msg.commandOneof.$case, msg);
     this.socket.send(bytes);
+
+    try {
+      await promiseExt.promise;
+    } catch (e) {
+      console.error(e);
+    }
+
+    this.requests.delete(uuidString);
   }
 
   async powerOn(setpoint: number): Promise<void> {
