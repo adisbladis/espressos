@@ -22,8 +22,8 @@
 #include "ota.hpp"
 #include "webserver.hpp"
 
-#define CONFIG_FILE "config.pb"
-#define CONFIG_BUF_SIZE 128
+constexpr static const char *ConfigFile = "config.pb";
+constexpr static const int ConfigBufSize = 128;
 
 constexpr int OTAPort = 2040;
 constexpr int SerialBaudRate = 115200;
@@ -33,7 +33,9 @@ constexpr float PressureFilterMeaE = 0.6F;
 constexpr float PressureFilterEstE = 0.6F;
 constexpr float PressureFilterQ = 0.1F;
 
-static APIWebServer apiServer = APIWebServer(HTTP_PORT);
+static APIWebServer
+    apiServer = // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    APIWebServer(HTTP_PORT);
 
 void setupArduinoPressureSensor() {
   // TODO: Don't hardcode filter values and consider where this filter actually
@@ -101,7 +103,7 @@ void setupArduinoTempSensor() {
 
   // Read temp and issue events
   getEventLoop().createInterval(PRESSURE_SENSOR_INTERVAL, []() {
-    uint16_t rtd = 0;
+    static uint16_t rtd = 0;
     if (!thermo.readRTDAsync(rtd)) {
       return;
     };
@@ -117,7 +119,8 @@ void setupArduinoTempSensor() {
         return;
       }
 
-      std::string reason = "RTD Error: ";
+      static std::string reason = "RTD Error: ";
+
       if (fault & MAX31865_FAULT_HIGHTHRESH) {
         reason += "RTD High Threshold\n";
       }
@@ -147,8 +150,8 @@ void setupArduinoTempSensor() {
     // Normalised temp (130 degrees celsius -> 13000)
     auto tempCelsius = static_cast<int16_t>(
         thermo.temperatureAsync(rtd, BOILER_RNOMINAL, BOILER_RREF) *
-        100); // NOLINT(readability-magic-numbers)
-              // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        100); // NOLINT(readability-magic-numbers,
+              // cppcoreguidelines-avoid-magic-numbers)
     send_event(TempEvent(tempCelsius));
     // NOLINTEND(readability-implicit-bool-conversion)
   });
@@ -191,12 +194,12 @@ void setupArduinoConfig() {
   // loop.
 
   // Attempt to read config from flash
-  auto file = LittleFS.open(CONFIG_FILE, "r");
+  auto file = LittleFS.open(ConfigFile, "r");
   if (file) {
     Config config;
 
-    EmbeddedProto::ReadBufferFixedSize<CONFIG_BUF_SIZE> buf;
-    file.read(buf.get_data(), CONFIG_BUF_SIZE);
+    EmbeddedProto::ReadBufferFixedSize<ConfigBufSize> buf;
+    file.read(buf.get_data(), ConfigBufSize);
     file.close();
     buf.set_bytes_written(file.size());
 
@@ -209,12 +212,12 @@ void setupArduinoConfig() {
     send_event(ConfigSetEvent(config));
   }
 
-  static EmbeddedProto::WriteBufferFixedSize<CONFIG_BUF_SIZE> buf;
+  static EmbeddedProto::WriteBufferFixedSize<ConfigBufSize> buf;
 
   // Set up update handler to save config
   ::MachineSignals::config.createEffect(
       [](const Config &config) {
-        auto file = LittleFS.open(CONFIG_FILE, "w");
+        auto file = LittleFS.open(ConfigFile, "w");
         if (!file) {
           Serial.println("Could not open config file for writing");
           return;

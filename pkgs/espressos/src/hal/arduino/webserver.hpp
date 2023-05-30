@@ -86,7 +86,8 @@ private:
   // NOLINTEND(readability-convert-member-functions-to-static)
 
 public:
-  explicit APIWebServer(int port)
+  explicit APIWebServer( // NOLINT(cppcoreguidelines-pro-type-member-init)
+      int port)
       : server(port), handler(), onConnectCallback([]() {}) {
 
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload,
@@ -111,7 +112,8 @@ public:
 
         Serial.println("Got request");
         if (length > MsgBufSize) {
-          Serial.printf("error: length (%d) > MsgBufSize (%d)\n", length, MsgBufSize);
+          Serial.printf("error: length (%d) > MsgBufSize (%d)\n", length,
+                        MsgBufSize);
           break;
         } else {
           memcpy(buf.get_data(), payload, length);

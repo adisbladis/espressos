@@ -145,6 +145,8 @@ public:
     auto requestID = cmd.get_request_id();
 
     // Handle deserialization errors
+    //
+    // NOLINTBEGIN(bugprone-branch-clone)
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
       switch (status) {
       case ::EmbeddedProto::Error::END_OF_BUFFER:
@@ -181,6 +183,7 @@ public:
         break;
       }
     }
+    // NOLINTEND(bugprone-branch-clone)
 
     // Dispatch to API handler
     if (!error) {
