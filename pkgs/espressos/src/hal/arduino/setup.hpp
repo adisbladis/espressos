@@ -216,8 +216,7 @@ void setupArduinoConfig() {
       [](const Config &config) {
         auto file = LittleFS.open(CONFIG_FILE, "w");
         if (!file) {
-          logger->log(LogLevel::ERROR,
-                      "Could not open config file for writing");
+          Serial.println("Could not open config file for writing");
           return;
         }
 
@@ -225,8 +224,7 @@ void setupArduinoConfig() {
         file.close();
 
         if (bytesWritten != buf.get_size()) {
-          logger->log(LogLevel::ERROR,
-                      "Error writing config file (n != buf.size))");
+          Serial.println("Error writing config file (n != buf.size))");
           return;
         }
       },

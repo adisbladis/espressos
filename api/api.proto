@@ -151,8 +151,8 @@ message Event {
     // Get updated configuration
     Config config = 2;
 
-    // Generic log message
-    LogMessage log = 3;
+    // // Generic log message
+    // LogMessage log = 3;
 
     // Responses to requests
     Response resp = 4;

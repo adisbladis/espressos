@@ -10,9 +10,6 @@
 #include <fsmlist.hpp>
 
 #include "../../api/handler.hpp"
-#include "../../logger.hpp"
-
-typedef LogMessage<LOG_MESSAGE_SIZE> LogMessage_t;
 
 class WebServer : public WebSocketsServer {
 public:
@@ -27,19 +24,17 @@ public:
   }
 };
 
-class APIWebServer : public Logger {
+class APIWebServer {
 private:
   WebServer server;
   APIHandler handler;
   EmbeddedProto::ReadBufferFixedSize<MsgBufSize> buf;
   EmbeddedProto::WriteBufferFixedSize<MsgBufSize> outBuf;
-  char logMessageBuf[LOG_MESSAGE_SIZE];
   std::function<void()> onConnectCallback;
 
   // Preallocate a single event and re-use by setting oneof (also make sure to
   // reset requestId)
-  Event<ERROR_MESSAGE_SIZE, LOG_MESSAGE_SIZE, UUIDSize, ERROR_MESSAGE_SIZE>
-      event;
+  Event<ERROR_MESSAGE_SIZE, UUIDSize, ERROR_MESSAGE_SIZE> event;
 
   inline bool hasClients() { return this->server.connectedClients() > 0; };
 
@@ -61,7 +56,6 @@ private:
 
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
       outBuf.clear();
-      // Note: cannot use logger as it would cause infinite loops
       Serial.printf("encoding err: %d\n", status);
       return;
     }
@@ -83,7 +77,6 @@ private:
 
     if (status != ::EmbeddedProto::Error::NO_ERRORS) {
       outBuf.clear();
-      // Note: cannot use logger as it would cause infinite loops
       Serial.printf("encoding err: %d\n", status);
       return;
     }
@@ -116,10 +109,9 @@ public:
       case WStype_BIN:
         Serial.printf("[%u] received binary with length: %u\n", num, length);
 
-        logger->log(LogLevel::INFO, "Got request");
+        Serial.println("Got request");
         if (length > MsgBufSize) {
-          logger->log(LogLevel::ERROR, "length (%d) > MsgBufSize (%d)", length,
-                      MsgBufSize);
+          Serial.printf("error: length (%d) > MsgBufSize (%d)\n", length, MsgBufSize);
           break;
         } else {
           memcpy(buf.get_data(), payload, length);
@@ -138,45 +130,6 @@ public:
         break;
       }
     });
-  }
-
-  void log(LogLevel level, const char *message, ...) override {
-    if (!this->hasClients()) {
-      return;
-    }
-
-    va_list args;
-    va_start(args, message);
-    vsnprintf(logMessageBuf, LOG_MESSAGE_SIZE, message, args);
-    va_end(args);
-
-    auto log = event.get_log();
-
-    // NOLINTBEGIN(bugprone-branch-clone)
-    switch (level) {
-    case LogLevel::ERROR:
-      log.set_logLevel(LogMessage_t::LogLevel::ERROR);
-      break;
-    case LogLevel::INFO:
-      log.set_logLevel(LogMessage_t::LogLevel::INFO);
-      break;
-    case LogLevel::DEBUG:
-      log.set_logLevel(LogMessage_t::LogLevel::DEBUG);
-      break;
-    default:
-      log.set_logLevel(LogMessage_t::LogLevel::INFO);
-      break;
-    }
-    // NOLINTEND(bugprone-branch-clone)
-
-    auto fieldString = log.get_msg();
-    fieldString.set(logMessageBuf, strlen(logMessageBuf) > LOG_MESSAGE_SIZE
-                                       ? LOG_MESSAGE_SIZE
-                                       : strlen(logMessageBuf));
-    log.set_msg(fieldString);
-
-    event.set_log(log);
-    broadcastEvent();
   }
 
   void loop() { this->server.loop(); }
