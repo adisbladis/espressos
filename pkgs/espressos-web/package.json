@@ -8,7 +8,7 @@
     "build": "vite build",
     "serve": "vite preview"
   },
-  "license": "GPL-3.0-only",
+  "license": "AGPL-3.0-only",
   "devDependencies": {
     "@types/lodash.clonedeep": "^4.5.7",
     "@types/lodash.merge": "^4.6.7",
@@ -28,6 +28,9 @@
     "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
+    "@capacitor/android": "^5.0.4",
+    "@capacitor/cli": "^5.0.4",
+    "@capacitor/core": "^5.0.4",
     "chart.js": "^4.2.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2",

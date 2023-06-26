@@ -1,5 +1,6 @@
 let
   pkgs = import <nixpkgs> { };
+  inherit (pkgs) lib;
 
   embeddedproto = pkgs.python3.pkgs.callPackage
     ({ stdenv
@@ -54,6 +55,24 @@ let
     ps.ipython
   ]);
 
+  android-nixpkgs = pkgs.callPackage
+    (import (builtins.fetchGit {
+      url = "https://github.com/tadfisher/android-nixpkgs.git";
+    }))
+    { channel = "stable"; };
+
+  androidSDK = android-nixpkgs.sdk (sdkPkgs: with sdkPkgs; [
+    cmdline-tools-latest
+    build-tools-30-0-3
+    build-tools-34-0-0
+    platform-tools
+    platforms-android-33
+    emulator
+    patcher-v4
+    tools
+  ]);
+
+
 in
 pkgs.mkShell {
   packages = [
@@ -66,11 +85,17 @@ pkgs.mkShell {
     pkgs.clang-tools # clang-format
     pkgs.nixpkgs-fmt
 
+    androidSDK
+
     pythonEnv
 
     pkgs.protobuf
     embeddedproto
   ];
+
+  # Android workarounds
+  JAVA_HOME = "${pkgs.openjdk.home}";
+  GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidSDK}/share/android-sdk/build-tools/34.0.0/aapt2";
 
   shellHook = ''
     export PATH=${builtins.toString ./pkgs/espressos-web/node_modules/.bin}:"$PATH"

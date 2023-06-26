@@ -30,10 +30,12 @@ const Symbols = {
 };
 
 const client = new APIClient(
-  (window.location.protocol === "https:" ? "wss:" : "ws:") +
-    "//" +
-    window.location.host +
-    "/api",
+  "ws://10.1.1.137",
+  /*
+   * (window.location.protocol === "https:" ? "wss:" : "ws:") +
+   * "//" +
+   * window.location.host +
+   * "/api", */
 );
 
 // Allows to set a value with the setter being called at most once per maxInterval

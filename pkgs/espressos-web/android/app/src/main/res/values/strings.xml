@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">espressos</string>
+    <string name="title_activity_main">espressos</string>
+    <string name="package_name">coffee.bar.espressos</string>
+    <string name="custom_url_scheme">coffee.bar.espressos</string>
+</resources>
