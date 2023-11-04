@@ -113,13 +113,14 @@ void setupArduinoTempSensor() {
     // NOLINTBEGIN(readability-implicit-bool-conversion)
     if (fault) {
       thermo.clearFault();
+      errorCount++;
 
       // Ignore spurious errors and only propagate if it persists
       if (errorCount < 3) {
         return;
       }
 
-      static std::string reason = "RTD Error: ";
+      std::string reason = "RTD Error: ";
 
       if (fault & MAX31865_FAULT_HIGHTHRESH) {
         reason += "RTD High Threshold\n";
