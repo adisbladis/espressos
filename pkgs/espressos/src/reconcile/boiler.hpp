@@ -30,7 +30,7 @@ void setupBoilerPID(Signal<bool> &outputState) {
       [](const std::uint16_t &setpoint) { boilerPID.SetSetpoint(setpoint); });
 
   getEventLoop().createInterval(SampleTime, [&]() {
-    static std::int16_t temp = ::MachineSignals::temp.get();
+    std::int16_t temp = ::MachineSignals::temp.get();
 
     auto Output = boilerPID.Compute(temp);
 
