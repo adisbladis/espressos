@@ -10,6 +10,7 @@ let
      , six
      , toposort
      , protobuf
+     , pip
      }:
       let
         pname = "EmbeddedProto";
@@ -23,7 +24,7 @@ let
           repo = "EmbeddedProto";
           owner = "adisbladis";
           rev = "setuptools";
-          sha256 = "sha256-FUchrDG7xi0qqA+6rovAtdJ6WlHMLTwgslFG12HhFRc=";
+          hash = "sha256-ros5pFMqzj5/Bza+ZyZiNW1GvF0ze1+RK31j6RnL050=";
         };
 
         sourceRoot = "source/generator";
@@ -31,6 +32,10 @@ let
         postPatch = ''
           substituteInPlace setup.py --replace "==" ">="
         '';
+
+        nativeBuildInputs = [
+          pip
+        ];
 
         propagatedBuildInputs = [
           jinja2
