@@ -95,6 +95,8 @@ void setupArduinoPressureSensor() {
 
 void setupArduinoTempSensor() {
   static Adafruit_MAX31865 thermo(BOILER_MAX31865_SPI_PIN, BOILER_SPI_CLASS);
+  static int errorCount = 0;
+
   thermo.begin();
 
   // Read temp and issue events
@@ -109,6 +111,11 @@ void setupArduinoTempSensor() {
     // NOLINTBEGIN(readability-implicit-bool-conversion)
     if (fault) {
       thermo.clearFault();
+
+      // Ignore spurious errors and only propagate if it persists
+      if (errorCount < 3) {
+        return;
+      }
 
       std::string reason = "RTD Error: ";
       if (fault & MAX31865_FAULT_HIGHTHRESH) {
@@ -131,7 +138,10 @@ void setupArduinoTempSensor() {
       }
 
       send_event(PanicEvent(reason));
+
       return;
+    } else {
+      errorCount = 0;
     }
 
     // Normalised temp (130 degrees celsius -> 13000)
