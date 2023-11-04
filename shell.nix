@@ -85,7 +85,7 @@ pkgs.mkShell {
     pkgs.clang-tools # clang-format
     pkgs.nixpkgs-fmt
 
-    androidSDK
+    # androidSDK
 
     pythonEnv
 
@@ -93,9 +93,9 @@ pkgs.mkShell {
     embeddedproto
   ];
 
-  # Android workarounds
-  JAVA_HOME = "${pkgs.openjdk.home}";
-  GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidSDK}/share/android-sdk/build-tools/34.0.0/aapt2";
+  # # Android workarounds
+  # JAVA_HOME = "${pkgs.openjdk.home}";
+  # GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidSDK}/share/android-sdk/build-tools/34.0.0/aapt2";
 
   shellHook = ''
     export PATH=${builtins.toString ./pkgs/espressos-web/node_modules/.bin}:"$PATH"
